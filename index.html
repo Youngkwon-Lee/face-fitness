@@ -185,6 +185,19 @@ header{
 }
 .rep-count{font-size:.9rem;font-weight:700;text-align:center;color:var(--accent2);}
 
+/* MUSCLE ACTIVATION MONITOR */
+.mm-muscle{margin-bottom:9px;}
+.mm-mhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;}
+.mm-mname{font-size:.7rem;font-weight:700;color:var(--text);}
+.mm-msub{font-size:.57rem;color:var(--dim);font-weight:400;}
+.mm-asym{font-size:.63rem;font-weight:800;padding:1px 6px;border-radius:4px;min-width:38px;text-align:center;}
+.mm-brow{display:flex;align-items:center;gap:5px;margin-bottom:2px;}
+.mm-side{font-size:.6rem;color:var(--accent2);font-weight:800;width:12px;text-align:center;flex-shrink:0;}
+.mm-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.mm-fill{height:100%;border-radius:3px;transition:width .12s linear,background .3s;}
+.mm-pct{font-size:.65rem;font-weight:700;min-width:28px;text-align:right;flex-shrink:0;}
+.mm-divider{border:none;border-top:1px solid var(--border);margin:4px 0;}
+
 /* scrollbar */
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
@@ -247,41 +260,99 @@ header{
         <div class="assess-grid" id="assessGrid"></div>
       </div>
 
-      <!-- Live metrics during assess -->
+      <!-- Muscle Activation Monitor -->
       <div class="card" id="aMetricsCard">
-        <div class="card-title">실시간 측정</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="aMetrics">
-            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
-              <div style="font-size:1.1rem;font-weight:800;color:var(--accent);" id="mSmileL">—</div>
-              <div style="font-size:.6rem;color:var(--dim);">좌 입꼬리</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="card-title" style="margin:0;">근육 활성화 모니터</div>
+          <button onclick="resetMusclePeaks()" style="background:none;border:1px solid var(--border);color:var(--dim);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:.6rem;letter-spacing:.5px;">RESET</button>
+        </div>
+        <div id="muscleMonitor">
+          <!-- ZMaj (광대근) — bilateral via mouth-corner lift -->
+          <div class="mm-muscle">
+            <div class="mm-mhead">
+              <span class="mm-mname">광대근 <span class="mm-msub">Zygomaticus Major</span></span>
+              <span class="mm-asym" id="mm_smA">—</span>
             </div>
-            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
-              <div style="font-size:1.1rem;font-weight:800;color:var(--accent);" id="mSmileR">—</div>
-              <div style="font-size:.6rem;color:var(--dim);">우 입꼬리</div>
+            <div class="mm-brow">
+              <span class="mm-side">L</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_smL" style="width:0%"></div></div>
+              <span class="mm-pct" id="mm_smL_pct">—</span>
             </div>
-            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
-              <div style="font-size:1.1rem;font-weight:800;color:var(--accent2);" id="mBrowL">—</div>
-              <div style="font-size:.6rem;color:var(--dim);">좌 눈썹</div>
-            </div>
-            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
-              <div style="font-size:1.1rem;font-weight:800;color:var(--accent2);" id="mBrowR">—</div>
-              <div style="font-size:.6rem;color:var(--dim);">우 눈썹</div>
-            </div>
-            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
-              <div style="font-size:1.1rem;font-weight:800;color:var(--accent4);" id="mEyeL">—</div>
-              <div style="font-size:.6rem;color:var(--dim);">좌 눈 EAR</div>
-            </div>
-            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
-              <div style="font-size:1.1rem;font-weight:800;color:var(--accent4);" id="mEyeR">—</div>
-              <div style="font-size:.6rem;color:var(--dim);">우 눈 EAR</div>
+            <div class="mm-brow">
+              <span class="mm-side">R</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_smR" style="width:0%"></div></div>
+              <span class="mm-pct" id="mm_smR_pct">—</span>
             </div>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;">
-            <span style="font-size:.7rem;color:var(--dim);">좌우 대칭</span>
-            <span style="font-size:1rem;font-weight:800;color:var(--accent3);" id="mSym">—</span>
+          <!-- Frontalis (전두근) — bilateral via brow lift -->
+          <div class="mm-muscle">
+            <div class="mm-mhead">
+              <span class="mm-mname">전두근 <span class="mm-msub">Frontalis</span></span>
+              <span class="mm-asym" id="mm_brA">—</span>
+            </div>
+            <div class="mm-brow">
+              <span class="mm-side">L</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_brL" style="width:0%"></div></div>
+              <span class="mm-pct" id="mm_brL_pct">—</span>
+            </div>
+            <div class="mm-brow">
+              <span class="mm-side">R</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_brR" style="width:0%"></div></div>
+              <span class="mm-pct" id="mm_brR_pct">—</span>
+            </div>
+          </div>
+          <!-- Orbicularis Oculi (안륜근) — bilateral via EAR -->
+          <div class="mm-muscle">
+            <div class="mm-mhead">
+              <span class="mm-mname">안륜근 <span class="mm-msub">Orbicularis Oculi (EAR)</span></span>
+              <span class="mm-asym" id="mm_eyA">—</span>
+            </div>
+            <div class="mm-brow">
+              <span class="mm-side">L</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_eyL" style="width:0%"></div></div>
+              <span class="mm-pct" id="mm_eyL_pct">—</span>
+            </div>
+            <div class="mm-brow">
+              <span class="mm-side">R</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_eyR" style="width:0%"></div></div>
+              <span class="mm-pct" id="mm_eyR_pct">—</span>
+            </div>
+          </div>
+          <hr class="mm-divider">
+          <!-- Corrugator (미간주름근) — single, COMPENSATOR -->
+          <div class="mm-muscle" style="margin-bottom:6px;">
+            <div class="mm-mhead">
+              <span class="mm-mname">미간주름근 <span class="mm-msub">Corrugator ⚠ 보상근</span></span>
+              <span class="mm-pct" id="mm_corr_pct">—</span>
+            </div>
+            <div class="mm-brow">
+              <span class="mm-side" style="color:var(--danger);">⚠</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_corr" style="width:0%;background:var(--accent4)"></div></div>
+            </div>
+          </div>
+          <!-- Platysma (광경근) — single, COMPENSATOR -->
+          <div class="mm-muscle" style="margin-bottom:4px;">
+            <div class="mm-mhead">
+              <span class="mm-mname">광경근 <span class="mm-msub">Platysma ⚠ 보상근</span></span>
+              <span class="mm-pct" id="mm_plat_pct">—</span>
+            </div>
+            <div class="mm-brow">
+              <span class="mm-side" style="color:var(--danger);">⚠</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_plat" style="width:0%;background:var(--accent4)"></div></div>
+            </div>
           </div>
         </div>
+        <!-- Symmetry score -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;margin-top:8px;border:1px solid var(--border);">
+          <span style="font-size:.7rem;color:var(--dim);">전체 좌우 대칭</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:70px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+              <div id="mm_sym_bar" style="height:100%;background:var(--accent3);border-radius:2px;transition:width .2s;width:0%;"></div>
+            </div>
+            <span style="font-size:1.1rem;font-weight:800;" id="mSym">—</span>
+          </div>
+        </div>
+        <div style="margin-top:5px;font-size:.57rem;color:var(--dim);line-height:1.4;">★ 세션 최대값 기준 정규화 · 좌우 비대칭 △은 절대값보다 신뢰도 높음 (카메라 각도 오차 상쇄) · 안륜근=EAR 비율</div>
       </div>
     </div>
   </div>
@@ -345,6 +416,46 @@ header{
       <div class="card" id="compCard">
         <div class="card-title">⚠ 보상근육 감시</div>
         <div id="compFeedback" style="font-size:.78rem;color:var(--dim);">운동 시작 후 활성화됩니다</div>
+      </div>
+
+      <!-- Muscle Monitor (program screen compact) -->
+      <div class="card">
+        <div class="card-title">근육 활성화 (실시간)</div>
+        <div>
+          <div class="mm-muscle">
+            <div class="mm-mhead">
+              <span class="mm-mname">광대근 <span class="mm-msub">ZMaj</span></span>
+              <span class="mm-asym" id="pmm_smA">—</span>
+            </div>
+            <div class="mm-brow"><span class="mm-side">L</span><div class="mm-track"><div class="mm-fill" id="pmm_smL" style="width:0%"></div></div><span class="mm-pct" id="pmm_smL_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side">R</span><div class="mm-track"><div class="mm-fill" id="pmm_smR" style="width:0%"></div></div><span class="mm-pct" id="pmm_smR_pct">—</span></div>
+          </div>
+          <div class="mm-muscle">
+            <div class="mm-mhead">
+              <span class="mm-mname">전두근 <span class="mm-msub">Frontalis</span></span>
+              <span class="mm-asym" id="pmm_brA">—</span>
+            </div>
+            <div class="mm-brow"><span class="mm-side">L</span><div class="mm-track"><div class="mm-fill" id="pmm_brL" style="width:0%"></div></div><span class="mm-pct" id="pmm_brL_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side">R</span><div class="mm-track"><div class="mm-fill" id="pmm_brR" style="width:0%"></div></div><span class="mm-pct" id="pmm_brR_pct">—</span></div>
+          </div>
+          <div class="mm-muscle" style="margin-bottom:4px;">
+            <div class="mm-mhead">
+              <span class="mm-mname">안륜근 <span class="mm-msub">OrbOculi</span></span>
+              <span class="mm-asym" id="pmm_eyA">—</span>
+            </div>
+            <div class="mm-brow"><span class="mm-side">L</span><div class="mm-track"><div class="mm-fill" id="pmm_eyL" style="width:0%"></div></div><span class="mm-pct" id="pmm_eyL_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side">R</span><div class="mm-track"><div class="mm-fill" id="pmm_eyR" style="width:0%"></div></div><span class="mm-pct" id="pmm_eyR_pct">—</span></div>
+          </div>
+          <hr class="mm-divider">
+          <div class="mm-muscle" style="margin-bottom:4px;">
+            <div class="mm-mhead"><span class="mm-mname">미간근 <span class="mm-msub">⚠ 보상</span></span><span class="mm-pct" id="pmm_corr_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" style="color:var(--danger);">⚠</span><div class="mm-track"><div class="mm-fill" id="pmm_corr" style="width:0%;background:var(--accent4)"></div></div></div>
+          </div>
+          <div class="mm-muscle" style="margin-bottom:0;">
+            <div class="mm-mhead"><span class="mm-mname">광경근 <span class="mm-msub">⚠ 보상</span></span><span class="mm-pct" id="pmm_plat_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" style="color:var(--danger);">⚠</span><div class="mm-track"><div class="mm-fill" id="pmm_plat" style="width:0%;background:var(--accent4)"></div></div></div>
+          </div>
+        </div>
       </div>
 
       <!-- FFI -->
@@ -672,6 +783,10 @@ let seqMode = false, seqIdx = 0;
 // Assessment zone scores (0-100)
 const zoneScores = {upper:null, mid:null, lower:null, neck:null};
 const priorityZones = [];
+
+// Muscle activation peak tracking (session max — used as denominator for % normalization)
+const musclePeaks = {smL:0.002,smR:0.002,brL:0.002,brR:0.002,eyL:0.002,eyR:0.002,corr:0.003,plat:0.003};
+function resetMusclePeaks(){Object.assign(musclePeaks,{smL:0.002,smR:0.002,brL:0.002,brR:0.002,eyL:0.002,eyR:0.002,corr:0.003,plat:0.003});}
 
 // History (localStorage)
 const HIST_KEY = 'ff_history';
@@ -1109,18 +1224,10 @@ function analyzeFrame(lm) {
 }
 
 function updateLiveUI() {
-  const fmt = v => (v>=0?'+':'') + (v*100).toFixed(1);
-  document.getElementById('mSmileL').textContent = fmt(metrics.relSmileL||0);
-  document.getElementById('mSmileR').textContent = fmt(metrics.relSmileR||0);
-  document.getElementById('mBrowL').textContent  = fmt(metrics.relBrowL||0);
-  document.getElementById('mBrowR').textContent  = fmt(metrics.relBrowR||0);
-  document.getElementById('mEyeL').textContent   = (metrics.earL||0).toFixed(3);
-  document.getElementById('mEyeR').textContent   = (metrics.earR||0).toFixed(3);
-  document.getElementById('mSym').textContent    = Math.round(metrics.symScore||0);
-
-  // Top-level feedback dots (assess screen)
-  const setDot = (dotId,txtId,val,thresh,label,firing) => {
+  // Feedback dots (assess screen camera overlay)
+  const setDot = (dotId,txtId,val,thresh,label) => {
     const d=document.getElementById(dotId), t=document.getElementById(txtId);
+    if (!d) return;
     const fire = Math.abs(val)>thresh;
     d.className='fb-dot '+(fire?'bad':'good');
     t.textContent=label+(fire?' ⚠':'');
@@ -1129,6 +1236,108 @@ function updateLiveUI() {
   setDot('fbBrow','fbBrowTxt',metrics.relBrowL||0,0.003,'눈썹');
   setDot('fbCorner','fbCornerTxt',metrics.relSmileL||0,-0.002,'입꼬리');
   setDot('fbFront','fbFrontTxt',metrics.frontalBrow||0,0.003,'이마 보상');
+
+  updateMuscleMonitor();
+}
+
+// ═══════════════════════════════════════════════════════════
+// MUSCLE ACTIVATION MONITOR — bilateral comparison
+// Proxy mapping (FACS-validated movement-based):
+//   ZMaj    ← relSmileL/R (mouth corner elevation)
+//   Frontalis ← relBrowL/R (brow elevation)
+//   OrbOculi  ← earL/R relative to baseline (eye aperture)
+//   Corrugator ← corrugator (glabellar narrowing)
+//   Platysma   ← platysma (mouth corner depression)
+// ═══════════════════════════════════════════════════════════
+function updateMuscleMonitor() {
+  if (!blDone) return;
+
+  // Raw values (clamped >= 0)
+  const smL  = Math.max(0, metrics.relSmileL  || 0);
+  const smR  = Math.max(0, metrics.relSmileR  || 0);
+  const brL  = Math.max(0, metrics.relBrowL   || 0);
+  const brR  = Math.max(0, metrics.relBrowR   || 0);
+  const eyL  = Math.max(0, (metrics.earL||0) - (BL.earL||0));
+  const eyR  = Math.max(0, (metrics.earR||0) - (BL.earR||0));
+  const corr = Math.max(0, metrics.corrugator || 0);
+  const plat = Math.max(0, metrics.platysma   || 0);
+
+  // Update session peaks
+  musclePeaks.smL  = Math.max(musclePeaks.smL,  smL);
+  musclePeaks.smR  = Math.max(musclePeaks.smR,  smR);
+  musclePeaks.brL  = Math.max(musclePeaks.brL,  brL);
+  musclePeaks.brR  = Math.max(musclePeaks.brR,  brR);
+  musclePeaks.eyL  = Math.max(musclePeaks.eyL,  eyL);
+  musclePeaks.eyR  = Math.max(musclePeaks.eyR,  eyR);
+  musclePeaks.corr = Math.max(musclePeaks.corr, corr);
+  musclePeaks.plat = Math.max(musclePeaks.plat, plat);
+
+  // Use SHARED peak (larger of L/R) so bilateral bars are on the same scale
+  const smPk  = Math.max(musclePeaks.smL, musclePeaks.smR, 0.001);
+  const brPk  = Math.max(musclePeaks.brL, musclePeaks.brR, 0.001);
+  const eyPk  = Math.max(musclePeaks.eyL, musclePeaks.eyR, 0.001);
+
+  const pct = (v, pk) => Math.min(100, Math.round(v / pk * 100));
+  const pSmL = pct(smL, smPk), pSmR = pct(smR, smPk);
+  const pBrL = pct(brL, brPk), pBrR = pct(brR, brPk);
+  const pEyL = pct(eyL, eyPk), pEyR = pct(eyR, eyPk);
+  const pCorr = pct(corr, Math.max(musclePeaks.corr, 0.001));
+  const pPlat = pct(plat, Math.max(musclePeaks.plat, 0.001));
+
+  // Asymmetry = absolute percentage-point difference
+  const asSm = Math.abs(pSmL - pSmR);
+  const asBr = Math.abs(pBrL - pBrR);
+  const asEy = Math.abs(pEyL - pEyR);
+
+  // Color helpers
+  const actCol  = v => v > 65 ? '#34d399' : v > 25 ? '#f472b6' : '#818cf8';
+  const compCol = v => v < 20 ? '#34d399' : v < 50 ? '#fbbf24' : '#f87171';
+  const asymCol = v => v < 10 ? '#34d399' : v < 25 ? '#fbbf24' : '#f87171';
+
+  const setBar = (id, w, col) => {
+    const e = document.getElementById(id);
+    if (e) { e.style.width = w + '%'; e.style.background = col; }
+  };
+  const setTxt = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+  const setAsym = (id, v) => {
+    const e = document.getElementById(id);
+    if (!e) return;
+    e.textContent = '△ ' + v + '%';
+    const col = asymCol(v);
+    e.style.color = col;
+    e.style.background = col + '20';
+  };
+
+  // Update both screen instances (prefix mm_ = assess, pmm_ = program)
+  for (const p of ['mm_', 'pmm_']) {
+    setBar(p+'smL', pSmL, actCol(pSmL)); setTxt(p+'smL_pct', pSmL+'%');
+    setBar(p+'smR', pSmR, actCol(pSmR)); setTxt(p+'smR_pct', pSmR+'%');
+    setAsym(p+'smA', asSm);
+
+    setBar(p+'brL', pBrL, actCol(pBrL)); setTxt(p+'brL_pct', pBrL+'%');
+    setBar(p+'brR', pBrR, actCol(pBrR)); setTxt(p+'brR_pct', pBrR+'%');
+    setAsym(p+'brA', asBr);
+
+    setBar(p+'eyL', pEyL, actCol(pEyL)); setTxt(p+'eyL_pct', pEyL+'%');
+    setBar(p+'eyR', pEyR, actCol(pEyR)); setTxt(p+'eyR_pct', pEyR+'%');
+    setAsym(p+'eyA', asEy);
+
+    setBar(p+'corr', pCorr, compCol(pCorr)); setTxt(p+'corr_pct', pCorr+'%');
+    setBar(p+'plat', pPlat, compCol(pPlat)); setTxt(p+'plat_pct', pPlat+'%');
+  }
+
+  // Symmetry bar + score (assess screen only)
+  const sym = Math.round(metrics.symScore || 0);
+  const symBar = document.getElementById('mm_sym_bar');
+  if (symBar) {
+    symBar.style.width = sym + '%';
+    symBar.style.background = sym >= 80 ? '#34d399' : sym >= 60 ? '#fbbf24' : '#f87171';
+  }
+  const symTxt = document.getElementById('mSym');
+  if (symTxt) {
+    symTxt.textContent = sym;
+    symTxt.style.color = sym >= 80 ? 'var(--accent3)' : sym >= 60 ? 'var(--accent4)' : 'var(--danger)';
+  }
 }
 
 function updateCompensatorUI() {
