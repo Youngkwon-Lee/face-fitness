@@ -743,9 +743,65 @@ const FM_R_BROW=[[276,283],[283,282],[282,295],[295,285],[285,300],[300,293],[29
 const FM_LIPS=[[61,146],[146,91],[91,181],[181,84],[84,17],[17,314],[314,405],[405,321],[321,375],[375,291],[61,76],[76,77],[77,90],[90,180],[180,85],[85,16],[16,315],[315,404],[404,320],[320,307],[307,291],[13,82],[82,81],[81,80],[80,191],[191,78],[78,62],[62,76],[13,312],[312,311],[311,310],[310,415],[415,308],[308,324],[324,318],[318,402],[402,317],[317,14]];
 const FM_NOSE=[[168,6],[6,197],[197,195],[195,5],[5,4],[4,1],[1,19],[19,94],[94,2],[2,164],[164,0],[0,11],[11,12]];
 
+// ── EFFECT STATE ──────────────────────────────────────────
+let fxTime = 0; // increments each frame
+const particles = []; // {x,y,vx,vy,life,maxLife,r,col}
+let compFlash = 0;  // frames remaining for red compensator flash
+let activationGlow = {L:0, R:0}; // 0-1 glow intensity per side
+let burstPending = false;
+
+// Zone accent colors (used for mesh/hull tint during exercise)
+const ZONE_COLORS = {
+  upper: {mesh:'rgba(129,140,248,0.18)', hull:'#818cf8', feat:'rgba(129,140,248,0.9)'},
+  mid:   {mesh:'rgba(244,114,182,0.16)', hull:'#f472b6', feat:'rgba(244,114,182,0.9)'},
+  lower: {mesh:'rgba(251,191,36,0.15)',  hull:'#fbbf24', feat:'rgba(251,191,36,0.9)'},
+  neck:  {mesh:'rgba(52,211,153,0.14)',  hull:'#34d399', feat:'rgba(52,211,153,0.9)'},
+  idle:  {mesh:'rgba(244,114,182,0.10)', hull:'#f472b6', feat:'rgba(244,114,182,0.75)'},
+};
+
+// Landmark clusters per zone (for zone highlight overlay)
+const ZONE_CLUSTERS = {
+  upper: [10,151,9,66,105,296,334,55,285,107,336,46,276,33,263,157,158,159,160,161,246,386,385,384,398,362],
+  mid:   [117,118,119,120,100,101,50,36,147,205,187,123,116,346,347,348,349,329,423,425,266,352,345,330,280],
+  lower: [61,291,78,308,80,310,81,311,82,312,13,14,87,317,178,402,176,400,61,76,77,90,180,85,16,315,404,320,307],
+  neck:  [172,136,150,149,176,148,152,377,400,378,379,365,397,288,361,323,454,356,389,251,284,332,297,338,10],
+};
+
+function spawnParticles(x, y, col, n=12) {
+  for (let i=0;i<n;i++) {
+    const angle = Math.random()*Math.PI*2;
+    const speed = 1+Math.random()*3;
+    particles.push({x,y, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed-1,
+      life:30+Math.random()*20, maxLife:50, r:2+Math.random()*3, col});
+  }
+}
+
+function triggerBurst(lm, W, H) {
+  const lx = i => (1-lm[i].x)*W, ly = i => lm[i].y*H;
+  const cx = (lx(61)+lx(291))/2, cy = (ly(61)+ly(291))/2;
+  spawnParticles(cx, cy, '#f472b6', 20);
+  spawnParticles(lx(33), ly(33), '#818cf8', 10);
+  spawnParticles(lx(263), ly(263), '#818cf8', 10);
+  spawnParticles(cx, ly(10), '#fbbf24', 12);
+}
+
 function drawFaceOnBoth(lm) {
+  fxTime++;
+  // Decay glow
+  activationGlow.L = Math.max(0, activationGlow.L - 0.04);
+  activationGlow.R = Math.max(0, activationGlow.R - 0.04);
+  if (compFlash > 0) compFlash--;
+  // Activation glow from metrics
+  if (blDone && metrics.relSmileL > 0.004) activationGlow.L = Math.min(1, activationGlow.L + 0.15);
+  if (blDone && metrics.relSmileR > 0.004) activationGlow.R = Math.min(1, activationGlow.R + 0.15);
+  // Compensator flash
+  if (blDone && metrics.corrugator > 0.005) compFlash = 8;
+  if (blDone && metrics.frontalBrow > 0.005) compFlash = 8;
+
   drawFaceOnCanvas('overlay', lm);
   drawFaceOnCanvas('overlay2', lm);
+
+  if (burstPending) { burstPending = false; }
 }
 
 function drawFaceOnCanvas(canvasId, lm) {
@@ -756,52 +812,191 @@ function drawFaceOnCanvas(canvasId, lm) {
   const lx = i => (1 - lm[i].x) * W;
   const ly = i => lm[i].y * H;
 
-  // Convex hull
+  // Determine active zone color
+  const activeZone = (exState==='running' && EXERCISES[exIdx]) ? EXERCISES[exIdx].zone : 'idle';
+  const zc = ZONE_COLORS[activeZone] || ZONE_COLORS.idle;
+  const isRunning = (exState==='running' || assessActive);
+  const pulse = isRunning ? 0.5 + 0.5*Math.sin(fxTime*0.12) : 0.6; // 0.0-1.0 pulse
+
+  // ── Zone highlight overlay ───────────────────────────────
+  if (isRunning && activeZone !== 'idle' && ZONE_CLUSTERS[activeZone]) {
+    const zpts = ZONE_CLUSTERS[activeZone].map(i=>({x:lx(i),y:ly(i)}));
+    zpts.sort((a,b)=>a.x!==b.x?a.x-b.x:a.y-b.y);
+    const cross2=(O,A,B)=>(A.x-O.x)*(B.y-O.y)-(A.y-O.y)*(B.x-O.x);
+    const zh=[]; for(const p of zpts){while(zh.length>=2&&cross2(zh[zh.length-2],zh[zh.length-1],p)<=0)zh.pop();zh.push(p);}
+    const zlo=zh.length+1; for(let i=zpts.length-1;i>=0;i--){const p=zpts[i];while(zh.length>=zlo&&cross2(zh[zh.length-2],zh[zh.length-1],p)<=0)zh.pop();zh.push(p);} zh.pop();
+    ctx.save();
+    ctx.fillStyle = zc.mesh.replace('0.1','0.08').replace('0.16','0.08').replace('0.18','0.08').replace('0.15','0.08').replace('0.14','0.08');
+    ctx.shadowBlur=20; ctx.shadowColor=zc.hull;
+    ctx.beginPath(); zh.forEach((p,n)=>n===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+
+  // ── Convex hull (with pulse glow) ───────────────────────
   const pts = []; for(let i=0;i<468;i++) pts.push({x:lx(i),y:ly(i)});
   pts.sort((a,b)=>a.x!==b.x?a.x-b.x:a.y-b.y);
   const cross=(O,A,B)=>(A.x-O.x)*(B.y-O.y)-(A.y-O.y)*(B.x-O.x);
   const hull=[]; for(const p of pts){while(hull.length>=2&&cross(hull[hull.length-2],hull[hull.length-1],p)<=0)hull.pop();hull.push(p);}
   const lo=hull.length+1; for(let i=pts.length-1;i>=0;i--){const p=pts[i];while(hull.length>=lo&&cross(hull[hull.length-2],hull[hull.length-1],p)<=0)hull.pop();hull.push(p);} hull.pop();
-  ctx.save(); ctx.strokeStyle='rgba(244,114,182,0.45)'; ctx.lineWidth=1.8; ctx.shadowBlur=8; ctx.shadowColor='#f472b6';
-  ctx.beginPath(); hull.forEach((p,n)=>n===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.closePath(); ctx.stroke(); ctx.restore();
+  const hullAlpha = isRunning ? (0.35 + 0.3*pulse) : 0.4;
+  const hullBlur  = isRunning ? (8 + 10*pulse)     : 8;
+  ctx.save();
+  ctx.strokeStyle = isRunning ? zc.hull + Math.round(hullAlpha*255).toString(16).padStart(2,'0') : 'rgba(244,114,182,0.4)';
+  ctx.lineWidth=isRunning?2.5:1.8; ctx.shadowBlur=hullBlur; ctx.shadowColor=isRunning?zc.hull:'#f472b6';
+  ctx.beginPath(); hull.forEach((p,n)=>n===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.closePath(); ctx.stroke();
+  ctx.restore();
 
-  // Dense mesh
+  // ── Dense mesh (zone-tinted) ─────────────────────────────
   if (!faceEdgeCache) {
     faceEdgeCache=[];
     const T=0.078;
     for(let i=0;i<468;i++) for(let j=i+1;j<468;j++){const dx=lm[i].x-lm[j].x,dy=lm[i].y-lm[j].y;if(dx*dx+dy*dy<T*T)faceEdgeCache.push([i,j]);}
   }
-  ctx.save(); ctx.strokeStyle='rgba(244,114,182,0.12)'; ctx.lineWidth=0.5;
+  ctx.save(); ctx.strokeStyle=zc.mesh; ctx.lineWidth=0.5;
   ctx.beginPath(); faceEdgeCache.forEach(([a,b])=>{ctx.moveTo(lx(a),ly(a));ctx.lineTo(lx(b),ly(b));}); ctx.stroke(); ctx.restore();
 
-  // Feature edges
-  const fe=(edges,col,lw)=>{ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.shadowBlur=4;ctx.shadowColor=col;ctx.beginPath();edges.forEach(([a,b])=>{ctx.moveTo(lx(a),ly(a));ctx.lineTo(lx(b),ly(b));});ctx.stroke();ctx.restore();};
-  fe(FM_L_EYE,'rgba(129,140,248,0.8)',1.2); fe(FM_R_EYE,'rgba(129,140,248,0.8)',1.2);
-  fe(FM_L_BROW,'rgba(251,191,36,0.7)',1.1); fe(FM_R_BROW,'rgba(251,191,36,0.7)',1.1);
-  fe(FM_LIPS,'rgba(244,114,182,0.75)',1.2);
-  fe(FM_NOSE,'rgba(52,211,153,0.55)',0.8);
+  // ── Feature edges (brighter during active zone) ──────────
+  const eyeCol  = activeZone==='upper' ? `rgba(129,140,248,${0.7+0.25*pulse})` : 'rgba(129,140,248,0.8)';
+  const browCol = activeZone==='upper' ? `rgba(251,191,36,${0.6+0.3*pulse})`   : 'rgba(251,191,36,0.7)';
+  const lipCol  = activeZone==='mid'||activeZone==='lower' ? `rgba(244,114,182,${0.65+0.3*pulse})` : 'rgba(244,114,182,0.7)';
+  const noseCol = 'rgba(52,211,153,0.55)';
+  const eyeLW   = activeZone==='upper' ? 1.4+0.4*pulse : 1.2;
+  const lipLW   = (activeZone==='mid'||activeZone==='lower') ? 1.5+0.4*pulse : 1.2;
+  const fe=(edges,col,lw,blur=4)=>{ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.shadowBlur=blur;ctx.shadowColor=col;ctx.beginPath();edges.forEach(([a,b])=>{ctx.moveTo(lx(a),ly(a));ctx.lineTo(lx(b),ly(b));});ctx.stroke();ctx.restore();};
+  fe(FM_L_EYE,eyeCol,eyeLW, activeZone==='upper'?8:4);
+  fe(FM_R_EYE,eyeCol,eyeLW, activeZone==='upper'?8:4);
+  fe(FM_L_BROW,browCol,activeZone==='upper'?1.4:1.1, activeZone==='upper'?6:3);
+  fe(FM_R_BROW,browCol,activeZone==='upper'?1.4:1.1, activeZone==='upper'?6:3);
+  fe(FM_LIPS,lipCol,lipLW, (activeZone==='mid'||activeZone==='lower')?8:4);
+  fe(FM_NOSE,noseCol,0.8,2);
 
-  // Dots
-  ctx.save(); ctx.fillStyle='rgba(244,114,182,0.65)';
-  ctx.beginPath(); for(let i=0;i<468;i++){const x=lx(i),y=ly(i);ctx.moveTo(x+2,y);ctx.arc(x,y,2,0,Math.PI*2);} ctx.fill(); ctx.restore();
+  // ── Dots ─────────────────────────────────────────────────
+  const dotAlpha = isRunning ? (0.55+0.2*pulse) : 0.65;
+  const dotR     = isRunning ? (1.8+0.5*pulse)  : 2;
+  ctx.save(); ctx.fillStyle=`rgba(244,114,182,${dotAlpha.toFixed(2)})`;
+  ctx.shadowBlur=isRunning?4:0; ctx.shadowColor='#f472b6';
+  ctx.beginPath(); for(let i=0;i<468;i++){const x=lx(i),y=ly(i);ctx.moveTo(x+dotR,y);ctx.arc(x,y,dotR,0,Math.PI*2);} ctx.fill(); ctx.restore();
 
-  // Glabellar line (key metric)
+  // ── Key landmark highlights ───────────────────────────────
+  const keyPts = [
+    {i:61,  col:'#f472b6', label:'L', active: activeZone==='mid'||activeZone==='lower'},
+    {i:291, col:'#f472b6', label:'R', active: activeZone==='mid'||activeZone==='lower'},
+    {i:107, col:'#fbbf24', label:'',  active: activeZone==='upper'},
+    {i:336, col:'#fbbf24', label:'',  active: activeZone==='upper'},
+    {i:33,  col:'#818cf8', label:'L', active: activeZone==='upper'},
+    {i:263, col:'#818cf8', label:'R', active: activeZone==='upper'},
+  ];
+  keyPts.forEach(({i,col,active}) => {
+    const r = active ? (4+2*pulse) : 3.5;
+    const blur = active ? (10+6*pulse) : 6;
+    ctx.save(); ctx.fillStyle=col; ctx.shadowBlur=blur; ctx.shadowColor=col;
+    ctx.beginPath(); ctx.arc(lx(i),ly(i),r,0,Math.PI*2); ctx.fill(); ctx.restore();
+  });
+
+  // ── Glabellar distance indicator ─────────────────────────
   const gx1=lx(107), gy1=ly(107), gx2=lx(336), gy2=ly(336);
-  ctx.save(); ctx.strokeStyle='rgba(251,191,36,0.5)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+  const glabNarrow = blDone && metrics.corrugator > 0.003;
+  const glabCol = glabNarrow ? 'rgba(248,113,113,0.8)' : 'rgba(251,191,36,0.45)';
+  const glabBlur = glabNarrow ? 12 : 0;
+  ctx.save(); ctx.strokeStyle=glabCol; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+  ctx.shadowBlur=glabBlur; ctx.shadowColor='#f87171';
   ctx.beginPath(); ctx.moveTo(gx1,gy1); ctx.lineTo(gx2,gy2); ctx.stroke(); ctx.restore();
+  ctx.setLineDash([]);
 
-  // Mouth-corner vectors (for risorius detection)
-  if (blDone && (assessActive || exState==='running')) {
+  // ── Compensator flash overlay ────────────────────────────
+  if (compFlash > 0) {
+    const fa = (compFlash/8)*0.18;
+    ctx.save(); ctx.fillStyle=`rgba(248,113,113,${fa})`; ctx.fillRect(0,0,W,H); ctx.restore();
+    // Flash border
+    ctx.save(); ctx.strokeStyle=`rgba(248,113,113,${compFlash/8*0.7})`; ctx.lineWidth=3;
+    ctx.shadowBlur=20; ctx.shadowColor='#f87171';
+    ctx.strokeRect(2,2,W-4,H-4); ctx.restore();
+  }
+
+  // ── Symmetry centerline ───────────────────────────────────
+  if (blDone) {
+    const noseTipX = lx(1);
+    const asymPct = metrics.symScore !== undefined ? (100-metrics.symScore)/100 : 0;
+    const lineAlpha = isRunning ? 0.25 : 0.12;
+    ctx.save(); ctx.strokeStyle=`rgba(255,255,255,${lineAlpha})`; ctx.lineWidth=1; ctx.setLineDash([4,6]);
+    ctx.beginPath(); ctx.moveTo(noseTipX,0); ctx.lineTo(noseTipX,H); ctx.stroke(); ctx.restore();
+    ctx.setLineDash([]);
+    // Deviation bar at nose tip level
+    if (isRunning && asymPct > 0.05) {
+      const devCol = asymPct>0.3?'#f87171':asymPct>0.15?'#fbbf24':'#34d399';
+      const barW = Math.min(asymPct*W*0.4, W*0.12);
+      const barY = ly(1);
+      ctx.save(); ctx.fillStyle=devCol+'88'; ctx.shadowBlur=6; ctx.shadowColor=devCol;
+      ctx.fillRect(noseTipX-barW/2, barY-4, barW, 8); ctx.restore();
+    }
+  }
+
+  // ── Activation glow (cheek sides) ────────────────────────
+  if (activationGlow.L > 0.05) {
+    const cx=lx(117), cy=ly(117);
+    const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,W*0.12);
+    grad.addColorStop(0, `rgba(244,114,182,${(activationGlow.L*0.4).toFixed(2)})`);
+    grad.addColorStop(1, 'rgba(244,114,182,0)');
+    ctx.save(); ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(cx,cy,W*0.12,0,Math.PI*2); ctx.fill(); ctx.restore();
+  }
+  if (activationGlow.R > 0.05) {
+    const cx=lx(346), cy=ly(346);
+    const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,W*0.12);
+    grad.addColorStop(0, `rgba(244,114,182,${(activationGlow.R*0.4).toFixed(2)})`);
+    grad.addColorStop(1, 'rgba(244,114,182,0)');
+    ctx.save(); ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(cx,cy,W*0.12,0,Math.PI*2); ctx.fill(); ctx.restore();
+  }
+
+  // ── Movement vector arrows (mouth corners) ───────────────
+  if (blDone && isRunning) {
     const cx1=lx(61), cy1=ly(61), cx2=lx(291), cy2=ly(291);
-    const bcy1 = BL.leftCornerY * H, bcy2 = BL.rightCornerY * H;
-    // vector arrows
-    [[cx1,cy1,bcy1,'#f472b6'],[cx2,cy2,bcy2,'#f472b6']].forEach(([cx,cy,bcy,col])=>{
+    [[cx1,cy1,BL.leftCornerY*H,'#f472b6'],[cx2,cy2,BL.rightCornerY*H,'#f472b6']].forEach(([cx,cy,bcy,col])=>{
       const vy = bcy - cy;
-      if(Math.abs(vy)>2){
-        ctx.save(); ctx.strokeStyle=col+'aa'; ctx.lineWidth=2; ctx.shadowBlur=4; ctx.shadowColor=col;
-        ctx.beginPath(); ctx.moveTo(cx,bcy); ctx.lineTo(cx,cy); ctx.stroke(); ctx.restore();
+      if (Math.abs(vy) > 3) {
+        const arrowAlpha = 0.5 + 0.4*pulse;
+        // Line
+        ctx.save(); ctx.strokeStyle=col+Math.round(arrowAlpha*255).toString(16).padStart(2,'0');
+        ctx.lineWidth=2.5; ctx.shadowBlur=8; ctx.shadowColor=col;
+        ctx.beginPath(); ctx.moveTo(cx,bcy); ctx.lineTo(cx,cy); ctx.stroke();
+        // Arrowhead
+        const dir = vy > 0 ? 1 : -1;
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx-5,cy+dir*8); ctx.lineTo(cx+5,cy+dir*8); ctx.closePath();
+        ctx.fillStyle=col+Math.round(arrowAlpha*255).toString(16).padStart(2,'0'); ctx.fill();
+        ctx.restore();
       }
     });
+    // Brow vectors during upper zone
+    if (activeZone==='upper') {
+      [[lx(66),ly(66),BL.leftBrowY*H,'#fbbf24'],[lx(296),ly(296),BL.rightBrowY*H,'#fbbf24']].forEach(([bx,by,bby,col])=>{
+        const vy = bby - by;
+        if (Math.abs(vy) > 2) {
+          ctx.save(); ctx.strokeStyle=col+'bb'; ctx.lineWidth=2; ctx.shadowBlur=6; ctx.shadowColor=col;
+          ctx.beginPath(); ctx.moveTo(bx,bby); ctx.lineTo(bx,by); ctx.stroke(); ctx.restore();
+        }
+      });
+    }
+  }
+
+  // ── Particles ────────────────────────────────────────────
+  for (let i=particles.length-1;i>=0;i--) {
+    const p=particles[i];
+    p.x+=p.vx; p.y+=p.vy; p.vy+=0.08; p.life--;
+    if (p.life<=0){particles.splice(i,1);continue;}
+    const alpha=(p.life/p.maxLife).toFixed(2);
+    ctx.save(); ctx.fillStyle=p.col+Math.round(p.life/p.maxLife*255).toString(16).padStart(2,'0');
+    ctx.shadowBlur=8; ctx.shadowColor=p.col;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r*(p.life/p.maxLife),0,Math.PI*2); ctx.fill(); ctx.restore();
+  }
+
+  // ── Score flash label (shown briefly at exercise complete) ─
+  if (window._scoreFlash && window._scoreFlash.frames > 0) {
+    const sf = window._scoreFlash;
+    const alpha = Math.min(1, sf.frames/15);
+    ctx.save(); ctx.font=`bold ${Math.round(28+10*(1-alpha))}px system-ui`;
+    ctx.fillStyle=`rgba(52,211,153,${alpha})`; ctx.shadowBlur=20; ctx.shadowColor='#34d399';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(`${sf.score}점`, W/2, H/2);
+    ctx.restore();
+    sf.frames--;
   }
 }
 
@@ -1288,6 +1483,15 @@ function finishExercise() {
 
   const score = computeExScore(ex);
   exScores[ex.id] = score;
+
+  // Burst effect
+  if (lastFaceResults?.multiFaceLandmarks?.[0]) {
+    const lm = lastFaceResults.multiFaceLandmarks[0];
+    const c = document.getElementById('overlay2');
+    triggerBurst(lm, c.width, c.height);
+    spawnParticles(c.width/2, c.height/2, score>=75?'#34d399':score>=55?'#fbbf24':'#f87171', 16);
+  }
+  window._scoreFlash = {score, frames: 60};
   updateFFI();
   renderExList(document.querySelector('#zoneFilter .btn-primary')?.textContent||'all');
   showExResult(ex, score);
