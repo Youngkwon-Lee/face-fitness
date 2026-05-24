@@ -212,6 +212,37 @@ header{
 /* scrollbar */
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* AUTH MODAL */
+.auth-modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.auth-modal{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:28px;width:360px;max-width:92vw;}
+.auth-modal-title{font-size:1.1rem;font-weight:900;letter-spacing:2px;color:var(--accent);margin-bottom:4px;}
+.auth-modal-sub{font-size:.72rem;color:var(--dim);margin-bottom:20px;line-height:1.5;}
+.auth-tabs{display:flex;gap:4px;background:var(--bg);border-radius:8px;padding:3px;margin-bottom:18px;}
+.auth-tab{flex:1;padding:7px;border:none;background:transparent;color:var(--dim);font-size:.78rem;font-weight:700;cursor:pointer;border-radius:6px;letter-spacing:1px;transition:all .2s;}
+.auth-tab.active{background:var(--panel2);color:var(--text);}
+.auth-input{width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;outline:none;margin-bottom:10px;transition:border-color .2s;}
+.auth-input:focus{border-color:var(--accent2);}
+.auth-divider{display:flex;align-items:center;gap:8px;margin:12px 0;color:var(--dim);font-size:.7rem;}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.auth-msg{font-size:.75rem;padding:8px 12px;border-radius:6px;margin-bottom:10px;}
+.auth-msg.error{background:rgba(248,113,113,.12);color:var(--danger);}
+.auth-msg.success{background:rgba(52,211,153,.12);color:var(--accent3);}
+/* CLOUD BADGE */
+.cloud-badge{font-size:.62rem;padding:2px 8px;border-radius:10px;font-weight:700;white-space:nowrap;}
+.cloud-badge.synced{background:rgba(52,211,153,.15);color:var(--accent3);}
+.cloud-badge.local{background:rgba(71,85,105,.2);color:var(--dim);}
+.cloud-badge.syncing{background:rgba(129,140,248,.15);color:var(--accent2);}
+/* HEADER USER CHIP */
+.user-chip{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(129,140,248,.08);cursor:pointer;transition:all .2s;}
+.user-chip:hover{border-color:var(--accent2);}
+.user-avatar{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900;color:#fff;flex-shrink:0;}
+.user-email{font-size:.65rem;color:var(--accent2);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* BEFORE/AFTER COMPARE */
+.compare-zone{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:.78rem;}
+.compare-bar-wrap{flex:1;position:relative;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.compare-bar-before{position:absolute;left:0;top:0;height:100%;border-radius:3px;opacity:.45;background:var(--accent2);}
+.compare-bar-after{position:absolute;left:0;top:0;height:100%;border-radius:3px;background:var(--accent3);}
 </style>
 </head>
 <body>
@@ -225,6 +256,11 @@ header{
     <button class="nav-btn" onclick="showScreen('program')">운동</button>
     <button class="nav-btn" onclick="showScreen('history')">기록</button>
     <button id="voiceBtn" class="nav-btn" onclick="toggleVoice()" title="음성 끄기" style="font-size:.9rem;padding:5px 10px;">🔊</button>
+    <button id="authBtn" class="nav-btn" onclick="openAuthModal()" style="border-color:rgba(129,140,248,.4);color:var(--accent2);">로그인</button>
+    <div id="userChip" class="user-chip" style="display:none;" onclick="openUserMenu()">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <span class="user-email" id="userEmailDisplay">—</span>
+    </div>
   </nav>
 </header>
 
@@ -517,12 +553,31 @@ header{
 <!-- ══════════════ HISTORY SCREEN ══════════════ -->
 <div class="screen" id="screen-history">
   <div style="max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Cloud status bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--panel);border:1px solid var(--border);border-radius:10px;">
+      <div style="font-size:.7rem;color:var(--dim);">저장 방식</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="cloud-badge local" id="cloudBadge">로컬 저장</span>
+        <button id="cloudSyncBtn" class="btn btn-secondary" style="padding:3px 10px;font-size:.65rem;display:none;" onclick="syncCloudHistory()">동기화</button>
+      </div>
+    </div>
+
+    <!-- Assessment history -->
     <div class="card">
       <div class="card-title">평가 기록</div>
       <div id="histAssess" style="color:var(--dim);font-size:.82rem;">기록 없음</div>
     </div>
+
+    <!-- Before / After comparison -->
+    <div class="card" id="compareCard" style="display:none;">
+      <div class="card-title">전후 비교 (최초 vs 최근)</div>
+      <div id="histCompare"></div>
+    </div>
+
+    <!-- FFI trend -->
     <div class="card">
-      <div class="card-title">FFI 추이</div>
+      <div class="card-title">운동 기록 (FFI 추이)</div>
       <div id="histFFI" style="color:var(--dim);font-size:.82rem;">운동 기록 없음</div>
     </div>
   </div>
@@ -558,9 +613,239 @@ header{
   </div>
 </div>
 
+<!-- AUTH MODAL -->
+<div class="auth-modal-wrap" id="authModal" style="display:none;" onclick="if(event.target===this)closeAuthModal()">
+  <div class="auth-modal">
+    <div class="auth-modal-title">FACE FITNESS</div>
+    <div class="auth-modal-sub">클라우드 저장으로 기록을 보관하고<br>전후 비교 & 진행 추이를 확인하세요</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="authTabLogin" onclick="switchAuthTab('login',this)">로그인</button>
+      <button class="auth-tab" id="authTabSignup" onclick="switchAuthTab('signup',this)">회원가입</button>
+    </div>
+    <div id="authMsg" class="auth-msg" style="display:none;"></div>
+    <input class="auth-input" type="email" id="authEmail" placeholder="이메일" autocomplete="email"/>
+    <input class="auth-input" type="password" id="authPw" placeholder="비밀번호 (6자 이상)" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()"/>
+    <button class="btn btn-grad" style="width:100%;margin-bottom:10px;" onclick="submitAuth()" id="authSubmitBtn">로그인</button>
+    <div class="auth-divider">또는</div>
+    <button class="btn btn-secondary" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="signInGoogle()">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Google로 계속하기
+    </button>
+    <button class="btn btn-secondary" style="width:100%;margin-top:8px;" onclick="closeAuthModal()">취소</button>
+  </div>
+</div>
+
+<!-- USER MENU -->
+<div id="userMenu" style="display:none;position:fixed;top:60px;right:16px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px;z-index:300;min-width:190px;box-shadow:0 8px 32px rgba(0,0,0,.5);">
+  <div style="font-size:.68rem;color:var(--dim);padding:4px 8px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;" id="userMenuEmail">—</div>
+  <button class="btn btn-secondary" style="width:100%;font-size:.75rem;padding:7px;text-align:left;" onclick="syncCloudHistory();closeUserMenu()">☁ 클라우드 동기화</button>
+  <button class="btn btn-secondary" style="width:100%;font-size:.75rem;padding:7px;margin-top:4px;text-align:left;color:var(--danger);" onclick="signOut()">로그아웃</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 <script>
+// ═══════════════════════════════════════════════════════════
+// SUPABASE AUTH + CLOUD PERSISTENCE
+// Tables required (run once in Supabase SQL editor):
+//   ff_assess_sessions, ff_exercise_sessions  (see README / repo)
+// ═══════════════════════════════════════════════════════════
+const SUPABASE_URL      = 'https://iwtyzcwiovuvmsodtusx.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY'; // ← Supabase Dashboard → Settings → API → anon public
+
+let supabaseClient = null;
+let currentUser    = null;
+let _authTab       = 'login';
+
+function initSupabase() {
+  try {
+    if (!window.supabase) { console.warn('[Supabase] SDK not loaded'); return; }
+    if (SUPABASE_ANON_KEY === 'YOUR_ANON_KEY') { console.warn('[Supabase] Set SUPABASE_ANON_KEY'); return; }
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      currentUser = session?.user ?? null;
+      _updateAuthUI();
+      if (event === 'SIGNED_IN') syncCloudHistory();
+    });
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+      currentUser = session?.user ?? null;
+      _updateAuthUI();
+    });
+  } catch(e) { console.warn('[Supabase] init error:', e.message); }
+}
+
+function _updateAuthUI() {
+  const authBtn    = document.getElementById('authBtn');
+  const userChip   = document.getElementById('userChip');
+  const syncBtn    = document.getElementById('cloudSyncBtn');
+  const badge      = document.getElementById('cloudBadge');
+  if (currentUser) {
+    if (authBtn)   authBtn.style.display   = 'none';
+    if (userChip)  userChip.style.display  = 'flex';
+    if (syncBtn)   syncBtn.style.display   = '';
+    const email = currentUser.email || '';
+    if (document.getElementById('userEmailDisplay'))  document.getElementById('userEmailDisplay').textContent  = email;
+    if (document.getElementById('userMenuEmail'))     document.getElementById('userMenuEmail').textContent     = email;
+    if (document.getElementById('userAvatar'))        document.getElementById('userAvatar').textContent        = (email[0]||'U').toUpperCase();
+    if (badge) { badge.textContent = '☁ 클라우드'; badge.className = 'cloud-badge synced'; }
+  } else {
+    if (authBtn)   authBtn.style.display  = '';
+    if (userChip)  userChip.style.display = 'none';
+    if (syncBtn)   syncBtn.style.display  = 'none';
+    if (badge) { badge.textContent = '로컬 저장'; badge.className = 'cloud-badge local'; }
+  }
+}
+
+// ── AUTH MODAL ─────────────────────────────────────────────
+function openAuthModal() {
+  document.getElementById('authModal').style.display = 'flex';
+  document.getElementById('authEmail').focus();
+  _setAuthMsg('', '');
+}
+function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+
+function switchAuthTab(tab, btn) {
+  _authTab = tab;
+  document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('authSubmitBtn').textContent = tab === 'login' ? '로그인' : '회원가입';
+  document.getElementById('authPw').autocomplete = tab === 'login' ? 'current-password' : 'new-password';
+  _setAuthMsg('', '');
+}
+function _setAuthMsg(msg, type) {
+  const el = document.getElementById('authMsg');
+  if (!msg) { el.style.display = 'none'; return; }
+  el.textContent = msg;
+  el.className = 'auth-msg ' + type;
+  el.style.display = '';
+}
+async function submitAuth() {
+  if (!supabaseClient) { _setAuthMsg('Supabase 미초기화 — SUPABASE_ANON_KEY를 설정하세요.', 'error'); return; }
+  const email = document.getElementById('authEmail').value.trim();
+  const pw    = document.getElementById('authPw').value;
+  if (!email || !pw) { _setAuthMsg('이메일과 비밀번호를 입력하세요.', 'error'); return; }
+  const btn = document.getElementById('authSubmitBtn');
+  btn.disabled = true; btn.textContent = '처리 중...';
+  try {
+    let res;
+    if (_authTab === 'signup') {
+      res = await supabaseClient.auth.signUp({ email, password: pw });
+      if (!res.error && res.data.user && !res.data.session) {
+        _setAuthMsg('인증 이메일 발송됨. 메일함을 확인 후 로그인하세요.', 'success');
+        btn.disabled = false; btn.textContent = '회원가입'; return;
+      }
+    } else {
+      res = await supabaseClient.auth.signInWithPassword({ email, password: pw });
+    }
+    if (res.error) { _setAuthMsg(res.error.message, 'error'); }
+    else { closeAuthModal(); }
+  } catch(e) { _setAuthMsg(e.message, 'error'); }
+  btn.disabled = false;
+  btn.textContent = _authTab === 'login' ? '로그인' : '회원가입';
+}
+async function signInGoogle() {
+  if (!supabaseClient) { _setAuthMsg('Supabase 미초기화.', 'error'); return; }
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+  if (error) _setAuthMsg(error.message, 'error');
+}
+async function signOut() {
+  closeUserMenu();
+  if (supabaseClient) await supabaseClient.auth.signOut();
+  currentUser = null;
+  _updateAuthUI();
+}
+function openUserMenu()  { const m = document.getElementById('userMenu'); m.style.display = m.style.display === 'none' ? 'block' : 'none'; }
+function closeUserMenu() { const m = document.getElementById('userMenu'); if(m) m.style.display = 'none'; }
+document.addEventListener('click', e => {
+  if (!e.target.closest('#userChip') && !e.target.closest('#userMenu')) closeUserMenu();
+});
+
+// ── CLOUD SAVE ─────────────────────────────────────────────
+async function cloudSaveAssess(payload) {
+  if (!supabaseClient || !currentUser) return;
+  const badge = document.getElementById('cloudBadge');
+  if (badge) { badge.textContent = '⏳ 저장 중'; badge.className = 'cloud-badge syncing'; }
+  try {
+    const { error } = await supabaseClient.from('ff_assess_sessions').insert({
+      user_id:     currentUser.id,
+      zones:       payload.zones,
+      avg_score:   payload.avgScore,
+      sym_score:   payload.symScore,
+      ear_l:       payload.earL,
+      ear_r:       payload.earR,
+      corr_firing: payload.corrFiring,
+      plat_firing: payload.platFiring,
+    });
+    if (error) throw error;
+    if (badge) { badge.textContent = '☁ 클라우드'; badge.className = 'cloud-badge synced'; }
+  } catch(e) {
+    console.warn('[Cloud] assess save failed:', e.message);
+    if (badge) { badge.textContent = '⚠ 저장 실패'; badge.className = 'cloud-badge local'; }
+  }
+}
+
+async function cloudSaveExercise(payload) {
+  if (!supabaseClient || !currentUser) return;
+  try {
+    await supabaseClient.from('ff_exercise_sessions').insert({
+      user_id: currentUser.id,
+      ex_id:   payload.exId,
+      ex_name: payload.exName,
+      ex_zone: payload.exZone,
+      ex_type: payload.exType,
+      score:   payload.score,
+    });
+  } catch(e) { console.warn('[Cloud] exercise save failed:', e.message); }
+}
+
+async function syncCloudHistory() {
+  if (!supabaseClient || !currentUser) return;
+  const badge = document.getElementById('cloudBadge');
+  if (badge) { badge.textContent = '⏳ 동기화'; badge.className = 'cloud-badge syncing'; }
+  try {
+    const [ar, er] = await Promise.all([
+      supabaseClient.from('ff_assess_sessions').select('*').eq('user_id', currentUser.id).order('created_at', {ascending:false}).limit(30),
+      supabaseClient.from('ff_exercise_sessions').select('*').eq('user_id', currentUser.id).order('created_at', {ascending:false}).limit(100),
+    ]);
+    if (ar.error) throw ar.error;
+    if (er.error) throw er.error;
+
+    const hist = JSON.parse(localStorage.getItem(HIST_KEY)||'{"assess":[],"exercise":[]}');
+    const cloudAssess = (ar.data||[]).map(r => ({
+      date: r.created_at, zones: r.zones,
+      avgScore: r.avg_score, symScore: r.sym_score,
+      earL: r.ear_l, earR: r.ear_r,
+      corrFiring: r.corr_firing, platFiring: r.plat_firing, _cloud: true
+    }));
+    const cloudEx = (er.data||[]).map(r => ({
+      date: r.created_at, exId: r.ex_id, exName: r.ex_name,
+      exZone: r.ex_zone, exType: r.ex_type, score: r.score, _cloud: true
+    }));
+
+    // Merge: no duplicate dates
+    const existD = new Set(hist.assess.map(r=>r.date));
+    cloudAssess.forEach(r => { if (!existD.has(r.date)) hist.assess.push(r); });
+    hist.assess.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    hist.assess = hist.assess.slice(0,30);
+
+    const existEx = new Set(hist.exercise.map(r=>r.date+'|'+r.exId));
+    cloudEx.forEach(r => { if (!existEx.has(r.date+'|'+r.exId)) hist.exercise.push(r); });
+    hist.exercise.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    hist.exercise = hist.exercise.slice(0,100);
+
+    localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+    if (badge) { badge.textContent = '☁ 동기화 완료'; badge.className = 'cloud-badge synced'; }
+    if (document.getElementById('screen-history')?.classList.contains('active')) renderHistory();
+  } catch(e) {
+    console.warn('[Cloud] sync failed:', e.message);
+    if (badge) { badge.textContent = '⚠ 동기화 실패'; badge.className = 'cloud-badge local'; }
+  }
+}
+
 // ═══════════════════════════════════════════════════════════
 // EXERCISE DATABASE
 // Based on: Beurskens & Heymans 2003/2006, Manikandan 2007,
@@ -920,6 +1205,7 @@ function showScreen(id) {
 // INIT
 // ═══════════════════════════════════════════════════════════
 window.onload = () => {
+  initSupabase();
   renderAssessGrid();
   renderExList('all');
 };
@@ -2416,74 +2702,148 @@ function updateFFI() {
 // HISTORY
 // ═══════════════════════════════════════════════════════════
 function saveAssessToHistory() {
+  const bl = assessResults['baseline'];
+  const avgScore = Math.round(Object.values(zoneScores).filter(v=>v!==null).reduce((a,b)=>a+b,0) /
+    Object.values(zoneScores).filter(v=>v!==null).length || 0);
+  const payload = {
+    date:       new Date().toISOString(),
+    zones:      {...zoneScores},
+    avgScore,
+    symScore:   bl ? Math.round(bl.sym || 0) : null,
+    earL:       bl ? bl.earL : null,
+    earR:       bl ? bl.earR : null,
+    corrFiring: bl ? (bl.corrugator||0) > 0.005 : null,
+    platFiring: bl ? (bl.platysma||0)   > 0.005 : null,
+  };
   const hist = JSON.parse(localStorage.getItem(HIST_KEY)||'{"assess":[],"exercise":[]}');
-  hist.assess.push({ date: new Date().toISOString(), zones: {...zoneScores} });
+  hist.assess.push(payload);
   if (hist.assess.length > 30) hist.assess = hist.assess.slice(-30);
   localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+  // Cloud save (fire-and-forget)
+  cloudSaveAssess(payload);
 }
 
 function saveExToHistory(score) {
-  const hist = JSON.parse(localStorage.getItem(HIST_KEY)||'{"assess":[],"exercise":[]}');
   const ex = EXERCISES[exIdx];
-  hist.exercise.push({ date: new Date().toISOString(), exId: ex.id, exName: ex.name, score });
+  const payload = {
+    date:   new Date().toISOString(),
+    exId:   ex.id,
+    exName: ex.name,
+    exZone: ex.zone,
+    exType: ex.type || 'strength',
+    score,
+  };
+  const hist = JSON.parse(localStorage.getItem(HIST_KEY)||'{"assess":[],"exercise":[]}');
+  hist.exercise.push(payload);
   if (hist.exercise.length > 100) hist.exercise = hist.exercise.slice(-100);
   localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+  // Cloud save (fire-and-forget)
+  cloudSaveExercise(payload);
 }
 
 function renderHistory() {
   const hist = JSON.parse(localStorage.getItem(HIST_KEY)||'{"assess":[],"exercise":[]}');
 
-  // Assess history
+  // ── Assessment history ────────────────────────────────────
   const aEl = document.getElementById('histAssess');
   if (!hist.assess.length) { aEl.textContent = '평가 기록 없음'; }
   else {
     aEl.innerHTML = `<div class="hist-list">${hist.assess.slice().reverse().map(r => {
       const d = new Date(r.date);
       const dateStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
-      const zones = r.zones;
+      const cloudDot = r._cloud ? `<span style="font-size:.55rem;color:var(--accent3);margin-left:4px;">☁</span>` : '';
+      const zones = r.zones || {};
       const bars = Object.entries(zones).map(([z,s])=>{
         const col=s>=75?'#34d399':s>=55?'#fbbf24':'#f87171';
         return `<div class="hist-hbar-wrap">
-          <span class="hist-hbar-lbl">${{upper:'상부',mid:'중부',lower:'하부',neck:'목/턱'}[z]}</span>
+          <span class="hist-hbar-lbl">${{upper:'상부',mid:'중부',lower:'하부',neck:'목/턱'}[z]||z}</span>
           <div class="hist-hbar"><div class="hist-hbar-fill" style="width:${s||0}%;background:${col};"></div></div>
           <span style="font-size:.65rem;min-width:28px;text-align:right;color:${col}">${s??'—'}</span>
         </div>`;
       }).join('');
-      const avg = Math.round(Object.values(zones).filter(Boolean).reduce((a,b)=>a+b,0)/4);
+      const vals = Object.values(zones).filter(v=>v!==null&&v!==undefined);
+      const avg  = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : '—';
+      const sym  = r.symScore !== null && r.symScore !== undefined ? `<span style="font-size:.6rem;color:var(--accent2);margin-left:6px;">대칭 ${r.symScore}</span>` : '';
       return `<div class="hist-row">
-        <span class="hist-date">${dateStr}</span>
+        <span class="hist-date">${dateStr}${cloudDot}</span>
         <div class="hist-bars">${bars}</div>
-        <div class="hist-total">${avg}</div>
+        <div class="hist-total">${avg}${sym}</div>
       </div>`;
     }).join('')}</div>`;
   }
 
-  // Exercise history (grouped by exId, show trend)
+  // ── Before / After comparison ─────────────────────────────
+  const compareCard = document.getElementById('compareCard');
+  const compareEl   = document.getElementById('histCompare');
+  if (hist.assess.length >= 2 && compareCard) {
+    compareCard.style.display = '';
+    const first  = hist.assess[hist.assess.length-1]; // oldest
+    const latest = hist.assess[0];                    // newest
+    const zoneLabels = {upper:'상부 (눈/이마)', mid:'중부 (볼/팔자)', lower:'하부 (입꼬리)', neck:'목/턱'};
+    const fDate = new Date(first.date);
+    const lDate = new Date(latest.date);
+    const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+    compareEl.innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--dim);margin-bottom:10px;">
+        <span>● 최초: ${fmt(fDate)}</span>
+        <span>● 최근: ${fmt(lDate)}</span>
+      </div>
+      ${Object.keys(zoneLabels).map(z => {
+        const before = first.zones?.[z] ?? 0;
+        const after  = latest.zones?.[z] ?? 0;
+        const diff   = after - before;
+        const diffCol = diff > 0 ? '#34d399' : diff < 0 ? '#f87171' : 'var(--dim)';
+        const diffTxt = diff > 0 ? `▲ +${diff}` : diff < 0 ? `▼ ${diff}` : '—';
+        return `<div class="compare-zone">
+          <span style="min-width:90px;font-size:.72rem;color:var(--dim);">${zoneLabels[z]}</span>
+          <div class="compare-bar-wrap">
+            <div class="compare-bar-before" style="width:${before}%;"></div>
+            <div class="compare-bar-after"  style="width:${after}%;"></div>
+          </div>
+          <span style="min-width:30px;text-align:right;font-size:.7rem;font-weight:700;color:${diffCol}">${diffTxt}</span>
+        </div>`;
+      }).join('')}
+      <div style="margin-top:8px;font-size:.68rem;color:var(--dim);">
+        <span style="margin-right:12px;"><span style="color:var(--accent2);font-weight:700;">■</span> 최초</span>
+        <span><span style="color:var(--accent3);font-weight:700;">■</span> 최근</span>
+      </div>`;
+  } else if (compareCard) {
+    compareCard.style.display = 'none';
+  }
+
+  // ── Exercise history (grouped by exId, show trend) ────────
   const fEl = document.getElementById('histFFI');
   if (!hist.exercise.length) { fEl.textContent = '운동 기록 없음'; }
   else {
-    // Group by exId
     const byEx = {};
     hist.exercise.forEach(r => {
-      if (!byEx[r.exId]) byEx[r.exId] = {name:r.exName, scores:[]};
+      if (!byEx[r.exId]) byEx[r.exId] = {name:r.exName, zone:r.exZone||'', type:r.exType||'strength', scores:[]};
       byEx[r.exId].scores.push({date:r.date, score:r.score});
     });
-    fEl.innerHTML = Object.entries(byEx).map(([id,{name,scores}]) => {
-      const latest = scores[scores.length-1].score;
-      const trend  = scores.length>1 ? latest-scores[scores.length-2].score : 0;
-      const col    = latest>=75?'#34d399':latest>=55?'#fbbf24':'#f87171';
-      const trendTxt = trend>0?`<span style="color:#34d399">▲${trend}</span>`:trend<0?`<span style="color:#f87171">▼${Math.abs(trend)}</span>`:'—';
-      const dots = scores.slice(-8).map(s=>{
+    // Sort by number of sessions desc
+    const sorted = Object.entries(byEx).sort((a,b)=>b[1].scores.length-a[1].scores.length);
+    fEl.innerHTML = sorted.map(([id,{name,type,scores}]) => {
+      const sorted2  = scores.sort((a,b)=>new Date(a.date)-new Date(b.date));
+      const latest   = sorted2[sorted2.length-1].score;
+      const trend    = sorted2.length > 1 ? latest - sorted2[sorted2.length-2].score : 0;
+      const col      = latest>=75?'#34d399':latest>=55?'#fbbf24':'#f87171';
+      const trendTxt = trend>0?`<span style="color:#34d399">▲${trend}</span>`:trend<0?`<span style="color:#f87171">▼${Math.abs(trend)}</span>`:'<span style="color:var(--dim)">—</span>';
+      const typeMeta  = {stretch:{icon:'🧘',col:'var(--accent3)'},strength:{icon:'💪',col:'var(--accent)'},endurance:{icon:'⏱',col:'var(--accent2)'}};
+      const tm       = typeMeta[type]||typeMeta.strength;
+      const dots     = sorted2.slice(-8).map(s=>{
         const c=s.score>=75?'#34d399':s.score>=55?'#fbbf24':'#f87171';
         return `<div style="width:6px;height:${Math.round(s.score/100*28)+2}px;background:${c};border-radius:2px;align-self:flex-end;"></div>`;
       }).join('');
+      const cloudMark = scores.some(s=>s._cloud) ? `<span style="font-size:.5rem;color:var(--accent3);margin-left:3px;">☁</span>` : '';
       return `<div class="hist-row" style="align-items:center;">
-        <div style="flex:1;"><div style="font-size:.82rem;font-weight:600;">${name}</div>
-          <div style="font-size:.65rem;color:var(--dim);">${scores.length}회 기록</div></div>
-        <div style="display:flex;gap:2px;align-items:flex-end;height:32px;margin:0 12px;">${dots}</div>
-        <div style="text-align:right;min-width:60px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.82rem;font-weight:600;">${tm.icon} ${name}${cloudMark}</div>
+          <div style="font-size:.63rem;color:var(--dim);">${sorted2.length}회 기록</div>
+        </div>
+        <div style="display:flex;gap:2px;align-items:flex-end;height:32px;margin:0 10px;">${dots}</div>
+        <div style="text-align:right;min-width:56px;">
           <div style="font-size:1.1rem;font-weight:800;color:${col}">${latest}</div>
-          <div style="font-size:.65rem;">${trendTxt}</div>
+          <div style="font-size:.63rem;">${trendTxt}</div>
         </div>
       </div>`;
     }).join('');
