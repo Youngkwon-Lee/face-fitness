@@ -1471,9 +1471,14 @@ function goToProgram() { closeAssessOverlay(); showScreen('program'); }
 // ═══════════════════════════════════════════════════════════
 function renderExList(filter) {
   const list = document.getElementById('exList');
-  const filtered = filter === 'priority' ? EXERCISES.filter(e=>e.priority) :
-                   filter === 'all'      ? EXERCISES :
-                   EXERCISES.filter(e=>e.zone===filter);
+  let filtered = filter === 'priority' ? EXERCISES.filter(e=>e.priority) :
+                 filter === 'all'      ? EXERCISES :
+                 EXERCISES.filter(e=>e.zone===filter);
+  // Sort: urgent first → priority → normal
+  filtered = [...filtered].sort((a,b)=>{
+    const rank = e => e.recommendUrgent?0:e.priority?1:2;
+    return rank(a)-rank(b);
+  });
   list.innerHTML = filtered.map((ex,i) => {
     const globalIdx = EXERCISES.indexOf(ex);
     const done = exScores[ex.id] !== undefined;
@@ -1500,22 +1505,156 @@ function filterEx(f, btn) {
   renderExList(f);
 }
 
+// ── SVG FACE REFERENCE DIAGRAMS ────────────────────────────
+// Zones defined as SVG shape objects: {type, attrs, col}
+const FACE_ZONES = {
+  // zone highlight definitions — drawn OVER the base face outline
+  forehead:   [{type:'rect',  x:20, y:10, w:60, h:22, rx:8, col:'#818cf8'}],
+  brows:      [{type:'rect',  x:18, y:28, w:64, h:10, rx:4, col:'#fbbf24'}],
+  eyes:       [{type:'ellipse',cx:34,cy:36,rx:11,ry:6,col:'#818cf8'},
+               {type:'ellipse',cx:66,cy:36,rx:11,ry:6,col:'#818cf8'}],
+  leftEye:    [{type:'ellipse',cx:34,cy:36,rx:11,ry:6,col:'#818cf8'}],
+  rightEye:   [{type:'ellipse',cx:66,cy:36,rx:11,ry:6,col:'#818cf8'}],
+  cheeks:     [{type:'ellipse',cx:24,cy:62,rx:13,ry:11,col:'#f472b6'},
+               {type:'ellipse',cx:76,cy:62,rx:13,ry:11,col:'#f472b6'}],
+  nasolabial: [{type:'path',   d:'M36,50 Q28,68 36,78',  col:'#f472b6', sw:4},
+               {type:'path',   d:'M64,50 Q72,68 64,78',  col:'#f472b6', sw:4}],
+  lips:       [{type:'ellipse',cx:50,cy:82,rx:16,ry:7,col:'#f472b6'}],
+  mouthCorners:[{type:'circle',cx:34,cy:80,r:5,col:'#fbbf24'},
+                {type:'circle',cx:66,cy:80,r:5,col:'#fbbf24'}],
+  chin:       [{type:'ellipse',cx:50,cy:96,rx:18,ry:9,col:'#34d399'}],
+  neck:       [{type:'rect',   x:30, y:108, w:40, h:22, rx:6, col:'#34d399'}],
+  underChin:  [{type:'ellipse',cx:50,cy:104,rx:20,ry:8,col:'#34d399'}],
+  fullFace:   [{type:'ellipse',cx:50,cy:60,rx:38,ry:50,col:'#f472b6'}],
+};
+
+const EX_ZONES = {
+  brow_press:    ['forehead','brows'],
+  eye_v:         ['eyes'],
+  lower_lid:     ['eyes'],
+  cheek_lifter:  ['cheeks','nasolabial'],
+  nasolabial:    ['nasolabial','cheeks'],
+  puffer:        ['cheeks'],
+  apple_cheeks:  ['cheeks'],
+  fish_face:     ['cheeks'],
+  corner_lift:   ['mouthCorners'],
+  dao_stretch:   ['mouthCorners','lips'],
+  vowel:         ['lips','mouthCorners'],
+  giraffe:       ['neck'],
+  chin_tuck:     ['underChin','neck'],
+  jaw_jut:       ['underChin'],
+  tongue_press:  ['underChin'],
+};
+
+// Which muscles are typically WEAK vs OVERACTIVE (aging pattern)
+const MUSCLE_STATUS = {
+  brow_press:    {weak:'전두근 (Frontalis)',  over:'미간주름근 (Corrugator)',  note:'눈썹 처짐 시 전두근이 과보상 → 이마 주름. 전두근 자체를 독립적으로 강화해야 함.'},
+  eye_v:         {weak:'안륜근 하부 (Orbicularis Oculi — palpebral)',  over:'전두근 (Frontalis) 보상',  note:'안륜근은 노화 시 가장 빠르게 약해짐. 아래 눈꺼풀 처짐의 직접 원인.'},
+  cheek_lifter:  {weak:'광대근 (Zygomaticus Major)',  over:'입꼬리내림근 (DAO) + 광경근',  note:'광대근은 노화 시 약화 1위. 볼 지방패드 하강, 팔자주름 심화의 핵심 원인.'},
+  nasolabial:    {weak:'상순거근 (Levator Labii Superioris)',  over:'없음 (위축 패턴)',  note:'LLS 약화 → 팔자주름 고정점 아래로 이동. 자주 간과되는 근육.'},
+  puffer:        {weak:'협근 (Buccinator)',  over:'없음',  note:'협근은 씹기 패턴에 따라 좌우 비대칭이 흔함. 약한 쪽 볼이 더 홀쪽해 보임.'},
+  apple_cheeks:  {weak:'광대근 (Zygomaticus)',  over:'광경근 (Platysma)',  note:'고강도 미소 시 광경근 보상이 오히려 볼을 당기는 역효과 주의.'},
+  fish_face:     {weak:'협근 (Buccinator)',  over:'없음',  note:'볼살 주름 (스마트폰 자세)과 연관. 좌우 불균형 훈련 효과 높음.'},
+  corner_lift:   {weak:'광대근 + 협근',  over:'입꼬리내림근 (DAO)',  note:'DAO 상대적 우세가 만성 "찡그린 표정"의 원인. ZMaj : DAO 균형이 핵심.'},
+  dao_stretch:   {weak:'광대근 (ZMaj)',  over:'입꼬리내림근 (DAO)',  note:'DAO는 노화할수록 단축·과활성. 이를 스트레칭하면서 ZMaj를 강화하는 이중 효과.'},
+  vowel:         {weak:'구륜근 (Orbicularis Oris)',  over:'없음',  note:'구륜근 약화 → 윗입술 얇아짐, 수직 입술 주름. 최대 가동 범위 운동이 효과적.'},
+  giraffe:       {weak:'광경근 (Platysma)',  over:'흉쇄유돌근 (SCM) 과긴장',  note:'광경근은 직접 약화되기보다 탄력 상실. 스트레칭+수축 복합이 효과적.'},
+  chin_tuck:     {weak:'심경굴근 (Deep Cervical Flexors)',  over:'흉쇄유돌근 (SCM)',  note:'스마트폰 자세로 심경굴근이 현대인에서 가장 약화된 근육 중 하나. 이중턱 핵심.'},
+  jaw_jut:       {weak:'이복근 (Digastric)',  over:'없음',  note:'이복근 훈련은 시중 운동 프로그램에서 가장 간과. 턱 아래 당기는 느낌이 정답.'},
+  tongue_press:  {weak:'악설골근 (Mylohyoid)',  over:'없음',  note:'혀 위치(mewing 원리)가 이중턱의 근본 원인. 혀를 입천장에 붙이는 것이 안정 위치.'},
+};
+
+function faceSVG(exId) {
+  const zones = EX_ZONES[exId] || [];
+  // Build highlight shapes
+  const highlights = zones.flatMap(z => FACE_ZONES[z]||[]);
+
+  const shapes = highlights.map(s => {
+    const fill = s.col + '40'; // 25% opacity fill
+    const stroke = s.col;
+    const filter = `drop-shadow(0 0 3px ${s.col})`;
+    if (s.type==='ellipse') return `<ellipse cx="${s.cx}" cy="${s.cy}" rx="${s.rx}" ry="${s.ry}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="filter:${filter}"/>`;
+    if (s.type==='circle')  return `<circle cx="${s.cx}" cy="${s.cy}" r="${s.r}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="filter:${filter}"/>`;
+    if (s.type==='rect')    return `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" rx="${s.rx||0}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="filter:${filter}"/>`;
+    if (s.type==='path')    return `<path d="${s.d}" fill="none" stroke="${stroke}" stroke-width="${s.sw||2}" stroke-linecap="round" style="filter:${filter}"/>`;
+    return '';
+  }).join('');
+
+  return `<svg viewBox="0 0 100 130" width="90" height="117" style="flex-shrink:0;">
+    <defs>
+      <style>.fl{fill:none;stroke:#334155;stroke-width:1.2;} .fl2{fill:none;stroke:#1e293b;stroke-width:1;}</style>
+    </defs>
+    <!-- Face oval -->
+    <ellipse cx="50" cy="62" rx="37" ry="50" class="fl" style="stroke:#334155;stroke-width:1.5;"/>
+    <!-- Ears -->
+    <ellipse cx="14" cy="58" rx="5" ry="9" class="fl2"/>
+    <ellipse cx="86" cy="58" rx="5" ry="9" class="fl2"/>
+    <!-- Neck -->
+    <path d="M34,110 L30,128 M66,110 L70,128" class="fl2"/>
+    <!-- Brows -->
+    <path d="M24,30 Q34,25 44,28" class="fl"/>
+    <path d="M56,28 Q66,25 76,30" class="fl"/>
+    <!-- Eyes -->
+    <ellipse cx="34" cy="36" rx="11" ry="6" class="fl"/>
+    <circle cx="34" cy="36" r="3" fill="#334155"/>
+    <ellipse cx="66" cy="36" rx="11" ry="6" class="fl"/>
+    <circle cx="66" cy="36" r="3" fill="#334155"/>
+    <!-- Nose -->
+    <path d="M46,44 L44,62 Q50,66 56,62 L54,44" class="fl2"/>
+    <path d="M44,62 Q40,66 42,70 Q46,72 50,70 Q54,72 58,70 Q60,66 56,62" class="fl2"/>
+    <!-- Nasolabial guides -->
+    <path d="M36,50 Q30,66 36,76" fill="none" stroke="#1e293b" stroke-width="0.7" stroke-dasharray="2,2"/>
+    <path d="M64,50 Q70,66 64,76" fill="none" stroke="#1e293b" stroke-width="0.7" stroke-dasharray="2,2"/>
+    <!-- Mouth -->
+    <path d="M36,80 Q50,90 64,80" class="fl"/>
+    <path d="M36,80 Q50,76 64,80" class="fl"/>
+    <!-- Chin -->
+    <path d="M34,96 Q50,112 66,96" class="fl2"/>
+    <!-- HIGHLIGHTS (on top) -->
+    ${shapes}
+  </svg>`;
+}
+
 function selectEx(idx) {
   exIdx = idx;
   const ex = EXERCISES[idx];
+  const ms = MUSCLE_STATUS[ex.id];
   renderExList(document.querySelector('#zoneFilter .btn-primary')?.textContent||'all');
   document.getElementById('pStartBtn').disabled = !cameraActive || exState!=='idle';
+
+  const svgMarkup = faceSVG(ex.id);
+  const muscleInfo = ms ? `
+    <div style="margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:.72rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:5px;">
+        <div style="padding:5px 8px;background:rgba(52,211,153,.08);border-radius:5px;border-left:2px solid var(--accent3);">
+          <div style="font-size:.6rem;color:var(--accent3);font-weight:700;margin-bottom:2px;">강화 목표 근육</div>
+          <div style="font-weight:600;">${ms.weak}</div>
+        </div>
+        <div style="padding:5px 8px;background:rgba(248,113,113,.08);border-radius:5px;border-left:2px solid var(--danger);">
+          <div style="font-size:.6rem;color:var(--danger);font-weight:700;margin-bottom:2px;">억제할 보상근육</div>
+          <div style="font-weight:600;">${ms.over}</div>
+        </div>
+      </div>
+      <div style="color:var(--dim);line-height:1.5;">${ms.note}</div>
+    </div>` : '';
+
   document.getElementById('exDetail').innerHTML = `
-    <div style="font-size:1rem;font-weight:800;color:var(--accent);margin-bottom:3px;">${ex.icon} ${ex.name}</div>
-    <div style="font-size:.68rem;color:var(--accent2);margin-bottom:5px;">${ex.muscle}</div>
-    <div style="font-size:.78rem;color:var(--dim);margin-bottom:8px;">${ex.desc}</div>
-    <div style="padding:8px;background:rgba(244,114,182,.07);border-left:3px solid var(--accent);border-radius:6px;font-size:.77rem;line-height:1.6;margin-bottom:8px;">${ex.instruction}</div>
-    <div style="padding:6px 8px;background:rgba(251,191,36,.07);border-left:3px solid var(--accent4);border-radius:6px;font-size:.72rem;color:var(--accent4);line-height:1.5;">
+    <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;">
+      ${svgMarkup}
+      <div style="flex:1;">
+        <div style="font-size:.95rem;font-weight:800;color:var(--accent);margin-bottom:2px;">${ex.icon} ${ex.name}</div>
+        <div style="font-size:.65rem;color:var(--accent2);margin-bottom:4px;">${ex.muscle}</div>
+        <div style="font-size:.75rem;color:var(--dim);line-height:1.5;">${ex.desc}</div>
+        <div style="display:flex;gap:8px;margin-top:6px;font-size:.68rem;color:var(--dim);">
+          <span>⏱ ${ex.duration}초</span><span>×${ex.sets}세트</span><span>⏸ ${ex.holdSec}초</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:8px 10px;background:rgba(244,114,182,.07);border-left:3px solid var(--accent);border-radius:6px;font-size:.76rem;line-height:1.6;margin-bottom:6px;">${ex.instruction}</div>
+    <div style="padding:5px 8px;background:rgba(251,191,36,.07);border-left:3px solid var(--accent4);border-radius:6px;font-size:.7rem;color:var(--accent4);line-height:1.5;">
       👆 ${ex.tipFingerPlace}
     </div>
-    <div style="display:flex;gap:10px;margin-top:8px;font-size:.7rem;color:var(--dim);">
-      <span>⏱ ${ex.duration}초/세트</span><span>×${ex.sets}세트</span><span>⏸ ${ex.holdSec}초 유지</span>
-    </div>`;
+    ${muscleInfo}`;
 
   // Show compensators
   document.getElementById('compFeedback').innerHTML = ex.compensators.map(c=>
