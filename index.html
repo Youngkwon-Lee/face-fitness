@@ -200,6 +200,7 @@ header{
     <button class="nav-btn active" onclick="showScreen('assess')">평가</button>
     <button class="nav-btn" onclick="showScreen('program')">운동</button>
     <button class="nav-btn" onclick="showScreen('history')">기록</button>
+    <button id="voiceBtn" class="nav-btn" onclick="toggleVoice()" title="음성 끄기" style="font-size:.9rem;padding:5px 10px;">🔊</button>
   </nav>
 </header>
 
@@ -588,26 +589,20 @@ const EXERCISES = [
   },
 ];
 
-// Assessment tests
+// Assessment tests — 총 ~40초 (기존 80초에서 단축)
 const ASSESS_TESTS = [
-  { id:'baseline', icon:'😐', name:'안정 기준', desc:'중립 표정 30초 유지', duration:30,
-    instruction:'자연스러운 표정을 유지하세요. 기준값을 측정합니다.', phase:'rest',
-    measure: null },
-  { id:'smile', icon:'😊', name:'최대 미소', desc:'최대한 웃어보기', duration:12,
-    instruction:'최대한 활짝 웃어보세요. 볼이 올라가는 느낌으로.', phase:'smile',
-    measure:'smile' },
-  { id:'browRaise', icon:'🤨', name:'눈썹 올리기', desc:'양 눈썹 최대한 올리기', duration:10,
-    instruction:'양 눈썹을 최대한 위로 올리세요. 이마 주름이 생기지 않도록.', phase:'browRaise',
-    measure:'brow' },
-  { id:'eyeClose', icon:'😌', name:'눈 꽉 감기', desc:'눈을 꽉 감았다 뜨기', duration:10,
-    instruction:'눈을 꽉 감았다가 크게 뜨세요. 이마는 움직이지 않도록.', phase:'eyeClose',
-    measure:'eye' },
-  { id:'mouthOpen', icon:'😮', name:'입 크게 벌리기', desc:'최대 가동 범위', duration:10,
-    instruction:'입을 최대한 크게 벌리세요.', phase:'mouthOpen',
-    measure:'jaw' },
-  { id:'lipSeal', icon:'😶', name:'입 꼭 다물기', desc:'입술 힘껏 다물기', duration:8,
-    instruction:'입술을 힘껏 다물고 유지하세요.', phase:'lipSeal',
-    measure:'lip' },
+  { id:'baseline',  icon:'😐', name:'안정 기준',     desc:'중립 표정 유지', duration:12,
+    instruction:'자연스러운 표정을 유지하세요. 기준값을 측정합니다.', phase:'rest', measure:null },
+  { id:'smile',     icon:'😊', name:'최대 미소',     desc:'최대한 웃어보기', duration:8,
+    instruction:'최대한 활짝 웃으세요. 볼이 올라가는 느낌으로.', phase:'smile', measure:'smile' },
+  { id:'browRaise', icon:'🤨', name:'눈썹 올리기',   desc:'최대한 위로', duration:7,
+    instruction:'양 눈썹을 최대한 위로 올리세요. 이마 주름 없이.', phase:'browRaise', measure:'brow' },
+  { id:'eyeClose',  icon:'😌', name:'눈 꽉 감기',   desc:'꽉 감았다 뜨기', duration:7,
+    instruction:'눈을 꽉 감았다가 크게 뜨세요. 이마는 고정.', phase:'eyeClose', measure:'eye' },
+  { id:'mouthOpen', icon:'😮', name:'입 크게 벌리기', desc:'최대 가동범위', duration:7,
+    instruction:'입을 최대한 크게 벌리세요.', phase:'mouthOpen', measure:'jaw' },
+  { id:'lipSeal',   icon:'😶', name:'입 꼭 다물기',  desc:'입술 힘껏', duration:5,
+    instruction:'입술을 힘껏 다물고 유지하세요.', phase:'lipSeal', measure:'lip' },
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -618,11 +613,47 @@ let faceEdgeCache = null;
 let camStream = null;
 let cameraActive = false;
 
-// Baseline
+// ── AUDIO ──────────────────────────────────────────────────
+let audioCtx = null;
+let voiceOn = true;
+function getAC() { return audioCtx || (audioCtx = new (window.AudioContext||window.webkitAudioContext)()); }
+function beep(freq=660, dur=0.1, type='sine', vol=0.28) {
+  try {
+    const ac=getAC(), osc=ac.createOscillator(), g=ac.createGain();
+    osc.connect(g); g.connect(ac.destination);
+    osc.frequency.value=freq; osc.type=type;
+    g.gain.setValueAtTime(vol, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+dur);
+    osc.start(); osc.stop(ac.currentTime+dur+0.01);
+  } catch(e){}
+}
+function playTick()     { beep(440, 0.08, 'sine', 0.2); }
+function playGo()       { beep(660,0.1); setTimeout(()=>beep(880,0.15),120); }
+function playDone()     { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.15),i*110)); }
+function playWarn()     { beep(260, 0.2, 'sawtooth', 0.18); }
+function playNextTest() { beep(550,0.12); setTimeout(()=>beep(660,0.14),130); }
+
+let _lastSpoke = '';
+function speak(text) {
+  if (!voiceOn || !window.speechSynthesis || text===_lastSpoke) return;
+  _lastSpoke = text;
+  setTimeout(()=>{ _lastSpoke=''; }, 2500);
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang='ko-KR'; u.rate=1.05; u.pitch=1.0; u.volume=0.9;
+  speechSynthesis.speak(u);
+}
+function toggleVoice() {
+  voiceOn = !voiceOn;
+  document.getElementById('voiceBtn').textContent = voiceOn ? '🔊' : '🔇';
+  document.getElementById('voiceBtn').title = voiceOn ? '음성 끄기' : '음성 켜기';
+}
+
+// ── BASELINE ───────────────────────────────────────────────
 const BL = {n:0, leftCornerY:0, rightCornerY:0, leftBrowY:0, rightBrowY:0,
              earL:1, earR:1, jawH:0, mouthW:0, glabellarD:0, foreheadY:0};
 let blDone = false;
-const BL_FRAMES = 90;
+const BL_FRAMES = 45; // ~1.5s
 
 // Assessment state
 let assessActive = false, assessIdx = -1, assessTimer = null;
@@ -1184,12 +1215,14 @@ function runAssessTest() {
   document.getElementById('aPhasePrompt').textContent = t.instruction;
   document.getElementById('aBadge').textContent = `${t.icon} ${t.name}`;
 
+  speak(t.instruction);
   let cd = 3;
   document.getElementById('aTimer').textContent = '3';
+  playTick();
   const cdInt = setInterval(() => {
     cd--;
-    if (cd <= 0) { clearInterval(cdInt); doAssessTest(t); }
-    else document.getElementById('aTimer').textContent = cd;
+    if (cd <= 0) { clearInterval(cdInt); playGo(); doAssessTest(t); }
+    else { playTick(); document.getElementById('aTimer').textContent = cd; }
   }, 1000);
 }
 
@@ -1212,6 +1245,7 @@ function doAssessTest(t) {
       document.getElementById('ac_'+t.id).innerHTML =
         `<div class="ac-icon">${t.icon}</div><div class="ac-name">${t.name}</div><div class="ac-score" style="color:var(--accent3)">✓</div>`;
       assessIdx2++;
+      playNextTest();
       setTimeout(runAssessTest, 800);
     }
   }, 100);
@@ -1247,6 +1281,8 @@ function finishAssessment() {
   document.getElementById('aSkipBtn').style.display = 'none';
   document.getElementById('aTimerCard').style.display = 'none';
   document.getElementById('aBadge').textContent = '평가 완료!';
+  playDone();
+  speak('평가가 완료되었습니다. 결과를 확인하세요.');
 
   // Compute zone scores
   computeZoneScores();
@@ -1294,12 +1330,80 @@ function computeZoneScores() {
   // Neck/chin: overall symmetry proxy
   zoneScores.neck = Math.round(assessResults['baseline']?.sym || 50);
 
-  // Determine priority zones (score < 60)
+  // Priority: score < 90 (항상 개선 여지 표시)
   priorityZones.length = 0;
-  Object.entries(zoneScores).forEach(([z,s]) => { if(s!==null && s<65) priorityZones.push(z); });
+  Object.entries(zoneScores).forEach(([z,s]) => { if(s!==null && s<90) priorityZones.push(z); });
 
-  // Update exercise priorities
-  EXERCISES.forEach(ex => { ex.priority = priorityZones.includes(ex.zone); });
+  // Map findings → specific recommended exercises
+  buildRecommendedExercises();
+}
+
+// Recommended exercise IDs + reason (set after assessment)
+const recommendedEx = []; // [{id, reason, urgent}]
+
+function buildRecommendedExercises() {
+  recommendedEx.length = 0;
+  const br = assessResults['browRaise'];
+  const sm = assessResults['smile'];
+  const ey = assessResults['eyeClose'];
+  const mo = assessResults['mouthOpen'];
+
+  // Finding-driven recommendations (specific diagnosis → specific exercise)
+  if (ey?.frontalComp > 0.003) {
+    recommendedEx.push({id:'eye_v',     reason:'눈 감기 중 이마 보상 감지 → 안륜근 단독 훈련 필요', urgent:true});
+    recommendedEx.push({id:'brow_press',reason:'이마 보상 패턴 교정 → 전두근 저항 훈련', urgent:true});
+  }
+  if (br?.corrugator > 0.003) {
+    recommendedEx.push({id:'brow_press',reason:'눈썹 올리기 중 미간주름근 보상 → 미간 고정 훈련 필요', urgent:true});
+  }
+  if (sm?.platysma > 0.003) {
+    recommendedEx.push({id:'giraffe',   reason:'미소 중 광경근 보상 → 목/턱 근육 분리 훈련 필요', urgent:true});
+    recommendedEx.push({id:'chin_tuck', reason:'광경근 보상 교정 → 심경굴근 강화', urgent:false});
+  }
+  if (sm?.maxSmileL && sm?.maxSmileR) {
+    const diff = Math.abs(sm.maxSmileL - sm.maxSmileR) * 100;
+    if (diff > 0.5) {
+      recommendedEx.push({id:'corner_lift', reason:`미소 좌우 비대칭 ${diff.toFixed(1)} → 입꼬리 균형 훈련`, urgent:true});
+      recommendedEx.push({id:'dao_stretch', reason:'입꼬리 비대칭 보정 → DAO 억제 훈련', urgent:false});
+    }
+  }
+
+  // Zone-score-driven recommendations
+  if ((zoneScores.upper||100) < 90) {
+    if (!recommendedEx.find(r=>r.id==='brow_press'))
+      recommendedEx.push({id:'brow_press', reason:`상부 점수 ${zoneScores.upper}점 → 전두근 강화 권장`, urgent:false});
+    if (!recommendedEx.find(r=>r.id==='eye_v'))
+      recommendedEx.push({id:'eye_v',      reason:`상부 점수 ${zoneScores.upper}점 → 안륜근 강화 권장`, urgent:false});
+  }
+  if ((zoneScores.mid||100) < 90) {
+    recommendedEx.push({id:'cheek_lifter', reason:`중부 점수 ${zoneScores.mid}점 → 볼 올리기 집중 권장`, urgent:false});
+    if ((zoneScores.mid||100) < 80)
+      recommendedEx.push({id:'nasolabial',   reason:`중부 점수 낮음 → 팔자주름 운동 추가`, urgent:false});
+  }
+  if ((zoneScores.lower||100) < 90) {
+    if (!recommendedEx.find(r=>r.id==='corner_lift'))
+      recommendedEx.push({id:'corner_lift', reason:`하부 점수 ${zoneScores.lower}점 → 입꼬리 올리기 권장`, urgent:false});
+  }
+  if ((zoneScores.neck||100) < 90) {
+    if (!recommendedEx.find(r=>r.id==='giraffe'))
+      recommendedEx.push({id:'giraffe',    reason:`목/턱 점수 ${zoneScores.neck}점 → 기린 스트레칭 권장`, urgent:false});
+    if (!recommendedEx.find(r=>r.id==='chin_tuck'))
+      recommendedEx.push({id:'chin_tuck', reason:`목/턱 점수 ${zoneScores.neck}점 → 턱 당기기 권장`, urgent:false});
+  }
+
+  // Deduplicate
+  const seen = new Set();
+  for (let i=recommendedEx.length-1;i>=0;i--) {
+    if (seen.has(recommendedEx[i].id)) recommendedEx.splice(i,1);
+    else seen.add(recommendedEx[i].id);
+  }
+
+  // Mark priority on exercises
+  EXERCISES.forEach(ex => {
+    ex.priority = !!recommendedEx.find(r=>r.id===ex.id);
+    ex.recommendReason = recommendedEx.find(r=>r.id===ex.id)?.reason || null;
+    ex.recommendUrgent = recommendedEx.find(r=>r.id===ex.id)?.urgent || false;
+  });
 }
 
 function showAssessResults() {
@@ -1329,10 +1433,28 @@ function showAssessResults() {
     if (diff > 0.5) warnings.push(`미소 좌우 차이 ${diff.toFixed(1)} — 비대칭 개선 필요`);
   }
 
-  const prescription = priorityZones.length
-    ? `집중 개선 구역: <b>${priorityZones.map(z=>({upper:'상부',mid:'중부',lower:'하부',neck:'목/턱'})[z]).join(', ')}</b><br>` +
-      EXERCISES.filter(e=>e.priority).map(e=>`• ${e.icon} ${e.name}`).join('<br>')
-    : '전체 구역 균형 유지 중. 전체 프로그램 진행을 권장합니다.';
+  const urgentList = recommendedEx.filter(r=>r.urgent);
+  const normalList = recommendedEx.filter(r=>!r.urgent);
+  const prescription = recommendedEx.length === 0
+    ? '전체 점수 우수! 전체 프로그램 유지 권장입니다.'
+    : (urgentList.length
+        ? `<div style="color:var(--danger);font-weight:700;font-size:.72rem;margin-bottom:4px;">🔴 집중 교정 필요</div>`+
+          urgentList.map(r=>{
+            const ex=EXERCISES.find(e=>e.id===r.id);
+            return `<div style="margin-bottom:6px;padding:5px 8px;background:rgba(248,113,113,.08);border-radius:5px;border-left:2px solid var(--danger);">
+              <b>${ex?.icon||''} ${ex?.name||r.id}</b><br>
+              <span style="font-size:.7rem;color:var(--dim);">${r.reason}</span></div>`;
+          }).join('')
+        : '') +
+      (normalList.length
+        ? `<div style="color:var(--accent4);font-weight:700;font-size:.72rem;margin:6px 0 4px;">🟡 개선 권장 운동</div>`+
+          normalList.map(r=>{
+            const ex=EXERCISES.find(e=>e.id===r.id);
+            return `<div style="margin-bottom:5px;padding:4px 8px;background:rgba(251,191,36,.06);border-radius:5px;border-left:2px solid var(--accent4);">
+              <b>${ex?.icon||''} ${ex?.name||r.id}</b><br>
+              <span style="font-size:.7rem;color:var(--dim);">${r.reason}</span></div>`;
+          }).join('')
+        : '');
 
   document.getElementById('aoSub').textContent = `전체 평균 ${Math.round(Object.values(zoneScores).filter(Boolean).reduce((a,b)=>a+b,0)/4)}점`;
   document.getElementById('aoResults').innerHTML = rows +
@@ -1356,15 +1478,16 @@ function renderExList(filter) {
     const globalIdx = EXERCISES.indexOf(ex);
     const done = exScores[ex.id] !== undefined;
     const isPri = ex.priority;
+    const urgentMark = ex.recommendUrgent ? '🔴 ' : isPri ? '🟡 ' : '';
     return `<div class="ex-row${globalIdx===exIdx?' active':''}${done?' done':''}${isPri?' priority':''}" onclick="selectEx(${globalIdx})">
       <span class="er-icon">${ex.icon}</span>
       <div class="er-info">
-        <div class="er-name">${ex.name}</div>
+        <div class="er-name">${urgentMark}${ex.name}</div>
         <div class="er-meta">
           <span class="badge badge-${ex.zone}">${{upper:'상부',mid:'중부',lower:'하부',neck:'목/턱'}[ex.zone]}</span>
-          ${isPri?'<span class="badge badge-priority">우선</span>':''}
-          <span style="margin-left:3px;">${ex.muscle.split('(')[0].trim()}</span>
+          ${isPri?`<span class="badge badge-priority">${ex.recommendUrgent?'집중':'권장'}</span>`:''}
         </div>
+        ${isPri&&ex.recommendReason ? `<div style="font-size:.6rem;color:${ex.recommendUrgent?'var(--danger)':'var(--accent4)'};margin-top:2px;line-height:1.3;">${ex.recommendReason}</div>` : ''}
       </div>
       ${done ? `<span class="er-score" style="color:${exScores[ex.id]>=75?'var(--accent3)':exScores[ex.id]>=55?'var(--accent4)':'var(--danger)'};">${exScores[ex.id]}</span>` : ''}
     </div>`;
@@ -1411,12 +1534,14 @@ function startExercise() {
   document.getElementById('pStartBtn').disabled = true;
   document.getElementById('pStopBtn').disabled = false;
 
+  speak(ex.instruction);
   let cd = 3;
   document.getElementById('pBadge').textContent = `${ex.name} 준비 ${cd}...`;
+  playTick();
   const cdInt = setInterval(() => {
     cd--;
-    if (cd<=0){ clearInterval(cdInt); beginExSet(); }
-    else document.getElementById('pBadge').textContent = `${cd}...`;
+    if (cd<=0){ clearInterval(cdInt); playGo(); beginExSet(); }
+    else { playTick(); document.getElementById('pBadge').textContent = `${cd}...`; }
   }, 1000);
 }
 
@@ -1438,17 +1563,45 @@ function beginExSet() {
     const frac = el/dur;
     const phase = ex.phase;
     let prompt = '';
-    if (phase==='smile')    prompt = frac<0.2?'중립...' : frac<0.7?'😊 볼을 위로 끌어올리세요!' : '천천히 이완...';
-    else if(phase==='browRaise') prompt = `눈썹 올리고 유지 ${ex.holdSec}초 — 이마 주름 없이`;
-    else if(phase==='eyeSquint') prompt = frac<0.5?'👁 아래 눈꺼풀만 위로' : '이완...';
-    else if(phase==='puff') prompt = '볼 공기 → 좌↔우 이동';
-    else if(phase==='snarl') prompt = '코 옆 ↑ 올리기';
-    else if(phase==='chin') prompt = frac<0.5?'유지...' : '천천히 이완';
-    else if(phase==='vowel'){
-      const v=['아','에','이','오','우'][Math.floor(frac*5)%5];
-      prompt = `"${v}" — 과장되게 크게`;
+    if (phase==='smile') {
+      if (frac<0.18)      prompt='자연스럽게...';
+      else if(frac<0.22)  { prompt='😊 볼을 위로 끌어올리세요!'; speak('볼을 위로 끌어올리세요'); }
+      else if(frac<0.7)   prompt='😊 볼을 위로 끌어올리세요!';
+      else                { prompt='천천히 이완...'; if(frac<0.72) speak('천천히 이완하세요'); }
+    } else if(phase==='browRaise') {
+      if(frac<0.12)       { prompt='이마 펴고...'; }
+      else if(frac<0.16)  { prompt='눈썹 올리기 — 이마 주름 없이'; speak('눈썹을 위로 올리세요. 이마 주름 없이.'); }
+      else                  prompt='눈썹 올리고 유지 — 미간 고정';
+    } else if(phase==='eyeSquint') {
+      if(frac<0.12)       { prompt='준비...'; }
+      else if(frac<0.16)  { prompt='아래 눈꺼풀 올리기'; speak('아래 눈꺼풀만 위로 올리세요. 이마는 고정.'); }
+      else if(frac<0.5)     prompt='👁 아래 눈꺼풀만 위로';
+      else                  prompt='이완...';
+    } else if(phase==='puff') {
+      if(frac<0.05) speak('볼에 공기를 채우고 좌우로 이동하세요');
+      prompt='볼 공기 → 좌↔우 이동';
+    } else if(phase==='snarl') {
+      if(frac<0.05) speak('코 옆 근육을 위로 올리세요');
+      prompt='코 옆 ↑ 올리기';
+    } else if(phase==='chin') {
+      if(frac<0.05) speak(ex.instruction.slice(0,25));
+      prompt=frac<0.5?'유지...':'천천히 이완';
+    } else if(phase==='vowel'){
+      const vi=Math.floor(frac*5)%5;
+      const v=['아','에','이','오','우'][vi];
+      if(vi!==exTimer._pv){ speak(v); exTimer._pv=vi; }
+      prompt=`"${v}" — 과장되게 크게`;
     }
     document.getElementById('pPrompt').textContent = prompt;
+
+    // Compensator voice warning (max once per 5s)
+    const now=Date.now();
+    if(!exTimer._lastWarnT) exTimer._lastWarnT=0;
+    if(now-exTimer._lastWarnT>5000) {
+      if((metrics.corrugator||0)>0.005)  { speak('미간에 힘 빼세요'); playWarn(); exTimer._lastWarnT=now; }
+      else if((metrics.frontalBrow||0)>0.005) { speak('이마 힘 빼세요'); playWarn(); exTimer._lastWarnT=now; }
+      else if((metrics.platysma||0)>0.005)    { speak('목 힘 빼세요');   playWarn(); exTimer._lastWarnT=now; }
+    }
 
     if (el >= dur) { clearInterval(exTimer); onExSetDone(); }
   }, 100);
@@ -1460,6 +1613,7 @@ function onExSetDone() {
     exState = 'rest';
     exSetNum++;
     let rest = 15;
+    speak(`세트 ${exSetNum-1} 완료. ${rest}초 휴식.`);
     document.getElementById('pBadge').textContent = `휴식 ${rest}초`;
     document.getElementById('pTimerLbl').textContent = `세트 ${exSetNum-1} 완료 · 휴식`;
     document.getElementById('pPrompt').textContent = `다음: 세트 ${exSetNum}`;
@@ -1467,6 +1621,7 @@ function onExSetDone() {
       rest--;
       document.getElementById('pBadge').textContent = `휴식 ${rest}초`;
       document.getElementById('pTimer').textContent = `0:${String(rest).padStart(2,'0')}`;
+      if (rest===3) speak('3, 2, 1');
       if (rest<=0){ clearInterval(ri); beginExSet(); }
     }, 1000);
   } else {
@@ -1492,6 +1647,8 @@ function finishExercise() {
     spawnParticles(c.width/2, c.height/2, score>=75?'#34d399':score>=55?'#fbbf24':'#f87171', 16);
   }
   window._scoreFlash = {score, frames: 60};
+  playDone();
+  speak(`${ex.name} 완료. ${score}점`);
   updateFFI();
   renderExList(document.querySelector('#zoneFilter .btn-primary')?.textContent||'all');
   showExResult(ex, score);
