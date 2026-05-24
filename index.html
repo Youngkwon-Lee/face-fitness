@@ -130,6 +130,9 @@ header{
 .badge-neck{background:rgba(52,211,153,.2);color:var(--accent3);}
 .badge-priority{background:rgba(251,191,36,.25);color:var(--accent4);}
 .badge-normal{background:rgba(71,85,105,.25);color:var(--dim);}
+.badge-stretch{background:rgba(52,211,153,.18);color:var(--accent3);}
+.badge-strength{background:rgba(244,114,182,.18);color:var(--accent);}
+.badge-endurance{background:rgba(129,140,248,.18);color:var(--accent2);}
 
 /* COMPENSATOR PANEL */
 .comp-panel{
@@ -372,6 +375,9 @@ header{
         <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('mid',this)">중부</button>
         <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('lower',this)">하부</button>
         <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('neck',this)">목/턱</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;border-color:rgba(52,211,153,.3);" onclick="filterEx('stretch',this)">🧘 스트레칭</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;border-color:rgba(244,114,182,.3);" onclick="filterEx('strength',this)">💪 근육강화</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;border-color:rgba(129,140,248,.3);" onclick="filterEx('endurance',this)">⏱ 지구력</button>
       </div>
       <div class="ex-list" id="exList"></div>
     </div>
@@ -698,7 +704,85 @@ const EXERCISES = [
     tipFingerPlace:'손가락을 턱 아래에 대어 수축 확인',
     measure:'jawOpen'
   },
+
+  // ── STRETCH ───────────────────────────────────────────────
+  { id:'jaw_release', icon:'🌀', zone:'neck', name:'턱 이완 스트레칭', nameEn:'Jaw Release',
+    muscle:'교근 (Masseter) + 측두근 (Temporalis)',
+    desc:'턱 관절 이완. 씹기 근육의 만성 긴장 해소. 이갈이·TMJ 예방.',
+    instruction:'천천히 입을 최대로 벌리고 5초 유지. 천천히 닫고 2초 후 반복. 마지막에 아래턱을 좌→우로 천천히 이동.',
+    duration:40, sets:3, holdSec:5, phase:'mouthOpen',
+    compensators:[{name:'경추 과신전 (SCM)', cue:'목이 뒤로 젖혀짐', key:'scm'}],
+    tipFingerPlace:'턱 앞쪽에 손가락을 대어 열림이 균등한지 확인',
+    measure:'jawOpen'
+  },
+  { id:'face_release', icon:'😌', zone:'mid', name:'얼굴 전체 이완', nameEn:'Face Release',
+    muscle:'표정근 전체 (Mimetic Muscles) — tension-release cycle',
+    desc:'표정근 과긴장 해소. 보상 패턴 리셋. 운동 전후 필수 쿨다운.',
+    instruction:'눈·코·입을 최대한 쪼그려 5초 유지(Scrunch). 그 뒤 눈·입·이마를 최대한 크게 벌려 5초(Release). 이 cycle 3회.',
+    duration:40, sets:3, holdSec:5, phase:'vowel',
+    compensators:[{name:'경추 긴장', cue:'목에 힘이 들어감', key:'scm'}],
+    tipFingerPlace:'양 손을 볼에 가볍게 대어 근육 이완을 촉각으로 확인',
+    measure:'mouthWidth'
+  },
+  { id:'nasolabial_stretch', icon:'✨', zone:'mid', name:'팔자주름 스트레칭', nameEn:'NLF Stretch',
+    muscle:'상순거근 (LLS) + 협근 (Buccinator) 스트레칭',
+    desc:'팔자주름 부위 근막 이완. 근육강화 전 준비 스트레칭.',
+    instruction:'검지를 팔자주름 위에 대고, 입꼬리를 아래·바깥으로 가볍게 당기며 윗 볼 근육을 위로 들어올려 저항.',
+    duration:30, sets:3, holdSec:8, phase:'snarl',
+    compensators:[{name:'이마 보상', cue:'눈썹이 같이 올라감', key:'frontalis'}],
+    tipFingerPlace:'반대 손은 이마에 얹어 이마 보상 감시',
+    measure:'smileRise'
+  },
+
+  // ── ENDURANCE ─────────────────────────────────────────────
+  { id:'smile_hold', icon:'🙂', zone:'mid', name:'미소 지구력 훈련', nameEn:'Smile Endurance',
+    muscle:'광대근 (ZMaj) — 근지구력',
+    desc:'광대근 지구력 향상. 비대칭 교정에 가장 효과적. 40-60% 강도로 지속 유지.',
+    instruction:'치아가 살짝 보이는 부드러운 미소를 유지. 최대 수축이 아닌 적당한 강도로 오래 유지. 목에 힘이 들어가지 않도록.',
+    duration:50, sets:2, holdSec:25, phase:'smile',
+    compensators:[
+      {name:'광경근 (Platysma)', cue:'목 긴장', key:'platysma'},
+      {name:'전두근 보상', cue:'눈썹이 올라감', key:'frontalis'},
+    ],
+    tipFingerPlace:'볼 위에 손가락을 살짝 대어 지속 수축 확인',
+    measure:'smileRise'
+  },
+  { id:'brow_endurance', icon:'😐', zone:'upper', name:'눈썹 위치 유지 훈련', nameEn:'Brow Endurance',
+    muscle:'전두근 (Frontalis) — 근지구력',
+    desc:'전두근 지구력. 눈썹 처짐 방지. 좌우 비대칭 교정에 핵심.',
+    instruction:'눈썹을 자연스러운 위치보다 1-2mm 위에 고정. 이마에 주름 없이 최대한 오래 유지. 미간에 힘 주지 않도록.',
+    duration:45, sets:2, holdSec:20, phase:'browRaise',
+    compensators:[
+      {name:'미간주름근 (Corrugator)', cue:'미간이 좁아짐', key:'corrugator'},
+    ],
+    tipFingerPlace:'이마에 손을 얹어 주름이 생기지 않는지 감시',
+    measure:'browRise'
+  },
+  { id:'cheek_endurance', icon:'🍎', zone:'mid', name:'볼 올리기 지구력', nameEn:'Cheek Endurance',
+    muscle:'광대근 (ZMaj) + 안륜근 하부 — 지구력 복합',
+    desc:'볼 근육 지구력 훈련. 운동선수의 근지구력 훈련 원리 적용.',
+    instruction:'볼을 눈 방향으로 올린 채 유지. 완전한 근피로가 올 때까지. 강도를 70%로 유지하다 힘들어지면 50%로 줄여도 유지.',
+    duration:60, sets:2, holdSec:30, phase:'smile',
+    compensators:[
+      {name:'광경근 (Platysma)', cue:'목 밴딩', key:'platysma'},
+    ],
+    tipFingerPlace:'손가락을 볼 위쪽에 대어 올라간 상태 유지 확인',
+    measure:'smileRise'
+  },
 ];
+
+// ── Training type assignment ───────────────────────────────
+// stretch: 이완·신장 | strength: 저항·수축 | endurance: 지속·지구력
+const EXERCISE_TYPES = {
+  brow_press:'strength',  eye_v:'strength',      cheek_lifter:'strength',
+  nasolabial:'strength',  puffer:'endurance',    apple_cheeks:'strength',
+  fish_face:'endurance',  corner_lift:'strength', dao_stretch:'stretch',
+  vowel:'endurance',      giraffe:'stretch',      chin_tuck:'strength',
+  jaw_jut:'strength',     tongue_press:'endurance',
+  jaw_release:'stretch',  face_release:'stretch', nasolabial_stretch:'stretch',
+  smile_hold:'endurance', brow_endurance:'endurance', cheek_endurance:'endurance',
+};
+EXERCISES.forEach(e => { e.type = EXERCISE_TYPES[e.id] || 'strength'; });
 
 // Assessment tests — 총 ~40초 (기존 80초에서 단축)
 const ASSESS_TESTS = [
@@ -1272,17 +1356,23 @@ function updateMuscleMonitor() {
   musclePeaks.corr = Math.max(musclePeaks.corr, corr);
   musclePeaks.plat = Math.max(musclePeaks.plat, plat);
 
-  // Use SHARED peak (larger of L/R) so bilateral bars are on the same scale
-  const smPk  = Math.max(musclePeaks.smL, musclePeaks.smR, 0.001);
-  const brPk  = Math.max(musclePeaks.brL, musclePeaks.brR, 0.001);
-  const eyPk  = Math.max(musclePeaks.eyL, musclePeaks.eyR, 0.001);
+  // Fixed anatomical scale: typical full-contraction movement ranges (landmark normalized)
+  // Prevents noise inflation when session peaks are tiny (at-rest values near 0)
+  const FS = {sm:0.020, br:0.015, ey:0.08, corr:0.012, plat:0.010};
 
-  const pct = (v, pk) => Math.min(100, Math.round(v / pk * 100));
+  // Use SHARED peak (larger of L/R) so bilateral bars are on the same scale
+  // Floor = FIXED_SCALE so resting noise (~0.001) stays <5% (suppressed by deadband)
+  const smPk  = Math.max(musclePeaks.smL, musclePeaks.smR, FS.sm);
+  const brPk  = Math.max(musclePeaks.brL, musclePeaks.brR, FS.br);
+  const eyPk  = Math.max(musclePeaks.eyL, musclePeaks.eyR, FS.ey);
+
+  // 5% deadband: values below noise floor rendered as 0
+  const pct = (v, pk) => { const r = Math.min(100, Math.round(v / pk * 100)); return r < 5 ? 0 : r; };
   const pSmL = pct(smL, smPk), pSmR = pct(smR, smPk);
   const pBrL = pct(brL, brPk), pBrR = pct(brR, brPk);
   const pEyL = pct(eyL, eyPk), pEyR = pct(eyR, eyPk);
-  const pCorr = pct(corr, Math.max(musclePeaks.corr, 0.001));
-  const pPlat = pct(plat, Math.max(musclePeaks.plat, 0.001));
+  const pCorr = pct(corr, Math.max(musclePeaks.corr, FS.corr));
+  const pPlat = pct(plat, Math.max(musclePeaks.plat, FS.plat));
 
   // Asymmetry = absolute percentage-point difference
   const asSm = Math.abs(pSmL - pSmR);
@@ -1471,6 +1561,23 @@ function computeAssessMetrics(t, buf) {
   if (!buf.length) return null;
   const avg = key => buf.reduce((a,b)=>(a+(b[key]||0)),0)/buf.length;
   const maxVal = key => Math.max(...buf.map(b=>b[key]||0));
+
+  // Recapture BL from the dedicated 12-second baseline test (more frames = better average)
+  // This corrects the 1.5s auto-capture done at camera start, which can be noisy
+  if (t.id === 'baseline' && buf.length >= 20) {
+    BL.leftCornerY  = avg('cornerLY');
+    BL.rightCornerY = avg('cornerRY');
+    BL.leftBrowY    = avg('browLY');
+    BL.rightBrowY   = avg('browRY');
+    BL.earL         = avg('earL');
+    BL.earR         = avg('earR');
+    BL.jawH         = avg('mouthH');
+    BL.mouthW       = avg('mouthW');
+    BL.glabellarD   = avg('glabellarD');
+    BL.foreheadY    = avg('foreheadY');
+    resetMusclePeaks(); // reset monitor so it reads from the new baseline
+  }
+
   return {
     smileL: avg('relSmileL'), smileR: avg('relSmileR'),
     maxSmileL: maxVal('relSmileL'), maxSmileR: maxVal('relSmileR'),
@@ -1678,27 +1785,38 @@ function goToProgram() { closeAssessOverlay(); showScreen('program'); }
 // ═══════════════════════════════════════════════════════════
 // EXERCISE (PROGRAM SCREEN)
 // ═══════════════════════════════════════════════════════════
+const TYPE_META = {
+  stretch:   {icon:'🧘', label:'스트레칭', badge:'badge-stretch'},
+  strength:  {icon:'💪', label:'근육강화',  badge:'badge-strength'},
+  endurance: {icon:'⏱',  label:'지구력',    badge:'badge-endurance'},
+};
+
 function renderExList(filter) {
   const list = document.getElementById('exList');
-  let filtered = filter === 'priority' ? EXERCISES.filter(e=>e.priority) :
-                 filter === 'all'      ? EXERCISES :
+  let filtered = filter === 'priority'  ? EXERCISES.filter(e=>e.priority) :
+                 filter === 'stretch'   ? EXERCISES.filter(e=>e.type==='stretch') :
+                 filter === 'strength'  ? EXERCISES.filter(e=>e.type==='strength') :
+                 filter === 'endurance' ? EXERCISES.filter(e=>e.type==='endurance') :
+                 filter === 'all'       ? EXERCISES :
                  EXERCISES.filter(e=>e.zone===filter);
   // Sort: urgent first → priority → normal
   filtered = [...filtered].sort((a,b)=>{
     const rank = e => e.recommendUrgent?0:e.priority?1:2;
     return rank(a)-rank(b);
   });
-  list.innerHTML = filtered.map((ex,i) => {
+  list.innerHTML = filtered.map((ex) => {
     const globalIdx = EXERCISES.indexOf(ex);
     const done = exScores[ex.id] !== undefined;
     const isPri = ex.priority;
     const urgentMark = ex.recommendUrgent ? '🔴 ' : isPri ? '🟡 ' : '';
+    const tm = TYPE_META[ex.type] || TYPE_META.strength;
     return `<div class="ex-row${globalIdx===exIdx?' active':''}${done?' done':''}${isPri?' priority':''}" onclick="selectEx(${globalIdx})">
       <span class="er-icon">${ex.icon}</span>
       <div class="er-info">
         <div class="er-name">${urgentMark}${ex.name}</div>
         <div class="er-meta">
           <span class="badge badge-${ex.zone}">${{upper:'상부',mid:'중부',lower:'하부',neck:'목/턱'}[ex.zone]}</span>
+          <span class="badge ${tm.badge}">${tm.icon} ${tm.label}</span>
           ${isPri?`<span class="badge badge-priority">${ex.recommendUrgent?'집중':'권장'}</span>`:''}
         </div>
         ${isPri&&ex.recommendReason ? `<div style="font-size:.6rem;color:${ex.recommendUrgent?'var(--danger)':'var(--accent4)'};margin-top:2px;line-height:1.3;">${ex.recommendReason}</div>` : ''}
@@ -1854,8 +1972,9 @@ function selectEx(idx) {
         <div style="font-size:.95rem;font-weight:800;color:var(--accent);margin-bottom:2px;">${ex.icon} ${ex.name}</div>
         <div style="font-size:.65rem;color:var(--accent2);margin-bottom:4px;">${ex.muscle}</div>
         <div style="font-size:.75rem;color:var(--dim);line-height:1.5;">${ex.desc}</div>
-        <div style="display:flex;gap:8px;margin-top:6px;font-size:.68rem;color:var(--dim);">
-          <span>⏱ ${ex.duration}초</span><span>×${ex.sets}세트</span><span>⏸ ${ex.holdSec}초</span>
+        <div style="display:flex;gap:8px;margin-top:6px;font-size:.68rem;color:var(--dim);flex-wrap:wrap;">
+          <span class="badge ${(TYPE_META[ex.type]||TYPE_META.strength).badge}" style="font-size:.62rem;">${(TYPE_META[ex.type]||TYPE_META.strength).icon} ${(TYPE_META[ex.type]||TYPE_META.strength).label}</span>
+          <span>⏱ ${ex.duration}초</span><span>×${ex.sets}세트</span><span>⏸ ${ex.holdSec}초 유지</span>
         </div>
       </div>
     </div>
@@ -1898,7 +2017,8 @@ function beginExSet() {
   exState = 'running';
   exStartTime = Date.now();
   const dur = ex.duration * 1000;
-  document.getElementById('pTimerLbl').textContent = `세트 ${exSetNum} / ${ex.sets}`;
+  const tm = TYPE_META[ex.type] || TYPE_META.strength;
+  document.getElementById('pTimerLbl').textContent = `세트 ${exSetNum} / ${ex.sets}  ${tm.icon} ${tm.label}`;
   document.getElementById('pBadge').textContent = `${ex.icon} ${ex.name}`;
 
   exTimer = setInterval(() => {
@@ -1940,6 +2060,14 @@ function beginExSet() {
       if(vi!==exTimer._pv){ speak(v); exTimer._pv=vi; }
       prompt=`"${v}" — 과장되게 크게`;
     }
+    // Training-type overlay (appended if no phase prompt set)
+    if (!prompt) {
+      if (ex.type==='stretch')   prompt = frac < 0.5 ? '천천히 스트레칭 → 유지...' : '천천히 이완';
+      if (ex.type==='endurance') prompt = frac < 0.75 ? `${tm.icon} 부드럽게 유지...` : '조금만 더 버티세요!';
+    }
+    // Type-specific suffix hint
+    if (prompt && ex.type==='stretch'   && !prompt.includes('이완')) prompt += '  (천천히)';
+    if (prompt && ex.type==='endurance' && frac > 0.6 && frac < 0.65) { speak('잘 하고 있어요, 계속 유지하세요'); }
     document.getElementById('pPrompt').textContent = prompt;
 
     // Compensator voice warning (max once per 5s)
