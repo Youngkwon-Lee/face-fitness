@@ -188,6 +188,14 @@ header{
 }
 .rep-count{font-size:.9rem;font-weight:700;text-align:center;color:var(--accent2);}
 
+/* ASSESS PHASE LABELS */
+.phase-label{font-size:.58rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:3px 8px;border-radius:4px;margin-bottom:8px;display:inline-block;}
+.phase-label.static{background:rgba(52,211,153,.15);color:var(--accent3);}
+.phase-label.dynamic{background:rgba(129,140,248,.15);color:var(--accent2);}
+.assess-mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:2px;}
+.static-result-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:.82rem;}
+.static-result-row:last-of-type{border-bottom:none;}
+
 /* MUSCLE ACTIVATION MONITOR */
 .mm-muscle{margin-bottom:9px;}
 .mm-mhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;}
@@ -240,10 +248,11 @@ header{
       </div>
 
       <!-- Controls -->
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <button class="btn btn-primary" id="aCamBtn" onclick="startCamera()">카메라 시작</button>
-        <button class="btn btn-grad" id="aStartBtn" onclick="startAssessment()" disabled>평가 시작</button>
+        <button class="btn btn-grad" id="aStartBtn" onclick="startStaticPhase()" disabled>Phase 1 정적 평가</button>
         <button class="btn btn-secondary" id="aSkipBtn" onclick="skipTest()" disabled style="display:none">건너뛰기</button>
+        <span id="aPhaseTag" style="font-size:.65rem;color:var(--dim);display:none;"></span>
       </div>
 
       <!-- Timer (during assess) -->
@@ -257,10 +266,28 @@ header{
 
     <!-- Right -->
     <div style="display:flex;flex-direction:column;gap:12px;">
-      <!-- Test list -->
+      <!-- Test list — split by phase -->
       <div class="card">
-        <div class="card-title">평가 항목 (6개)</div>
-        <div class="assess-grid" id="assessGrid"></div>
+        <div class="card-title" style="margin-bottom:10px;">평가 항목</div>
+        <!-- Phase 1: Static -->
+        <div class="phase-label static">Phase 1 — 정적</div>
+        <div class="assess-mini-grid" id="staticGrid"></div>
+        <div style="border-top:1px dashed var(--border);margin:10px 0;"></div>
+        <!-- Phase 2: Dynamic -->
+        <div class="phase-label dynamic" id="dynamicPhaseLabel" style="opacity:.45;">Phase 2 — 동적</div>
+        <div class="assess-mini-grid" id="dynamicGrid"></div>
+      </div>
+
+      <!-- Static result card (shown after Phase 1) -->
+      <div class="card" id="staticResultCard" style="display:none;border-color:rgba(52,211,153,.3);">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:1.1rem;">✅</span>
+          <div class="card-title" style="margin:0;color:var(--accent3);">정적 평가 결과</div>
+        </div>
+        <div id="staticResultContent"></div>
+        <button class="btn btn-grad" style="width:100%;margin-top:12px;font-size:.8rem;" onclick="startDynamicPhase()">
+          Phase 2 동적 평가 시작 →
+        </button>
       </div>
 
       <!-- Muscle Activation Monitor -->
@@ -852,6 +879,7 @@ const BL_FRAMES = 45; // ~1.5s
 
 // Assessment state
 let assessActive = false, assessIdx = -1, assessTimer = null;
+let assessPhase = 'idle'; // 'idle' | 'static' | 'static-done' | 'dynamic' | 'done'
 const assessResults = {}; // test.id -> metrics
 let assessBuf = [];
 
@@ -1475,32 +1503,69 @@ function updateCompensatorUI() {
 // ASSESSMENT
 // ═══════════════════════════════════════════════════════════
 function renderAssessGrid() {
-  const grid = document.getElementById('assessGrid');
-  grid.innerHTML = ASSESS_TESTS.map((t,i) => {
-    const done = assessResults[t.id] !== undefined;
-    return `<div class="assess-card${done?' done':''}" id="ac_${t.id}">
+  const staticTests  = ASSESS_TESTS.slice(0, 1);  // baseline
+  const dynamicTests = ASSESS_TESTS.slice(1);      // smile → lipSeal
+
+  const makeCard = (t) => {
+    const done    = assessResults[t.id] !== undefined;
+    const active  = assessIdx2 === ASSESS_TESTS.indexOf(t) && (assessActive || (assessPhase==='static'||assessPhase==='dynamic'));
+    return `<div class="assess-card${active?' active':''}${done?' done':''}" id="ac_${t.id}">
       <div class="ac-icon">${t.icon}</div>
-      <div class="ac-name">${t.name}</div>
-      ${done ? `<div class="ac-score" style="color:var(--accent3)">✓</div>` : `<div style="font-size:.65rem;color:var(--dim)">${t.desc}</div>`}
+      <div class="ac-name" style="font-size:.72rem;">${t.name}</div>
+      ${done ? `<div class="ac-score" style="color:var(--accent3);font-size:.9rem;">✓</div>`
+             : `<div style="font-size:.58rem;color:var(--dim)">${t.desc}</div>`}
     </div>`;
-  }).join('');
+  };
+
+  const sg = document.getElementById('staticGrid');
+  const dg = document.getElementById('dynamicGrid');
+  if (sg) sg.innerHTML = staticTests.map(makeCard).join('');
+  if (dg) dg.innerHTML = dynamicTests.map(makeCard).join('');
+
+  // Activate dynamic phase label once Phase 2 starts
+  const dl = document.getElementById('dynamicPhaseLabel');
+  if (dl) dl.style.opacity = (assessPhase==='dynamic'||assessPhase==='done') ? '1' : '.45';
 }
 
 let assessIdx2 = -1;
-function startAssessment() {
-  if (!cameraActive || !blDone) { alert('기준값 측정이 완료되지 않았습니다. 잠시 기다리세요.'); return; }
-  // Clear previous
+
+function startStaticPhase() {
+  if (!cameraActive || !blDone) { alert('기준값 측정 중입니다. 잠시 기다리세요.'); return; }
   Object.keys(assessResults).forEach(k => delete assessResults[k]);
   assessIdx2 = 0;
+  assessPhase = 'static';
   document.getElementById('aStartBtn').disabled = true;
+  document.getElementById('aStartBtn').textContent = '정적 평가 중...';
   document.getElementById('aSkipBtn').style.display = '';
   document.getElementById('aSkipBtn').disabled = false;
   document.getElementById('aTimerCard').style.display = '';
+  document.getElementById('staticResultCard').style.display = 'none';
+  const tag = document.getElementById('aPhaseTag');
+  if (tag) { tag.textContent = 'Phase 1 · 정적 평가 진행 중'; tag.style.display = ''; tag.style.color = 'var(--accent3)'; }
+  renderAssessGrid();
+  speak('정적 평가를 시작합니다. 자연스러운 표정을 유지하세요.');
+  runAssessTest();
+}
+
+function startDynamicPhase() {
+  assessIdx2 = 1;
+  assessPhase = 'dynamic';
+  document.getElementById('staticResultCard').style.display = 'none';
+  document.getElementById('aTimerCard').style.display = '';
+  document.getElementById('aSkipBtn').style.display = '';
+  document.getElementById('aSkipBtn').disabled = false;
+  const tag = document.getElementById('aPhaseTag');
+  if (tag) { tag.textContent = 'Phase 2 · 동적 평가 진행 중'; tag.style.color = 'var(--accent2)'; }
+  renderAssessGrid();
+  speak('동적 평가를 시작합니다. 각 지시에 따라 표정을 만드세요.');
   runAssessTest();
 }
 
 function runAssessTest() {
-  if (assessIdx2 >= ASSESS_TESTS.length) { finishAssessment(); return; }
+  // Phase boundary: static phase stops after baseline (idx 1)
+  if (assessPhase === 'static' && assessIdx2 >= 1) { finishStaticPhase(); return; }
+  // Dynamic phase ends when all tests done
+  if (assessIdx2 >= ASSESS_TESTS.length) { finishDynamicPhase(); return; }
   const t = ASSESS_TESTS[assessIdx2];
   assessBuf = [];
   assessActive = true;
@@ -1557,6 +1622,9 @@ function skipTest() {
   setTimeout(runAssessTest, 300);
 }
 
+// Backward-compat alias (old onclick references)
+const startAssessment = startStaticPhase;
+
 function computeAssessMetrics(t, buf) {
   if (!buf.length) return null;
   const avg = key => buf.reduce((a,b)=>(a+(b[key]||0)),0)/buf.length;
@@ -1591,16 +1659,91 @@ function computeAssessMetrics(t, buf) {
   };
 }
 
-function finishAssessment() {
+function finishStaticPhase() {
   assessActive = false;
+  assessPhase = 'static-done';
+  document.getElementById('aTimerCard').style.display = 'none';
+  document.getElementById('aSkipBtn').style.display = 'none';
+  document.getElementById('aBadge').textContent = '✅ 정적 평가 완료';
+  document.getElementById('aStartBtn').textContent = '정적 완료 ✓';
+  const tag = document.getElementById('aPhaseTag');
+  if (tag) tag.textContent = 'Phase 1 완료 → Phase 2 준비';
+  playDone();
+  speak('정적 평가 완료. 결과를 확인하고 동적 평가를 시작하세요.');
+  renderAssessGrid();
+  showStaticResult();
+}
+
+function showStaticResult() {
+  const bl = assessResults['baseline'];
+  if (!bl) return;
+
+  const sym     = Math.round(bl.sym || 0);
+  const earDiff = Math.abs((bl.earL||0) - (bl.earR||0));
+  const earBase = Math.max((bl.earL||0), (bl.earR||0), 0.01);
+  const earPct  = Math.round(earDiff / earBase * 100);
+  const corrFire = (bl.corrugator||0) > 0.003;
+  const platFire = (bl.platysma||0) > 0.003;
+  const symCol   = sym >= 85 ? 'var(--accent3)' : sym >= 70 ? 'var(--accent4)' : 'var(--danger)';
+
+  const rows = [
+    `<div class="static-result-row">
+       <span style="color:var(--dim);">좌우 대칭</span>
+       <div style="display:flex;align-items:center;gap:8px;">
+         <div style="width:56px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+           <div style="width:${sym}%;height:100%;background:${symCol};border-radius:2px;"></div>
+         </div>
+         <span style="font-weight:800;color:${symCol};">${sym}점</span>
+       </div>
+     </div>`,
+    `<div class="static-result-row">
+       <span style="color:var(--dim);">눈 개구 EAR</span>
+       <span style="font-size:.78rem;color:${earPct<8?'var(--accent3)':earPct<18?'var(--accent4)':'var(--danger)'};">
+         L ${(bl.earL||0).toFixed(3)} / R ${(bl.earR||0).toFixed(3)} &nbsp;△${earPct}%
+       </span>
+     </div>`,
+    `<div class="static-result-row">
+       <span style="color:var(--dim);">미간 긴장</span>
+       <span class="${corrFire?'bad':'good'}">${corrFire?'⚠ 긴장 감지':'✓ 이완'}</span>
+     </div>`,
+    `<div class="static-result-row">
+       <span style="color:var(--dim);">목 긴장</span>
+       <span class="${platFire?'bad':'good'}">${platFire?'⚠ 긴장 감지':'✓ 이완'}</span>
+     </div>`,
+  ].join('');
+
+  const insights = [];
+  if (sym < 80)       insights.push(`좌우 비대칭 — 동적 평가에서 원인 확인 예정`);
+  if (corrFire)       insights.push('안정 시 미간근 긴장 — 만성 미간 주름 위험');
+  if (platFire)       insights.push('안정 시 광경근 활성 — 입꼬리 처짐 가속 패턴');
+  if (earPct > 12)    insights.push(`눈 개구 차이 ${earPct}% — 안륜근 좌우 비대칭`);
+
+  document.getElementById('staticResultContent').innerHTML = rows +
+    (insights.length
+      ? `<div style="margin-top:8px;padding:7px 10px;background:rgba(129,140,248,.08);border-radius:6px;
+            border-left:3px solid var(--accent2);font-size:.73rem;line-height:1.7;">${insights.map(i=>`• ${i}`).join('<br>')}</div>`
+      : `<div style="margin-top:8px;padding:6px 10px;background:rgba(52,211,153,.08);border-radius:6px;
+            font-size:.73rem;color:var(--accent3);">✓ 안정 시 상태 양호</div>`) +
+    `<div style="margin-top:6px;font-size:.6rem;color:var(--dim);">
+       ${bl.n}프레임 평균 · 이 기준으로 동적 평가를 진행합니다
+     </div>`;
+
+  document.getElementById('staticResultCard').style.display = '';
+}
+
+function finishDynamicPhase() {
+  assessActive = false;
+  assessPhase = 'done';
   document.getElementById('aStartBtn').disabled = false;
+  document.getElementById('aStartBtn').textContent = '다시 평가';
   document.getElementById('aSkipBtn').style.display = 'none';
   document.getElementById('aTimerCard').style.display = 'none';
   document.getElementById('aBadge').textContent = '평가 완료!';
+  const tag = document.getElementById('aPhaseTag');
+  if (tag) { tag.textContent = '평가 완료'; tag.style.color = 'var(--accent3)'; }
   playDone();
-  speak('평가가 완료되었습니다. 결과를 확인하세요.');
-
-  // Compute zone scores
+  speak('동적 평가가 완료되었습니다. 결과를 확인하세요.');
+  renderAssessGrid();
   computeZoneScores();
   showAssessResults();
   saveAssessToHistory();
