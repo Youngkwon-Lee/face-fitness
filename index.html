@@ -3,243 +3,191 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FACE FITNESS — 얼굴 근육 훈련</title>
+<title>FACE FITNESS</title>
 <style>
-  :root {
-    --bg: #0a0a12;
-    --panel: #12121e;
-    --border: #1e1e30;
-    --accent: #f472b6;
-    --accent2: #818cf8;
-    --accent3: #34d399;
-    --accent4: #fbbf24;
-    --text: #e2e8f0;
-    --text-dim: #64748b;
-    --glow: rgba(244,114,182,0.35);
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  /* ── Header ── */
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 24px;
-    background: linear-gradient(135deg, #0a0a12 0%, #12091e 100%);
-    border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 100;
-  }
-  .logo { font-size: 1.3rem; font-weight: 800; letter-spacing: 3px; color: var(--accent); text-shadow: 0 0 20px var(--glow); }
-  .logo span { color: var(--accent2); }
-  .subtitle { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; margin-top: 2px; }
+:root{
+  --bg:#070710;--panel:#0f0f1e;--panel2:#13132a;--border:#1a1a2e;
+  --accent:#f472b6;--accent2:#818cf8;--accent3:#34d399;--accent4:#fbbf24;--danger:#f87171;
+  --text:#e2e8f0;--dim:#475569;--glow:rgba(244,114,182,0.3);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;}
 
-  /* ── Layout ── */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 300px 1fr 280px;
-    gap: 16px;
-    padding: 16px;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-  @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
+/* HEADER */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+}
+.logo{font-size:1.2rem;font-weight:900;letter-spacing:4px;color:var(--accent);text-shadow:0 0 20px var(--glow);}
+.logo span{color:var(--accent2);}
+.header-nav{display:flex;gap:6px;}
+.nav-btn{
+  padding:6px 14px;border-radius:6px;border:1px solid var(--border);
+  background:transparent;color:var(--dim);font-size:0.72rem;cursor:pointer;
+  letter-spacing:1px;transition:all .2s;
+}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent);}
+.nav-btn.active{background:rgba(244,114,182,.15);border-color:var(--accent);color:var(--accent);}
 
-  /* ── Panel ── */
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
-  }
-  .panel-title {
-    font-size: 0.65rem; letter-spacing: 2px; color: var(--text-dim);
-    text-transform: uppercase; margin-bottom: 12px;
-    border-bottom: 1px solid var(--border); padding-bottom: 8px;
-  }
+/* SCREEN */
+.screen{display:none;padding:20px 24px;max-width:1300px;margin:0 auto;}
+.screen.active{display:block;}
 
-  /* ── Exercise List ── */
-  .exercise-list { display: flex; flex-direction: column; gap: 6px; max-height: 70vh; overflow-y: auto; }
-  .exercise-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px; border-radius: 8px;
-    border: 1px solid var(--border); cursor: pointer;
-    transition: all 0.2s; background: var(--bg);
-  }
-  .exercise-item:hover { border-color: var(--accent); background: rgba(244,114,182,0.05); }
-  .exercise-item.active { border-color: var(--accent); background: rgba(244,114,182,0.12); box-shadow: 0 0 12px rgba(244,114,182,0.2); }
-  .exercise-item.done { border-color: var(--accent3); background: rgba(52,211,153,0.07); }
-  .ex-icon { font-size: 1.4rem; width: 32px; text-align: center; }
-  .ex-info { flex: 1; }
-  .ex-name { font-size: 0.85rem; font-weight: 600; }
-  .ex-zone { font-size: 0.65rem; color: var(--text-dim); margin-top: 2px; }
-  .ex-score { font-size: 0.8rem; font-weight: 700; }
+/* CARDS */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.card-title{font-size:.65rem;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:12px;}
 
-  /* ── Camera ── */
-  .camera-wrap { position: relative; }
-  .video-box {
-    position: relative; width: 100%; aspect-ratio: 4/3;
-    border-radius: 12px; overflow: hidden;
-    background: #000; border: 2px solid var(--border);
-  }
-  #video { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; transform: scaleX(-1); }
-  #overlay { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; }
+/* BUTTONS */
+.btn{padding:10px 22px;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:.85rem;letter-spacing:1px;transition:all .2s;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{filter:brightness(1.1);box-shadow:0 0 20px var(--glow);}
+.btn-secondary{background:var(--border);color:var(--text);}
+.btn-secondary:hover{background:#222238;}
+.btn-grad{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.btn-grad:hover{box-shadow:0 0 24px rgba(129,140,248,.4);}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
 
-  /* Phase badge */
-  .phase-badge {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.7); border: 1px solid var(--accent);
-    padding: 6px 18px; border-radius: 20px;
-    font-size: 0.75rem; font-weight: 700; letter-spacing: 2px;
-    color: var(--accent); text-shadow: 0 0 8px var(--glow);
-    white-space: nowrap;
-  }
-  /* Asymmetry live bar */
-  .asym-live {
-    position: absolute; bottom: 12px; left: 12px; right: 12px;
-    background: rgba(0,0,0,0.75); border-radius: 8px; padding: 8px 12px;
-    display: flex; gap: 16px; align-items: center;
-  }
-  .asym-label { font-size: 0.65rem; color: var(--text-dim); white-space: nowrap; }
-  .asym-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; position: relative; }
-  .asym-bar-fill {
-    height: 100%; border-radius: 3px;
-    background: linear-gradient(90deg, var(--accent3), var(--accent));
-    transition: width 0.15s;
-  }
-  .asym-value { font-size: 0.75rem; font-weight: 700; min-width: 36px; text-align: right; }
+/* VIDEO */
+.video-wrap{position:relative;width:100%;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:#000;border:2px solid var(--border);}
+#video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+#overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.video-badge{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.75);border:1px solid var(--accent);
+  padding:5px 16px;border-radius:16px;
+  font-size:.75rem;font-weight:700;letter-spacing:2px;color:var(--accent);
+  white-space:nowrap;pointer-events:none;
+}
+.feedback-bar{
+  position:absolute;bottom:10px;left:10px;right:10px;
+  background:rgba(0,0,0,.8);border-radius:8px;padding:7px 12px;
+  display:flex;gap:12px;flex-wrap:wrap;align-items:center;
+  pointer-events:none;
+}
+.fb-item{display:flex;align-items:center;gap:5px;font-size:.7rem;}
+.fb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.fb-dot.good{background:var(--accent3);}
+.fb-dot.warn{background:var(--accent4);}
+.fb-dot.bad{background:var(--danger);}
+.fb-dot.neutral{background:var(--dim);}
 
-  /* ── Controls ── */
-  .controls { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-  .btn {
-    padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer;
-    font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
-    transition: all 0.2s;
-  }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: #ec4899; box-shadow: 0 0 20px var(--glow); }
-  .btn-secondary { background: var(--border); color: var(--text); }
-  .btn-secondary:hover { background: #2a2a40; }
-  .btn-full { background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); color: #fff; flex: 1; }
-  .btn-full:hover { box-shadow: 0 0 24px rgba(129,140,248,0.4); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+/* PROGRESS RING */
+.ring-wrap{display:flex;justify-content:center;align-items:center;flex-direction:column;gap:4px;}
+.ring{position:relative;width:80px;height:80px;}
+.ring svg{transform:rotate(-90deg);}
+.ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-val{font-size:1.3rem;font-weight:800;color:var(--accent);line-height:1;}
+.ring-lbl{font-size:.6rem;color:var(--dim);}
 
-  /* ── Exercise Detail ── */
-  .ex-detail { margin-bottom: 14px; }
-  .ex-detail-name { font-size: 1.1rem; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
-  .ex-detail-muscle { font-size: 0.7rem; color: var(--accent2); margin-bottom: 6px; letter-spacing: 1px; }
-  .ex-detail-desc { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; }
-  .ex-detail-instruction {
-    margin-top: 10px; padding: 10px; border-radius: 8px;
-    background: rgba(244,114,182,0.08); border-left: 3px solid var(--accent);
-    font-size: 0.8rem; line-height: 1.6; color: var(--text);
-  }
+/* TIMER */
+.timer-big{font-size:3.5rem;font-weight:900;color:var(--accent);text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-2px;text-shadow:0 0 30px var(--glow);}
+.progress-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:6px 0;}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .1s linear;}
 
-  /* ── Timer ── */
-  .timer-display {
-    text-align: center; margin: 10px 0;
-    font-size: 3rem; font-weight: 800;
-    color: var(--accent); text-shadow: 0 0 30px var(--glow);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -2px;
-  }
-  .timer-label { font-size: 0.65rem; color: var(--text-dim); text-align: center; letter-spacing: 2px; margin-bottom: 4px; }
-  .progress-bar {
-    width: 100%; height: 6px; background: var(--border);
-    border-radius: 3px; overflow: hidden; margin-top: 6px;
-  }
-  .progress-fill {
-    height: 100%; border-radius: 3px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    transition: width 0.1s linear;
-  }
+/* ASSESSMENT GRID */
+.assess-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media(max-width:700px){.assess-grid{grid-template-columns:1fr 1fr;}}
+.assess-card{
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:14px;text-align:center;cursor:pointer;transition:all .2s;
+}
+.assess-card:hover{border-color:var(--accent);}
+.assess-card.active{border-color:var(--accent);background:rgba(244,114,182,.08);box-shadow:0 0 12px var(--glow);}
+.assess-card.done{border-color:var(--accent3);background:rgba(52,211,153,.07);}
+.ac-icon{font-size:1.8rem;margin-bottom:4px;}
+.ac-name{font-size:.8rem;font-weight:700;}
+.ac-score{font-size:1.1rem;font-weight:800;margin-top:4px;}
 
-  /* ── Metrics ── */
-  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .metric-card {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px; text-align: center;
-  }
-  .metric-val { font-size: 1.2rem; font-weight: 800; color: var(--accent); }
-  .metric-lbl { font-size: 0.6rem; color: var(--text-dim); margin-top: 2px; letter-spacing: 1px; }
+/* ZONE BAR */
+.zone-bars{display:flex;flex-direction:column;gap:8px;}
+.zb-row{display:grid;grid-template-columns:90px 1fr 38px;gap:8px;align-items:center;}
+.zb-label{font-size:.7rem;color:var(--dim);}
+.zb-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.zb-fill{height:100%;border-radius:3px;transition:width .5s;}
+.zb-val{font-size:.75rem;font-weight:700;text-align:right;}
 
-  /* ── FFI Score ── */
-  .ffi-ring-wrap { display: flex; justify-content: center; margin: 10px 0; }
-  .ffi-ring { position: relative; width: 100px; height: 100px; }
-  .ffi-ring svg { transform: rotate(-90deg); }
-  .ffi-ring-text {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    text-align: center;
-  }
-  .ffi-ring-val { font-size: 1.6rem; font-weight: 800; color: var(--accent); line-height: 1; }
-  .ffi-ring-max { font-size: 0.65rem; color: var(--text-dim); }
+/* EXERCISE LIST */
+.ex-list{display:flex;flex-direction:column;gap:5px;max-height:55vh;overflow-y:auto;}
+.ex-row{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;border:1px solid var(--border);
+  cursor:pointer;transition:all .15s;background:var(--bg);
+}
+.ex-row:hover{border-color:var(--accent);}
+.ex-row.active{border-color:var(--accent);background:rgba(244,114,182,.1);}
+.ex-row.done{border-color:var(--accent3);background:rgba(52,211,153,.06);}
+.ex-row.priority{border-left:3px solid var(--accent4);}
+.er-icon{font-size:1.3rem;width:28px;text-align:center;}
+.er-info{flex:1;}
+.er-name{font-size:.82rem;font-weight:600;}
+.er-meta{font-size:.62rem;color:var(--dim);margin-top:1px;}
+.er-score{font-size:.8rem;font-weight:700;}
+.badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:.58rem;font-weight:700;letter-spacing:.5px;}
+.badge-upper{background:rgba(129,140,248,.2);color:var(--accent2);}
+.badge-mid{background:rgba(244,114,182,.2);color:var(--accent);}
+.badge-lower{background:rgba(251,191,36,.2);color:var(--accent4);}
+.badge-neck{background:rgba(52,211,153,.2);color:var(--accent3);}
+.badge-priority{background:rgba(251,191,36,.25);color:var(--accent4);}
+.badge-normal{background:rgba(71,85,105,.25);color:var(--dim);}
 
-  .domain-bar { margin-bottom: 8px; }
-  .domain-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
-  .domain-name { font-size: 0.7rem; color: var(--text-dim); }
-  .domain-score { font-size: 0.7rem; font-weight: 700; color: var(--accent); }
-  .domain-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
-  .domain-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s; }
+/* COMPENSATOR PANEL */
+.comp-panel{
+  border-radius:8px;padding:10px 12px;margin:8px 0;
+  border:1px solid var(--border);font-size:.78rem;
+}
+.comp-panel.firing{border-color:var(--danger);background:rgba(248,113,113,.08);}
+.comp-panel.ok{border-color:var(--accent3);background:rgba(52,211,153,.06);}
+.comp-title{font-weight:700;margin-bottom:4px;}
+.comp-firing{color:var(--danger);}
+.comp-ok{color:var(--accent3);}
 
-  /* ── Zone tabs ── */
-  .zone-tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
-  .zone-tab {
-    padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);
-    font-size: 0.65rem; cursor: pointer; background: var(--bg);
-    transition: all 0.15s;
-  }
-  .zone-tab:hover { border-color: var(--accent); }
-  .zone-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+/* HISTORY */
+.hist-list{display:flex;flex-direction:column;gap:8px;}
+.hist-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px;border-radius:8px;background:var(--bg);
+  border:1px solid var(--border);
+}
+.hist-date{font-size:.7rem;color:var(--dim);min-width:70px;}
+.hist-bars{flex:1;display:flex;flex-direction:column;gap:4px;}
+.hist-hbar-wrap{display:flex;align-items:center;gap:6px;}
+.hist-hbar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.hist-hbar-fill{height:100%;border-radius:2px;}
+.hist-hbar-lbl{font-size:.62rem;color:var(--dim);width:40px;}
+.hist-total{font-size:1.2rem;font-weight:800;color:var(--accent);min-width:44px;text-align:right;}
 
-  /* ── Result overlay ── */
-  .result-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.88);
-    display: none; z-index: 200; align-items: center; justify-content: center;
-  }
-  .result-overlay.visible { display: flex; }
-  .result-card {
-    background: var(--panel); border: 1px solid var(--accent);
-    border-radius: 16px; padding: 28px; max-width: 500px; width: 90%;
-    box-shadow: 0 0 60px rgba(244,114,182,0.3);
-  }
-  .result-title { font-size: 1.4rem; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
-  .result-subtitle { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 20px; }
-  .result-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-  .result-row:last-child { border-bottom: none; }
-  .result-key { color: var(--text-dim); }
-  .result-val { font-weight: 700; }
-  .result-val.good { color: var(--accent3); }
-  .result-val.ok { color: var(--accent4); }
-  .result-val.bad { color: #f87171; }
+/* RESULT OVERLAY */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.88);
+  display:none;z-index:200;align-items:center;justify-content:center;
+}
+.overlay.visible{display:flex;}
+.overlay-card{
+  background:var(--panel);border:1px solid var(--accent);border-radius:16px;
+  padding:26px;max-width:520px;width:92%;
+  box-shadow:0 0 60px rgba(244,114,182,.25);max-height:90vh;overflow-y:auto;
+}
+.oc-title{font-size:1.3rem;font-weight:800;color:var(--accent);margin-bottom:2px;}
+.oc-sub{font-size:.72rem;color:var(--dim);margin-bottom:16px;}
+.oc-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:.83rem;}
+.oc-row:last-child{border-bottom:none;}
+.oc-key{color:var(--dim);}
+.good{color:var(--accent3);}
+.ok{color:var(--accent4);}
+.bad{color:var(--danger);}
 
-  .rep-counter {
-    font-size: 1rem; font-weight: 700; color: var(--accent2);
-    text-align: center; margin: 6px 0;
-  }
-  .phase-prompt {
-    font-size: 1.1rem; font-weight: 800; text-align: center;
-    padding: 8px; border-radius: 8px; margin: 8px 0;
-    background: rgba(244,114,182,0.1);
-    color: var(--accent); letter-spacing: 2px;
-    min-height: 40px;
-  }
+/* phase prompt */
+.phase-prompt{
+  font-size:1rem;font-weight:800;text-align:center;padding:8px;
+  border-radius:8px;background:rgba(244,114,182,.08);color:var(--accent);
+  letter-spacing:2px;min-height:38px;margin:6px 0;
+}
+.rep-count{font-size:.9rem;font-weight:700;text-align:center;color:var(--accent2);}
 
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .badge-zone {
-    display: inline-block; padding: 2px 7px; border-radius: 4px;
-    font-size: 0.6rem; font-weight: 700; letter-spacing: 1px; margin-right: 4px;
-  }
-  .zone-upper { background: rgba(129,140,248,0.2); color: var(--accent2); }
-  .zone-mid { background: rgba(244,114,182,0.2); color: var(--accent); }
-  .zone-lower { background: rgba(251,191,36,0.2); color: var(--accent4); }
-  .zone-neck { background: rgba(52,211,153,0.2); color: var(--accent3); }
+/* scrollbar */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 </style>
 </head>
 <body>
@@ -247,902 +195,1320 @@
 <header>
   <div>
     <div class="logo">FACE <span>FITNESS</span></div>
-    <div class="subtitle">FACIAL MUSCLE TRAINING · SYMMETRY ANALYSIS</div>
   </div>
-  <div style="display:flex;gap:10px;align-items:center">
-    <div id="ffiHeaderScore" style="font-size:1.1rem;font-weight:800;color:var(--accent)">FFI —</div>
-    <button class="btn btn-full" onclick="startFullProgram()" id="fullProgramBtn" style="font-size:0.75rem;padding:8px 16px;">FULL PROGRAM</button>
-  </div>
+  <nav class="header-nav">
+    <button class="nav-btn active" onclick="showScreen('assess')">평가</button>
+    <button class="nav-btn" onclick="showScreen('program')">운동</button>
+    <button class="nav-btn" onclick="showScreen('history')">기록</button>
+  </nav>
 </header>
 
-<div class="main-grid">
-  <!-- Left: Exercise list -->
-  <div class="panel">
-    <div class="panel-title">운동 목록 (15)</div>
-    <div class="zone-tabs" id="zoneTabs">
-      <div class="zone-tab active" onclick="filterZone('all',this)">전체</div>
-      <div class="zone-tab" onclick="filterZone('upper',this)">상부</div>
-      <div class="zone-tab" onclick="filterZone('mid',this)">중부</div>
-      <div class="zone-tab" onclick="filterZone('lower',this)">하부</div>
-      <div class="zone-tab" onclick="filterZone('neck',this)">목/턱</div>
-    </div>
-    <div class="exercise-list" id="exerciseList"></div>
-  </div>
+<!-- ══════════════ ASSESSMENT SCREEN ══════════════ -->
+<div class="screen active" id="screen-assess">
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
 
-  <!-- Center: Camera + controls -->
-  <div>
-    <div class="camera-wrap">
-      <div class="video-box">
+    <!-- Left -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <!-- Camera -->
+      <div class="video-wrap" id="aVideoWrap">
         <video id="video" autoplay playsinline muted></video>
         <canvas id="overlay"></canvas>
-        <div class="phase-badge" id="phaseBadge">카메라 시작 →</div>
-        <div class="asym-live" id="asymLive" style="display:none">
-          <span class="asym-label">좌우 비대칭</span>
-          <div class="asym-bar-wrap"><div class="asym-bar-fill" id="asymBarFill" style="width:50%"></div></div>
-          <span class="asym-value" id="asymVal">—</span>
+        <div class="video-badge" id="aBadge">카메라를 시작하세요</div>
+        <div class="feedback-bar" id="aFeedback" style="display:none">
+          <div class="fb-item"><div class="fb-dot" id="fbMigang"></div><span id="fbMigangTxt">미간</span></div>
+          <div class="fb-item"><div class="fb-dot" id="fbBrow"></div><span id="fbBrowTxt">눈썹</span></div>
+          <div class="fb-item"><div class="fb-dot" id="fbCorner"></div><span id="fbCornerTxt">입꼬리</span></div>
+          <div class="fb-item"><div class="fb-dot" id="fbFront"></div><span id="fbFrontTxt">이마 보상</span></div>
         </div>
       </div>
-    </div>
-    <div class="controls">
-      <button class="btn btn-primary" id="camBtn" onclick="startCamera()">카메라 시작</button>
-      <button class="btn btn-primary" id="startBtn" onclick="startExercise()" disabled>운동 시작</button>
-      <button class="btn btn-secondary" id="stopBtn" onclick="stopExercise()" disabled>정지</button>
-    </div>
-    <!-- Exercise detail -->
-    <div class="panel" style="margin-top:12px" id="exerciseDetail">
-      <div class="panel-title">운동 안내</div>
-      <div id="detailContent" style="color:var(--text-dim);font-size:0.8rem;">왼쪽에서 운동을 선택하세요.</div>
-    </div>
-  </div>
 
-  <!-- Right: Metrics + FFI -->
-  <div style="display:flex;flex-direction:column;gap:12px">
-    <!-- Timer -->
-    <div class="panel">
-      <div class="panel-title">타이머</div>
-      <div class="timer-label" id="timerLabel">대기 중</div>
-      <div class="timer-display" id="timerDisplay">0:00</div>
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-      <div class="phase-prompt" id="phasePrompt"></div>
-      <div class="rep-counter" id="repCounter"></div>
-    </div>
+      <!-- Controls -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="aCamBtn" onclick="startCamera()">카메라 시작</button>
+        <button class="btn btn-grad" id="aStartBtn" onclick="startAssessment()" disabled>평가 시작</button>
+        <button class="btn btn-secondary" id="aSkipBtn" onclick="skipTest()" disabled style="display:none">건너뛰기</button>
+      </div>
 
-    <!-- Live metrics -->
-    <div class="panel">
-      <div class="panel-title">실시간 측정</div>
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-val" id="metSmileL">—</div>
-          <div class="metric-lbl">좌 입꼬리 상승</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-val" id="metSmileR">—</div>
-          <div class="metric-lbl">우 입꼬리 상승</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-val" id="metBrowL">—</div>
-          <div class="metric-lbl">좌 눈썹 상승</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-val" id="metBrowR">—</div>
-          <div class="metric-lbl">우 눈썹 상승</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-val" id="metEyeL">—</div>
-          <div class="metric-lbl">좌 눈 개방도</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-val" id="metEyeR">—</div>
-          <div class="metric-lbl">우 눈 개방도</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-val" id="metJaw">—</div>
-          <div class="metric-lbl">입 개방도</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-val" id="metAsym">—</div>
-          <div class="metric-lbl">대칭 점수</div>
-        </div>
+      <!-- Timer (during assess) -->
+      <div class="card" id="aTimerCard" style="display:none">
+        <div class="card-title" id="aTimerLabel">—</div>
+        <div class="timer-big" id="aTimer">0:00</div>
+        <div class="progress-track"><div class="progress-fill" id="aProgress" style="width:0%"></div></div>
+        <div class="phase-prompt" id="aPhasePrompt"></div>
       </div>
     </div>
 
-    <!-- FFI Score -->
-    <div class="panel">
-      <div class="panel-title">FFI 점수</div>
-      <div class="ffi-ring-wrap">
-        <div class="ffi-ring">
-          <svg width="100" height="100" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border)" stroke-width="8"/>
-            <circle cx="50" cy="50" r="42" fill="none" stroke="url(#ffiGrad)" stroke-width="8"
-              stroke-linecap="round" stroke-dasharray="263.9" id="ffiArc"
-              stroke-dashoffset="263.9"/>
-            <defs>
-              <linearGradient id="ffiGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#f472b6"/>
-                <stop offset="100%" stop-color="#818cf8"/>
-              </linearGradient>
-            </defs>
-          </svg>
-          <div class="ffi-ring-text">
-            <div class="ffi-ring-val" id="ffiScoreVal">—</div>
-            <div class="ffi-ring-max">/100</div>
+    <!-- Right -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <!-- Test list -->
+      <div class="card">
+        <div class="card-title">평가 항목 (6개)</div>
+        <div class="assess-grid" id="assessGrid"></div>
+      </div>
+
+      <!-- Live metrics during assess -->
+      <div class="card" id="aMetricsCard">
+        <div class="card-title">실시간 측정</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="aMetrics">
+            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
+              <div style="font-size:1.1rem;font-weight:800;color:var(--accent);" id="mSmileL">—</div>
+              <div style="font-size:.6rem;color:var(--dim);">좌 입꼬리</div>
+            </div>
+            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
+              <div style="font-size:1.1rem;font-weight:800;color:var(--accent);" id="mSmileR">—</div>
+              <div style="font-size:.6rem;color:var(--dim);">우 입꼬리</div>
+            </div>
+            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
+              <div style="font-size:1.1rem;font-weight:800;color:var(--accent2);" id="mBrowL">—</div>
+              <div style="font-size:.6rem;color:var(--dim);">좌 눈썹</div>
+            </div>
+            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
+              <div style="font-size:1.1rem;font-weight:800;color:var(--accent2);" id="mBrowR">—</div>
+              <div style="font-size:.6rem;color:var(--dim);">우 눈썹</div>
+            </div>
+            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
+              <div style="font-size:1.1rem;font-weight:800;color:var(--accent4);" id="mEyeL">—</div>
+              <div style="font-size:.6rem;color:var(--dim);">좌 눈 EAR</div>
+            </div>
+            <div style="text-align:center;padding:8px;background:var(--bg);border-radius:6px;">
+              <div style="font-size:1.1rem;font-weight:800;color:var(--accent4);" id="mEyeR">—</div>
+              <div style="font-size:.6rem;color:var(--dim);">우 눈 EAR</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;">
+            <span style="font-size:.7rem;color:var(--dim);">좌우 대칭</span>
+            <span style="font-size:1rem;font-weight:800;color:var(--accent3);" id="mSym">—</span>
           </div>
         </div>
       </div>
-      <div id="ffiDomains">
-        <div style="color:var(--text-dim);font-size:0.75rem;text-align:center">운동 완료 후 측정됩니다</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PROGRAM SCREEN ══════════════ -->
+<div class="screen" id="screen-program">
+  <div style="display:grid;grid-template-columns:260px 1fr 280px;gap:14px;">
+
+    <!-- Exercise list -->
+    <div class="card" style="height:fit-content;max-height:85vh;display:flex;flex-direction:column;">
+      <div class="card-title">운동 목록</div>
+      <div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;" id="zoneFilter">
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('all',this)">전체</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('priority',this)">우선순위</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('upper',this)">상부</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('mid',this)">중부</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('lower',this)">하부</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('neck',this)">목/턱</button>
       </div>
+      <div class="ex-list" id="exList"></div>
+    </div>
+
+    <!-- Camera -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="video-wrap">
+        <video id="video2" autoplay playsinline muted style="display:none;"></video>
+        <canvas id="overlay2"></canvas>
+        <div class="video-badge" id="pBadge">운동을 선택하세요</div>
+        <div class="feedback-bar" id="pFeedback" style="display:none">
+          <div class="fb-item"><div class="fb-dot" id="pComp1Dot"></div><span id="pComp1Txt">—</span></div>
+          <div class="fb-item"><div class="fb-dot" id="pComp2Dot"></div><span id="pComp2Txt">—</span></div>
+          <div class="fb-item"><div class="fb-dot" id="pComp3Dot"></div><span id="pComp3Txt">—</span></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="pStartBtn" onclick="startExercise()" disabled>운동 시작</button>
+        <button class="btn btn-secondary" id="pStopBtn" onclick="stopExercise()" disabled>정지</button>
+        <button class="btn btn-grad" onclick="startFullProgram()" style="flex:1;font-size:.78rem;">FULL PROGRAM</button>
+      </div>
+
+      <!-- Exercise detail -->
+      <div class="card" id="exDetailCard">
+        <div class="card-title">운동 안내</div>
+        <div id="exDetail" style="color:var(--dim);font-size:.8rem;">운동을 선택하세요</div>
+      </div>
+    </div>
+
+    <!-- Right metrics -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="card">
+        <div class="card-title">타이머</div>
+        <div style="font-size:.65rem;color:var(--dim);text-align:center;" id="pTimerLbl">대기 중</div>
+        <div class="timer-big" id="pTimer">0:00</div>
+        <div class="progress-track"><div class="progress-fill" id="pProgress" style="width:0%"></div></div>
+        <div class="phase-prompt" id="pPrompt"></div>
+        <div class="rep-count" id="pReps"></div>
+      </div>
+
+      <!-- Compensator feedback -->
+      <div class="card" id="compCard">
+        <div class="card-title">⚠ 보상근육 감시</div>
+        <div id="compFeedback" style="font-size:.78rem;color:var(--dim);">운동 시작 후 활성화됩니다</div>
+      </div>
+
+      <!-- FFI -->
+      <div class="card">
+        <div class="card-title">FFI 점수</div>
+        <div class="ring-wrap" style="margin:6px 0;">
+          <div class="ring">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="33" fill="none" stroke="var(--border)" stroke-width="7"/>
+              <circle cx="40" cy="40" r="33" fill="none" stroke="url(#rg)" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="207.3" stroke-dashoffset="207.3" id="ffiArc"/>
+              <defs><linearGradient id="rg"><stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#818cf8"/></linearGradient></defs>
+            </svg>
+            <div class="ring-inner">
+              <div class="ring-val" id="ffiVal">—</div>
+              <div class="ring-lbl">/100</div>
+            </div>
+          </div>
+        </div>
+        <div id="ffiDomains"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ HISTORY SCREEN ══════════════ -->
+<div class="screen" id="screen-history">
+  <div style="max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:16px;">
+    <div class="card">
+      <div class="card-title">평가 기록</div>
+      <div id="histAssess" style="color:var(--dim);font-size:.82rem;">기록 없음</div>
+    </div>
+    <div class="card">
+      <div class="card-title">FFI 추이</div>
+      <div id="histFFI" style="color:var(--dim);font-size:.82rem;">운동 기록 없음</div>
     </div>
   </div>
 </div>
 
 <!-- Result overlay -->
-<div class="result-overlay" id="resultOverlay">
-  <div class="result-card">
-    <div class="result-title" id="resultTitle">운동 완료</div>
-    <div class="result-subtitle" id="resultSubtitle">측정 결과</div>
-    <div id="resultRows"></div>
-    <div style="display:flex;gap:10px;margin-top:18px">
-      <button class="btn btn-secondary" style="flex:1" onclick="closeResult()">닫기</button>
-      <button class="btn btn-primary" style="flex:1" id="resultNextBtn" onclick="seqNext()">다음 운동 →</button>
+<div class="overlay" id="resultOverlay">
+  <div class="overlay-card">
+    <div class="oc-title" id="ocTitle">—</div>
+    <div class="oc-sub" id="ocSub">—</div>
+    <div id="ocRows"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-secondary" style="flex:1;" onclick="closeOverlay()">닫기</button>
+      <button class="btn btn-primary" style="flex:1;display:none;" id="ocNext" onclick="seqNext()">다음 →</button>
     </div>
   </div>
 </div>
 
-<!-- MediaPipe -->
+<!-- Assessment complete overlay -->
+<div class="overlay" id="assessOverlay">
+  <div class="overlay-card">
+    <div class="oc-title">평가 완료 🎯</div>
+    <div class="oc-sub" id="aoSub">FFI 기준 점수 측정 완료</div>
+    <div id="aoResults"></div>
+    <div style="margin-top:16px;padding:12px;background:rgba(244,114,182,.08);border-radius:8px;border-left:3px solid var(--accent);">
+      <div style="font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:6px;">맞춤 프로그램 처방</div>
+      <div id="aoPrescription" style="font-size:.78rem;color:var(--text);line-height:1.7;"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn btn-secondary" style="flex:1;" onclick="closeAssessOverlay()">닫기</button>
+      <button class="btn btn-grad" style="flex:1;" onclick="goToProgram()">운동 시작 →</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
-
 <script>
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 // EXERCISE DATABASE
-// ══════════════════════════════════════════════
+// Based on: Beurskens & Heymans 2003/2006, Manikandan 2007,
+//           Northwestern 2018, Mime Therapy protocol
+// ═══════════════════════════════════════════════════════════
 const EXERCISES = [
   // UPPER FACE
-  {id:'brow_press',    icon:'🤨', zone:'upper', name:'이마 저항 운동',    nameEn:'Brow Press',
-   muscle:'전두근 (Frontalis)',
-   desc:'이마 주름을 줄이고 눈썹 처짐을 예방합니다.',
-   instruction:'손가락을 눈썹 위에 가로로 얹고, 눈썹을 위로 올리려 하면서 손가락으로 저항합니다. 이마 근육만 사용, 이마에 주름이 생기지 않도록.',
-   duration:30, sets:3, holdSec:5, phase:'resist',
-   measure:'browRise', targetMuscle:'frontalis'},
-
-  {id:'eye_v',         icon:'👁', zone:'upper', name:'V 눈 운동',          nameEn:'The V',
-   muscle:'안륜근 (Orbicularis Oculi)',
-   desc:'눈가 주름 및 눈꺼풀 처짐에 효과적입니다.',
-   instruction:'검지를 바깥 눈꼬리에, 중지를 눈썹 끝에 살짝 대고 바깥쪽으로 살짝 당깁니다. 그 상태에서 아래 눈꺼풀을 위로 올립니다. 윗 눈꺼풀은 움직이지 않도록.',
-   duration:30, sets:3, holdSec:3, phase:'squint',
-   measure:'eyeAperture', targetMuscle:'orbicularis_oculi'},
-
-  {id:'lower_lid',     icon:'👀', zone:'upper', name:'하안검 올리기',      nameEn:'Lower Lid Lift',
-   muscle:'안륜근 하부 (Orbicularis Oculi — palpebral)',
-   desc:'아래 눈꺼풀을 강화하여 눈 아래 처짐을 개선합니다.',
-   instruction:'눈을 정면으로 응시한 채, 위 눈꺼풀은 고정하고 아래 눈꺼풀만 위로 살짝 올립니다. 눈을 찡그리지 않도록 주의.',
-   duration:20, sets:3, holdSec:2, phase:'squint',
-   measure:'eyeAperture', targetMuscle:'orbicularis_lower'},
-
+  { id:'brow_press', icon:'🤨', zone:'upper', name:'이마 저항 운동', nameEn:'Brow Press',
+    muscle:'전두근 (Frontalis)',
+    desc:'이마 주름 예방. 눈썹을 올리면서 손가락으로 저항합니다.',
+    instruction:'손가락을 눈썹 위에 얹고, 눈썹을 위로 올리려 하면서 저항. 이마에 주름이 생기지 않도록.',
+    duration:30, sets:3, holdSec:5, phase:'browRaise',
+    compensators:[
+      {name:'미간주름근 (Corrugator)', cue:'미간이 좁아짐', key:'corrugator'},
+      {name:'추미근 (Procerus)', cue:'콧등 피부 당김', key:'procerus'},
+    ],
+    tipFingerPlace:'손가락을 미간에 가로로 얹어 미간이 좁아지는지 확인',
+    measure:'browRise'
+  },
+  { id:'eye_v', icon:'👁', zone:'upper', name:'V 눈 운동', nameEn:'The V',
+    muscle:'안륜근 (Orbicularis Oculi)',
+    desc:'눈가 주름·눈꺼풀 처짐 개선. 아래 눈꺼풀만 올립니다.',
+    instruction:'검지를 바깥 눈꼬리에 살짝 대고, 아래 눈꺼풀을 위로 올립니다. 윗 눈꺼풀은 고정.',
+    duration:30, sets:3, holdSec:3, phase:'eyeSquint',
+    compensators:[
+      {name:'전두근 (Frontalis)', cue:'눈 감을 때 눈썹 올라감', key:'frontalis'},
+      {name:'미간주름근 (Corrugator)', cue:'미간이 좁아짐', key:'corrugator'},
+    ],
+    tipFingerPlace:'이마에 손을 살짝 얹어 이마 움직임을 감시',
+    measure:'eyeAperture'
+  },
   // MID FACE
-  {id:'cheek_lifter',  icon:'🍎', zone:'mid', name:'볼 올리기',           nameEn:'Cheek Lifter',
-   muscle:'광대근 (Zygomaticus Major/Minor)',
-   desc:'볼의 볼륨감과 탄력을 높이는 핵심 운동입니다. (Northwestern 2018 연구 기반)',
-   instruction:'입을 O 모양으로 벌리고, 입꼬리를 위로 올려 웃는 표정을 만듭니다. 볼 근육을 눈 쪽으로 끌어올리는 느낌으로. 검지로 볼을 살짝 눌러 저항을 줄 수 있습니다.',
-   duration:40, sets:3, holdSec:5, phase:'smile',
-   measure:'smileRise', targetMuscle:'zygomaticus'},
-
-  {id:'nasolabial',    icon:'✨', zone:'mid', name:'팔자주름 지우기',      nameEn:'Nasolabial Eraser',
-   muscle:'상순거근 (Levator Labii Superioris)',
-   desc:'팔자주름 부위 근육을 강화하여 주름을 완화합니다.',
-   instruction:'검지를 팔자주름 위에 살짝 얹습니다. 코끝 옆 근육을 위로 끌어올리며 미세한 "사나운 표정"을 만듭니다. 손가락으로 저항을 주면서 근육을 끌어올립니다.',
-   duration:30, sets:3, holdSec:5, phase:'snarl',
-   measure:'smileRise', targetMuscle:'lls'},
-
-  {id:'puffer',        icon:'🐡', zone:'mid', name:'볼 공기 운동',         nameEn:'The Puffer',
-   muscle:'협근 (Buccinator)',
-   desc:'볼 근육을 전반적으로 강화합니다.',
-   instruction:'볼에 공기를 가득 채웁니다. 공기를 왼쪽 → 오른쪽 → 윗입술 → 아랫입술 순서로 이동시킵니다. 각 위치에서 1초 정지.',
-   duration:40, sets:3, holdSec:1, phase:'puff',
-   measure:'mouthWidth', targetMuscle:'buccinator'},
-
-  {id:'apple_cheeks',  icon:'🌟', zone:'mid', name:'사과 볼',              nameEn:'Apple Cheeks',
-   muscle:'광대근 + 협근',
-   desc:'볼 위쪽을 끌어올려 사과처럼 통통한 볼을 만듭니다.',
-   instruction:'이를 보이며 활짝 웃습니다. 검지를 양쪽 볼 가장 높은 지점에 놓고 위쪽으로 살짝 밀어올립니다. 그 상태를 유지하며 볼 근육을 수축합니다.',
-   duration:30, sets:3, holdSec:5, phase:'smile',
-   measure:'smileRise', targetMuscle:'zygomaticus'},
-
-  {id:'fish_face',     icon:'🐠', zone:'mid', name:'물고기 얼굴',          nameEn:'Fish Face',
-   muscle:'협근 (Buccinator)',
-   desc:'볼 안쪽 근육을 깊게 자극합니다.',
-   instruction:'볼을 안으로 빨아들여 물고기 얼굴을 만듭니다. 그 상태에서 입꼬리를 위로 올리려 합니다. 볼을 빨아들인 상태를 유지하면서 미소를 짓는 것이 포인트.',
-   duration:30, sets:3, holdSec:5, phase:'puff',
-   measure:'mouthWidth', targetMuscle:'buccinator'},
-
+  { id:'cheek_lifter', icon:'🍎', zone:'mid', name:'볼 올리기', nameEn:'Cheek Lifter',
+    muscle:'광대근 (Zygomaticus Major)',
+    desc:'볼 볼륨·탄력 핵심 운동. (Northwestern 2018 JAMA 연구)',
+    instruction:'입을 O로 벌리고 입꼬리를 45도 위로. 볼 근육을 눈 쪽으로 끌어올리는 느낌.',
+    duration:40, sets:3, holdSec:5, phase:'smile',
+    compensators:[
+      {name:'협근/리소리우스 (Risorius)', cue:'입꼬리가 옆으로 당겨짐 (수평)', key:'risorius'},
+      {name:'광경근 (Platysma)', cue:'목에 힘이 들어감 → 입꼬리 아래로', key:'platysma'},
+    ],
+    tipFingerPlace:'검지를 볼 위쪽에 얹어 올라가는지 확인 / 목에 손을 대어 근육이 잡히지 않는지 확인',
+    measure:'smileRise'
+  },
+  { id:'nasolabial', icon:'✨', zone:'mid', name:'팔자주름 운동', nameEn:'Nasolabial Lifter',
+    muscle:'상순거근 (Levator Labii Superioris)',
+    desc:'팔자주름 부위를 직접 자극합니다.',
+    instruction:'검지를 팔자주름 위에 얹고, 코 옆 근육을 위로 끌어올립니다.',
+    duration:30, sets:3, holdSec:5, phase:'snarl',
+    compensators:[
+      {name:'구륜근 (Orbicularis Oris)', cue:'입술이 조여듦', key:'lipCompress'},
+      {name:'이마 전체 긴장', cue:'눈썹이 같이 올라감', key:'frontalis'},
+    ],
+    tipFingerPlace:'한 손은 팔자주름 위, 다른 손은 이마에 얹어 이마 보상 감시',
+    measure:'smileRise'
+  },
+  { id:'puffer', icon:'🐡', zone:'mid', name:'볼 공기 운동', nameEn:'The Puffer',
+    muscle:'협근 (Buccinator)',
+    desc:'볼 근육 전체 강화.',
+    instruction:'볼에 공기를 가득 채우고, 좌→우→위→아래 순서로 이동. 각 위치 1초 정지.',
+    duration:40, sets:3, holdSec:1, phase:'puff',
+    compensators:[
+      {name:'구륜근 과수축', cue:'입술이 오므라들어 공기가 빠짐', key:'lipCompress'},
+    ],
+    tipFingerPlace:'볼 바깥에 손가락을 대어 공기 이동을 촉각으로 확인',
+    measure:'mouthWidth'
+  },
+  { id:'apple_cheeks', icon:'🌟', zone:'mid', name:'사과 볼', nameEn:'Apple Cheeks',
+    muscle:'광대근 (Zygomaticus)',
+    desc:'볼 위쪽 볼륨감 강화.',
+    instruction:'이를 보이며 웃고, 검지로 볼 가장 높은 지점을 위쪽으로 살짝 밀면서 유지.',
+    duration:30, sets:3, holdSec:5, phase:'smile',
+    compensators:[
+      {name:'광경근 (Platysma)', cue:'목 밴딩 또는 입꼬리 아래 당김', key:'platysma'},
+      {name:'이복근 (Mentalis)', cue:'턱에 딤플이 생김', key:'mentalis'},
+    ],
+    tipFingerPlace:'목에 손을 가볍게 대어 광경근 활성화 여부 확인',
+    measure:'smileRise'
+  },
+  { id:'fish_face', icon:'🐠', zone:'mid', name:'물고기 얼굴', nameEn:'Fish Face',
+    muscle:'협근 (Buccinator)',
+    desc:'볼 안쪽 깊은 근육 자극.',
+    instruction:'볼을 빨아들이고, 그 상태에서 입꼬리를 위로 올립니다.',
+    duration:30, sets:3, holdSec:5, phase:'puff',
+    compensators:[
+      {name:'광경근 (Platysma)', cue:'목에 힘', key:'platysma'},
+    ],
+    tipFingerPlace:'목에 손을 대어 확인',
+    measure:'mouthWidth'
+  },
   // LOWER FACE
-  {id:'corner_lift',   icon:'😊', zone:'lower', name:'입꼬리 올리기',      nameEn:'Corner Lift',
-   muscle:'광대근 + 협근 (ZMaj, Risorius)',
-   desc:'처진 입꼬리를 올려 자연스러운 미소선을 만듭니다.',
-   instruction:'검지를 양쪽 입꼬리에 살짝 얹고 45도 위쪽 방향으로 저항을 줍니다. 입꼬리를 위로 올리며 미소를 짓습니다. 저항에 맞서 힘껏 올립니다.',
-   duration:30, sets:3, holdSec:5, phase:'smile',
-   measure:'mouthCornerAngle', targetMuscle:'zygomaticus'},
-
-  {id:'dao_stretch',   icon:'🙂', zone:'lower', name:'입꼬리 교정',         nameEn:'DAO Stretch',
-   muscle:'입꼬리내림근 억제 (DAO inhibition)',
-   desc:'입꼬리를 내리는 DAO 근육을 스트레칭하고, 올리는 근육을 강화합니다.',
-   instruction:'의도적으로 입꼬리를 최대한 아래로 내립니다(찡그린 표정). 그 상태에서 힘껏 위로 올립니다. 아래로 내리는 저항에 맞서 위로 올리는 근육을 자극합니다.',
-   duration:30, sets:3, holdSec:3, phase:'smile',
-   measure:'mouthCornerAngle', targetMuscle:'risorius'},
-
-  {id:'vowel',         icon:'🗣', zone:'lower', name:'모음 운동',           nameEn:'Vowel Yell',
-   muscle:'구순근 (Orbicularis Oris) + 주변 전체',
-   desc:'입 주변 모든 근육을 활성화하는 종합 운동입니다.',
-   instruction:'아-에-이-오-우를 과장되게 크게 발음합니다. 각 모음마다 입 모양을 최대한 크고 명확하게. 얼굴 전체 근육이 동원되도록.',
-   duration:40, sets:3, holdSec:2, phase:'vowel',
-   measure:'mouthWidth', targetMuscle:'orbicularis_oris'},
-
+  { id:'corner_lift', icon:'😊', zone:'lower', name:'입꼬리 올리기', nameEn:'Corner Lift',
+    muscle:'광대근 (ZMaj) + 협근 (Risorius)',
+    desc:'처진 입꼬리 교정. 입꼬리를 45도 위로.',
+    instruction:'검지를 입꼬리에 얹고 45도 위 방향으로 저항. 입꼬리를 위로 올립니다.',
+    duration:30, sets:3, holdSec:5, phase:'smile',
+    compensators:[
+      {name:'입꼬리내림근 (DAO)', cue:'입꼬리가 아래로 당겨짐', key:'dao'},
+      {name:'광경근 (Platysma)', cue:'목 긴장', key:'platysma'},
+    ],
+    tipFingerPlace:'손가락을 입꼬리에 대어 위로 45도 저항',
+    measure:'mouthCornerAngle'
+  },
+  { id:'dao_stretch', icon:'🙂', zone:'lower', name:'DAO 교정 운동', nameEn:'DAO Inhibition',
+    muscle:'입꼬리내림근 (DAO) 억제 + 광대근 강화',
+    desc:'입꼬리를 내리는 DAO 근육을 스트레칭하고 광대근을 강화합니다.',
+    instruction:'입꼬리를 최대한 아래로 내립니다. 그 저항에 맞서 힘껏 위로 올립니다.',
+    duration:30, sets:3, holdSec:3, phase:'smile',
+    compensators:[
+      {name:'광경근 (Platysma)', cue:'목 밴딩', key:'platysma'},
+    ],
+    tipFingerPlace:'목에 손을 대어 광경근 감시',
+    measure:'mouthCornerAngle'
+  },
+  { id:'vowel', icon:'🗣', zone:'lower', name:'모음 운동', nameEn:'Vowel Yell',
+    muscle:'구륜근 + 주변 전체 (Orbicularis Oris)',
+    desc:'입 주변 모든 근육 종합 활성화.',
+    instruction:'아-에-이-오-우를 과장되게. 각 모음에서 최대 가동 범위로.',
+    duration:40, sets:2, holdSec:2, phase:'vowel',
+    compensators:[
+      {name:'광경근 과긴장', cue:'목 전체 긴장됨', key:'platysma'},
+    ],
+    tipFingerPlace:'거울 보며 각 모음마다 입 모양 확인',
+    measure:'mouthWidth'
+  },
   // NECK/CHIN
-  {id:'giraffe',       icon:'🦒', zone:'neck', name:'기린 스트레칭',        nameEn:'The Giraffe',
-   muscle:'광경근 (Platysma)',
-   desc:'이중턱을 줄이고 목 라인을 선명하게 만드는 핵심 운동입니다.',
-   instruction:'머리를 뒤로 젖히고 천장을 봅니다. 혀를 입천장에 번갈아 붙였다 뗍니다. 목 앞쪽 근육(광경근)이 당기는 느낌을 확인합니다.',
-   duration:40, sets:3, holdSec:5, phase:'chin',
-   measure:'jawOpen', targetMuscle:'platysma'},
-
-  {id:'chin_tuck',     icon:'🤫', zone:'neck', name:'턱 당기기',           nameEn:'Chin Tuck',
-   muscle:'심경굴근 + 광경근',
-   desc:'이중턱과 목 앞쪽 근육을 동시에 강화합니다.',
-   instruction:'턱을 몸쪽으로 당겨 이중턱을 만듭니다(의도적으로). 그 상태를 유지합니다. 목 앞쪽이 당기는 느낌, 뒷목이 늘어나는 느낌.',
-   duration:30, sets:3, holdSec:5, phase:'chin',
-   measure:'jawOpen', targetMuscle:'deep_cervical'},
-
-  {id:'jaw_jut',       icon:'💪', zone:'neck', name:'턱 내밀기',           nameEn:'Jaw Jut',
-   muscle:'이복근 + 설골상근 (Digastric, Suprahyoid)',
-   desc:'턱 아래 공간을 당기는 이복근을 강화합니다.',
-   instruction:'아랫턱을 앞으로 최대한 내밉니다. 동시에 머리를 약 45도 뒤로 기울입니다. 그 상태를 유지. 턱 아래와 목 앞쪽이 당기는 느낌.',
-   duration:30, sets:3, holdSec:10, phase:'chin',
-   measure:'jawOpen', targetMuscle:'digastric'},
-
-  {id:'tongue_press',  icon:'👅', zone:'neck', name:'혀 천장 누르기',       nameEn:'Tongue Press',
-   muscle:'악설골근 + 이설골근 (Mylohyoid, Geniohyoid)',
-   desc:'이중턱의 근본 원인인 혀 위치를 교정하고 바닥 근육을 강화합니다.',
-   instruction:'혀 전체를 입천장에 강하게 밀어붙입니다. 입천장에 흡착하는 느낌. 목 아래쪽(턱 아래)이 수축하는 것을 손가락으로 확인할 수 있습니다.',
-   duration:30, sets:3, holdSec:10, phase:'chin',
-   measure:'jawOpen', targetMuscle:'mylohyoid'},
+  { id:'giraffe', icon:'🦒', zone:'neck', name:'기린 스트레칭', nameEn:'The Giraffe',
+    muscle:'광경근 (Platysma)',
+    desc:'이중턱 개선, 목 라인 선명화.',
+    instruction:'머리를 뒤로 젖히고 천장을 봅니다. 혀를 입천장에 붙였다 뗍니다.',
+    duration:40, sets:3, holdSec:5, phase:'chin',
+    compensators:[
+      {name:'흉쇄유돌근 (SCM) 과긴장', cue:'목 옆이 딱딱하게 잡힘', key:'scm'},
+    ],
+    tipFingerPlace:'목 앞쪽(턱 아래)이 당기는 느낌 확인',
+    measure:'jawOpen'
+  },
+  { id:'chin_tuck', icon:'🤫', zone:'neck', name:'턱 당기기', nameEn:'Chin Tuck',
+    muscle:'심경굴근 + 광경근',
+    desc:'이중턱 + 목 앞 근육 강화. 자세 교정 효과.',
+    instruction:'턱을 몸쪽으로 당겨 이중턱을 만듭니다(의도적으로). 유지.',
+    duration:30, sets:3, holdSec:5, phase:'chin',
+    compensators:[
+      {name:'흉쇄유돌근 (SCM)', cue:'목 옆 긴장', key:'scm'},
+    ],
+    tipFingerPlace:'손가락을 턱 끝에 대어 뒤로 당기는 방향 확인',
+    measure:'jawOpen'
+  },
+  { id:'jaw_jut', icon:'💪', zone:'neck', name:'턱 내밀기', nameEn:'Jaw Jut',
+    muscle:'이복근 (Digastric) + 설골상근',
+    desc:'턱 아래 이복근 강화.',
+    instruction:'아랫턱을 앞으로 내밀고, 머리를 45도 뒤로. 유지.',
+    duration:30, sets:3, holdSec:10, phase:'chin',
+    compensators:[
+      {name:'교근 (Masseter) 과긴장', cue:'뺨 뒤쪽이 딱딱해짐', key:'masseter'},
+    ],
+    tipFingerPlace:'턱 아래가 당기는 느낌에 집중',
+    measure:'jawOpen'
+  },
+  { id:'tongue_press', icon:'👅', zone:'neck', name:'혀 천장 누르기', nameEn:'Tongue Press',
+    muscle:'악설골근 (Mylohyoid) + 이설골근',
+    desc:'혀 위치 교정 + 이중턱의 근본 원인 개선.',
+    instruction:'혀 전체를 입천장에 강하게 밀어붙이고 유지. 턱 아래 수축 확인.',
+    duration:30, sets:3, holdSec:10, phase:'chin',
+    compensators:[
+      {name:'교근 (Masseter)', cue:'턱 관절 통증', key:'masseter'},
+    ],
+    tipFingerPlace:'손가락을 턱 아래에 대어 수축 확인',
+    measure:'jawOpen'
+  },
 ];
 
-// ══════════════════════════════════════════════
+// Assessment tests
+const ASSESS_TESTS = [
+  { id:'baseline', icon:'😐', name:'안정 기준', desc:'중립 표정 30초 유지', duration:30,
+    instruction:'자연스러운 표정을 유지하세요. 기준값을 측정합니다.', phase:'rest',
+    measure: null },
+  { id:'smile', icon:'😊', name:'최대 미소', desc:'최대한 웃어보기', duration:12,
+    instruction:'최대한 활짝 웃어보세요. 볼이 올라가는 느낌으로.', phase:'smile',
+    measure:'smile' },
+  { id:'browRaise', icon:'🤨', name:'눈썹 올리기', desc:'양 눈썹 최대한 올리기', duration:10,
+    instruction:'양 눈썹을 최대한 위로 올리세요. 이마 주름이 생기지 않도록.', phase:'browRaise',
+    measure:'brow' },
+  { id:'eyeClose', icon:'😌', name:'눈 꽉 감기', desc:'눈을 꽉 감았다 뜨기', duration:10,
+    instruction:'눈을 꽉 감았다가 크게 뜨세요. 이마는 움직이지 않도록.', phase:'eyeClose',
+    measure:'eye' },
+  { id:'mouthOpen', icon:'😮', name:'입 크게 벌리기', desc:'최대 가동 범위', duration:10,
+    instruction:'입을 최대한 크게 벌리세요.', phase:'mouthOpen',
+    measure:'jaw' },
+  { id:'lipSeal', icon:'😶', name:'입 꼭 다물기', desc:'입술 힘껏 다물기', duration:8,
+    instruction:'입술을 힘껏 다물고 유지하세요.', phase:'lipSeal',
+    measure:'lip' },
+];
+
+// ═══════════════════════════════════════════════════════════
 // STATE
-// ══════════════════════════════════════════════
-let faceMeshModel = null, faceMeshLoaded = false, faceMeshLoading = false;
+// ═══════════════════════════════════════════════════════════
+let faceMesh = null, fmLoaded = false, fmLoading = false;
 let faceEdgeCache = null;
-let cameraRunning = false;
-let currentExIdx = 0;
-let testState = 'idle'; // idle | countdown | running | done
-let testStartTime = 0, testDuration = 0;
-let timerInterval = null;
-let currentSetNum = 0;
+let camStream = null;
+let cameraActive = false;
 
-// Baselines
-const baseline = { leftCornerY:0, rightCornerY:0, leftBrowY:0, rightBrowY:0,
-                   leftEAR:1, rightEAR:1, jawH:0, n:0 };
-let baselineDone = false;
-const BASELINE_FRAMES = 60; // ~2s
+// Baseline
+const BL = {n:0, leftCornerY:0, rightCornerY:0, leftBrowY:0, rightBrowY:0,
+             earL:1, earR:1, jawH:0, mouthW:0, glabellarD:0, foreheadY:0};
+let blDone = false;
+const BL_FRAMES = 90;
 
-// Measurement buffers (per set)
-const measureBuf = [];
-let exerciseScores = {}; // id -> score 0-100
-let repCount = 0;
-let lastRepPeak = false;
+// Assessment state
+let assessActive = false, assessIdx = -1, assessTimer = null;
+const assessResults = {}; // test.id -> metrics
+let assessBuf = [];
 
-// Sequential
+// Exercise state (program screen)
+let exState = 'idle'; // idle|countdown|running|rest|done
+let exIdx = 0;
+let exSetNum = 0, exTimer = null, exStartTime = 0;
+const exMeasureBuf = [];
+const exScores = {}; // ex.id -> score
+let lastFaceResults = null;
 let seqMode = false, seqIdx = 0;
 
-// ══════════════════════════════════════════════
+// Assessment zone scores (0-100)
+const zoneScores = {upper:null, mid:null, lower:null, neck:null};
+const priorityZones = [];
+
+// History (localStorage)
+const HIST_KEY = 'ff_history';
+
+// ═══════════════════════════════════════════════════════════
+// SCREEN NAV
+// ═══════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['assess','program','history'][i] === id);
+  });
+  if (id === 'history') renderHistory();
+  if (id === 'program') renderExList('all');
+}
+
+// ═══════════════════════════════════════════════════════════
 // INIT
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 window.onload = () => {
-  renderExerciseList('all');
-  selectExercise(0);
+  renderAssessGrid();
+  renderExList('all');
 };
 
-function renderExerciseList(zone) {
-  const list = document.getElementById('exerciseList');
-  list.innerHTML = '';
-  EXERCISES.forEach((ex, i) => {
-    if (zone !== 'all' && ex.zone !== zone) return;
-    const div = document.createElement('div');
-    div.className = 'exercise-item' + (i === currentExIdx ? ' active' : '') +
-                    (exerciseScores[ex.id] !== undefined ? ' done' : '');
-    div.dataset.idx = i;
-    const zoneClass = `zone-${ex.zone}`;
-    const scoreHtml = exerciseScores[ex.id] !== undefined
-      ? `<span class="ex-score" style="color:${scoreColor(exerciseScores[ex.id])}">${Math.round(exerciseScores[ex.id])}</span>`
-      : '';
-    div.innerHTML = `<span class="ex-icon">${ex.icon}</span>
-      <div class="ex-info">
-        <div class="ex-name">${ex.name}</div>
-        <div class="ex-zone"><span class="badge-zone ${zoneClass}">${zoneLabel(ex.zone)}</span>${ex.muscle}</div>
-      </div>${scoreHtml}`;
-    div.onclick = () => selectExercise(i);
-    list.appendChild(div);
+// ═══════════════════════════════════════════════════════════
+// CAMERA
+// ═══════════════════════════════════════════════════════════
+async function startCamera() {
+  document.getElementById('aCamBtn').disabled = true;
+  document.getElementById('aCamBtn').textContent = '로딩 중...';
+  try {
+    const video  = document.getElementById('video');
+    const video2 = document.getElementById('video2');
+    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}});
+    camStream = stream;
+    video.srcObject = stream;
+    video2.srcObject = stream;
+    await new Promise(r => video.onloadedmetadata = r);
+    video.play(); video2.play(); video2.style.display = '';
+    resizeCanvases();
+    window.addEventListener('resize', resizeCanvases);
+    await loadFM();
+    cameraActive = true;
+    document.getElementById('aCamBtn').textContent = '카메라 ON';
+    document.getElementById('aStartBtn').disabled = false;
+    document.getElementById('pStartBtn').disabled = false;
+    document.getElementById('pBadge').textContent = '운동을 선택하세요';
+    document.getElementById('aFeedback').style.display = '';
+    document.getElementById('pFeedback').style.display = '';
+    requestAnimationFrame(frameLoop);
+  } catch(e) {
+    alert('카메라 접근 실패: ' + e.message);
+    document.getElementById('aCamBtn').disabled = false;
+    document.getElementById('aCamBtn').textContent = '카메라 시작';
+  }
+}
+
+function resizeCanvases() {
+  ['overlay','overlay2'].forEach((id, i) => {
+    const v = document.getElementById(i===0?'video':'video2');
+    const c = document.getElementById(id);
+    c.width = v.offsetWidth; c.height = v.offsetHeight;
   });
 }
 
-function zoneLabel(z) {
-  return {upper:'상부', mid:'중부', lower:'하부', neck:'목/턱'}[z] || z;
-}
-function scoreColor(s) {
-  if (s >= 80) return 'var(--accent3)';
-  if (s >= 60) return 'var(--accent4)';
-  return '#f87171';
-}
-
-function filterZone(zone, el) {
-  document.querySelectorAll('.zone-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  renderExerciseList(zone);
+async function loadFM() {
+  if (fmLoaded || fmLoading) return;
+  fmLoading = true;
+  faceMesh = new FaceMesh({locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+  faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5, minTrackingConfidence:0.5});
+  faceMesh.onResults(r => lastFaceResults = r);
+  await faceMesh.initialize();
+  fmLoaded = true; fmLoading = false;
 }
 
-function selectExercise(idx) {
-  currentExIdx = idx;
-  const ex = EXERCISES[idx];
-  renderExerciseList(document.querySelector('.zone-tab.active')?.textContent === '전체' ? 'all' :
-    ['upper','mid','lower','neck'][['상부','중부','하부','목/턱'].indexOf(document.querySelector('.zone-tab.active')?.textContent)] || 'all');
-
-  const detail = document.getElementById('detailContent');
-  detail.innerHTML = `
-    <div class="ex-detail">
-      <div class="ex-detail-name">${ex.icon} ${ex.name}</div>
-      <div class="ex-detail-muscle">${ex.muscle}</div>
-      <div class="ex-detail-desc">${ex.desc}</div>
-      <div class="ex-detail-instruction">${ex.instruction}</div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-      <div style="font-size:0.7rem;color:var(--text-dim)">⏱ ${ex.duration}초/세트 · ${ex.sets}세트</div>
-      <div style="font-size:0.7rem;color:var(--text-dim)">⏸ ${ex.holdSec}초 유지</div>
-    </div>`;
-
-  document.getElementById('startBtn').disabled = !cameraRunning || testState !== 'idle';
-}
-
-// ══════════════════════════════════════════════
-// CAMERA
-// ══════════════════════════════════════════════
-async function startCamera() {
-  document.getElementById('camBtn').disabled = true;
-  document.getElementById('camBtn').textContent = '로딩 중...';
-
-  const video = document.getElementById('video');
-  const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}});
-  video.srcObject = stream;
-  await new Promise(r => video.onloadedmetadata = r);
-  video.play();
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
-
-  await loadFaceMesh();
-  cameraRunning = true;
-  document.getElementById('camBtn').textContent = '카메라 ON';
-  document.getElementById('phaseBadge').textContent = '운동을 선택하고 시작하세요';
-  document.getElementById('asymLive').style.display = '';
-  document.getElementById('startBtn').disabled = false;
-  requestAnimationFrame(frameLoop);
-}
-
-function resizeCanvas() {
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('overlay');
-  canvas.width = video.offsetWidth;
-  canvas.height = video.offsetHeight;
-}
-
-async function loadFaceMesh() {
-  if (faceMeshLoaded || faceMeshLoading) return;
-  faceMeshLoading = true;
-  faceMeshModel = new FaceMesh({locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
-  faceMeshModel.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5, minTrackingConfidence:0.5});
-  faceMeshModel.onResults(onFaceResults);
-  await faceMeshModel.initialize();
-  faceMeshLoaded = true;
-  faceMeshLoading = false;
-}
-
-let lastFaceResults = null;
-function onFaceResults(results) { lastFaceResults = results; }
-
+let lastVideoTime = -1;
 async function frameLoop() {
-  if (!cameraRunning) return;
+  if (!cameraActive) return;
   const video = document.getElementById('video');
-  if (faceMeshLoaded && video.readyState >= 2) {
-    await faceMeshModel.send({image: video});
+  if (fmLoaded && video.readyState >= 2 && video.currentTime !== lastVideoTime) {
+    lastVideoTime = video.currentTime;
+    await faceMesh.send({image: video});
     if (lastFaceResults?.multiFaceLandmarks?.[0]) {
       const lm = lastFaceResults.multiFaceLandmarks[0];
-      drawFace(lm);
-      analyzeFace(lm);
+      drawFaceOnBoth(lm);
+      analyzeFrame(lm);
     }
   }
   requestAnimationFrame(frameLoop);
 }
 
-// ══════════════════════════════════════════════
-// FACE DRAWING
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// DRAWING
+// ═══════════════════════════════════════════════════════════
 const FM_L_EYE=[[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[133,173],[173,157],[157,158],[158,159],[159,160],[160,161],[161,246],[246,33]];
 const FM_R_EYE=[[263,249],[249,390],[390,373],[373,374],[374,380],[380,381],[381,382],[382,362],[362,398],[398,384],[384,385],[385,386],[386,387],[387,388],[388,466],[466,263]];
 const FM_L_BROW=[[46,53],[53,52],[52,65],[65,55],[55,70],[70,63],[63,105],[105,66],[66,107]];
 const FM_R_BROW=[[276,283],[283,282],[282,295],[295,285],[285,300],[300,293],[293,334],[334,296],[296,336]];
-const FM_LIPS=[[61,146],[146,91],[91,181],[181,84],[84,17],[17,314],[314,405],[405,321],[321,375],[375,291],[291,308],[308,324],[324,318],[318,402],[402,317],[317,14],[14,87],[87,178],[178,88],[88,95],[95,78],[78,191],[191,80],[80,81],[81,82],[82,13],[13,312],[312,311],[311,310],[310,415],[415,308],[308,291],[291,375],[375,321],[321,405],[405,314],[314,17],[17,84],[84,181],[181,91],[91,146],[146,61]];
-const FM_NOSE=[[168,6],[6,197],[197,195],[195,5],[5,4],[4,1],[1,19],[19,94],[94,2],[2,164],[164,0],[0,11],[11,12],[12,13]];
+const FM_LIPS=[[61,146],[146,91],[91,181],[181,84],[84,17],[17,314],[314,405],[405,321],[321,375],[375,291],[61,76],[76,77],[77,90],[90,180],[180,85],[85,16],[16,315],[315,404],[404,320],[320,307],[307,291],[13,82],[82,81],[81,80],[80,191],[191,78],[78,62],[62,76],[13,312],[312,311],[311,310],[310,415],[415,308],[308,324],[324,318],[318,402],[402,317],[317,14]];
+const FM_NOSE=[[168,6],[6,197],[197,195],[195,5],[5,4],[4,1],[1,19],[19,94],[94,2],[2,164],[164,0],[0,11],[11,12]];
 
-function drawFace(lm) {
-  const canvas = document.getElementById('overlay');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
+function drawFaceOnBoth(lm) {
+  drawFaceOnCanvas('overlay', lm);
+  drawFaceOnCanvas('overlay2', lm);
+}
+
+function drawFaceOnCanvas(canvasId, lm) {
+  const c = document.getElementById(canvasId);
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
   ctx.clearRect(0,0,W,H);
-
   const lx = i => (1 - lm[i].x) * W;
   const ly = i => lm[i].y * H;
 
-  // Convex hull silhouette
-  const pts = [];
-  for (let i = 0; i < 468; i++) pts.push({x:lx(i), y:ly(i)});
-  pts.sort((a,b) => a.x!==b.x ? a.x-b.x : a.y-b.y);
-  const cross = (O,A,B) => (A.x-O.x)*(B.y-O.y)-(A.y-O.y)*(B.x-O.x);
-  const hull = [];
-  for (const p of pts) { while(hull.length>=2 && cross(hull[hull.length-2],hull[hull.length-1],p)<=0) hull.pop(); hull.push(p); }
-  const lower = hull.length+1;
-  for (let i=pts.length-1;i>=0;i--) { const p=pts[i]; while(hull.length>=lower && cross(hull[hull.length-2],hull[hull.length-1],p)<=0) hull.pop(); hull.push(p); }
-  hull.pop();
-  ctx.save();
-  ctx.strokeStyle='rgba(244,114,182,0.5)'; ctx.lineWidth=2; ctx.shadowBlur=10; ctx.shadowColor='#f472b6';
-  ctx.beginPath(); hull.forEach((p,n)=>n===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.closePath(); ctx.stroke();
-  ctx.restore();
+  // Convex hull
+  const pts = []; for(let i=0;i<468;i++) pts.push({x:lx(i),y:ly(i)});
+  pts.sort((a,b)=>a.x!==b.x?a.x-b.x:a.y-b.y);
+  const cross=(O,A,B)=>(A.x-O.x)*(B.y-O.y)-(A.y-O.y)*(B.x-O.x);
+  const hull=[]; for(const p of pts){while(hull.length>=2&&cross(hull[hull.length-2],hull[hull.length-1],p)<=0)hull.pop();hull.push(p);}
+  const lo=hull.length+1; for(let i=pts.length-1;i>=0;i--){const p=pts[i];while(hull.length>=lo&&cross(hull[hull.length-2],hull[hull.length-1],p)<=0)hull.pop();hull.push(p);} hull.pop();
+  ctx.save(); ctx.strokeStyle='rgba(244,114,182,0.45)'; ctx.lineWidth=1.8; ctx.shadowBlur=8; ctx.shadowColor='#f472b6';
+  ctx.beginPath(); hull.forEach((p,n)=>n===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.closePath(); ctx.stroke(); ctx.restore();
 
   // Dense mesh
   if (!faceEdgeCache) {
-    faceEdgeCache = [];
-    const THRESH = 0.08;
-    for (let i=0;i<468;i++) for (let j=i+1;j<468;j++) {
-      const dx=lm[i].x-lm[j].x, dy=lm[i].y-lm[j].y;
-      if (dx*dx+dy*dy < THRESH*THRESH) faceEdgeCache.push([i,j]);
-    }
+    faceEdgeCache=[];
+    const T=0.078;
+    for(let i=0;i<468;i++) for(let j=i+1;j<468;j++){const dx=lm[i].x-lm[j].x,dy=lm[i].y-lm[j].y;if(dx*dx+dy*dy<T*T)faceEdgeCache.push([i,j]);}
   }
-  ctx.save();
-  ctx.strokeStyle='rgba(244,114,182,0.15)'; ctx.lineWidth=0.6; ctx.shadowBlur=0;
-  ctx.beginPath();
-  faceEdgeCache.forEach(([a,b])=>{ ctx.moveTo(lx(a),ly(a)); ctx.lineTo(lx(b),ly(b)); });
-  ctx.stroke();
-  ctx.restore();
+  ctx.save(); ctx.strokeStyle='rgba(244,114,182,0.12)'; ctx.lineWidth=0.5;
+  ctx.beginPath(); faceEdgeCache.forEach(([a,b])=>{ctx.moveTo(lx(a),ly(a));ctx.lineTo(lx(b),ly(b));}); ctx.stroke(); ctx.restore();
 
-  // Feature edges (eyes, brows, lips) — brighter
-  function drawEdges(edges, color, lw) {
-    ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.shadowBlur=4; ctx.shadowColor=color;
-    ctx.beginPath();
-    edges.forEach(([a,b])=>{ ctx.moveTo(lx(a),ly(a)); ctx.lineTo(lx(b),ly(b)); });
-    ctx.stroke(); ctx.restore();
-  }
-  drawEdges(FM_L_EYE, 'rgba(129,140,248,0.85)', 1.2);
-  drawEdges(FM_R_EYE, 'rgba(129,140,248,0.85)', 1.2);
-  drawEdges(FM_L_BROW, 'rgba(251,191,36,0.7)', 1.1);
-  drawEdges(FM_R_BROW, 'rgba(251,191,36,0.7)', 1.1);
-  drawEdges(FM_LIPS, 'rgba(244,114,182,0.8)', 1.3);
-  drawEdges(FM_NOSE, 'rgba(52,211,153,0.6)', 0.9);
+  // Feature edges
+  const fe=(edges,col,lw)=>{ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.shadowBlur=4;ctx.shadowColor=col;ctx.beginPath();edges.forEach(([a,b])=>{ctx.moveTo(lx(a),ly(a));ctx.lineTo(lx(b),ly(b));});ctx.stroke();ctx.restore();};
+  fe(FM_L_EYE,'rgba(129,140,248,0.8)',1.2); fe(FM_R_EYE,'rgba(129,140,248,0.8)',1.2);
+  fe(FM_L_BROW,'rgba(251,191,36,0.7)',1.1); fe(FM_R_BROW,'rgba(251,191,36,0.7)',1.1);
+  fe(FM_LIPS,'rgba(244,114,182,0.75)',1.2);
+  fe(FM_NOSE,'rgba(52,211,153,0.55)',0.8);
 
-  // Landmark dots
-  ctx.save(); ctx.fillStyle='rgba(244,114,182,0.7)';
-  ctx.beginPath();
-  for (let i=0;i<468;i++) { const x=lx(i),y=ly(i); ctx.moveTo(x+2,y); ctx.arc(x,y,2,0,Math.PI*2); }
-  ctx.fill(); ctx.restore();
+  // Dots
+  ctx.save(); ctx.fillStyle='rgba(244,114,182,0.65)';
+  ctx.beginPath(); for(let i=0;i<468;i++){const x=lx(i),y=ly(i);ctx.moveTo(x+2,y);ctx.arc(x,y,2,0,Math.PI*2);} ctx.fill(); ctx.restore();
 
-  // Key landmark highlights
-  const keyPts = [
-    {i:61, c:'#f472b6', label:'L입꼬리'}, {i:291, c:'#f472b6', label:'R입꼬리'},
-    {i:66, c:'#fbbf24', label:'L눈썹'}, {i:296, c:'#fbbf24', label:'R눈썹'},
-    {i:33, c:'#818cf8', label:'L눈'}, {i:263, c:'#818cf8', label:'R눈'},
-  ];
-  keyPts.forEach(({i, c}) => {
-    ctx.save(); ctx.fillStyle=c; ctx.shadowBlur=8; ctx.shadowColor=c;
-    ctx.beginPath(); ctx.arc(lx(i), ly(i), 4, 0, Math.PI*2); ctx.fill(); ctx.restore();
-  });
+  // Glabellar line (key metric)
+  const gx1=lx(107), gy1=ly(107), gx2=lx(336), gy2=ly(336);
+  ctx.save(); ctx.strokeStyle='rgba(251,191,36,0.5)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(gx1,gy1); ctx.lineTo(gx2,gy2); ctx.stroke(); ctx.restore();
 
-  // Asymmetry guide lines
-  if (testState === 'running') {
-    const midX = (lx(61)+lx(291))/2;
-    ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
-    ctx.beginPath(); ctx.moveTo(midX, 0); ctx.lineTo(midX, H); ctx.stroke();
-    ctx.restore();
+  // Mouth-corner vectors (for risorius detection)
+  if (blDone && (assessActive || exState==='running')) {
+    const cx1=lx(61), cy1=ly(61), cx2=lx(291), cy2=ly(291);
+    const bcy1 = BL.leftCornerY * H, bcy2 = BL.rightCornerY * H;
+    // vector arrows
+    [[cx1,cy1,bcy1,'#f472b6'],[cx2,cy2,bcy2,'#f472b6']].forEach(([cx,cy,bcy,col])=>{
+      const vy = bcy - cy;
+      if(Math.abs(vy)>2){
+        ctx.save(); ctx.strokeStyle=col+'aa'; ctx.lineWidth=2; ctx.shadowBlur=4; ctx.shadowColor=col;
+        ctx.beginPath(); ctx.moveTo(cx,bcy); ctx.lineTo(cx,cy); ctx.stroke(); ctx.restore();
+      }
+    });
   }
 }
 
-// ══════════════════════════════════════════════
-// FACE ANALYSIS
-// ══════════════════════════════════════════════
-function faceD(lm, a, b) {
-  const dx=lm[a].x-lm[b].x, dy=lm[a].y-lm[b].y;
-  return Math.sqrt(dx*dx+dy*dy);
-}
+// ═══════════════════════════════════════════════════════════
+// FACE ANALYSIS — PER FRAME
+// ═══════════════════════════════════════════════════════════
+function fD(lm,a,b){const dx=lm[a].x-lm[b].x,dy=lm[a].y-lm[b].y;return Math.sqrt(dx*dx+dy*dy);}
 
-function analyzeFace(lm) {
-  // EAR (eye aspect ratio)
-  const earL = (faceD(lm,160,144)+faceD(lm,158,153)) / (2*faceD(lm,33,133)+1e-5);
-  const earR = (faceD(lm,387,373)+faceD(lm,385,380)) / (2*faceD(lm,263,362)+1e-5);
-
-  // Mouth metrics
-  const mouthH = faceD(lm, 13, 14); // vertical open
-  const mouthW = faceD(lm, 61, 291); // width
-
-  // Brow height (relative to eye)
-  const browL_y = (lm[66].y + lm[105].y) / 2;
-  const browR_y = (lm[296].y + lm[334].y) / 2;
-  const eyeL_y  = lm[33].y;
-  const eyeR_y  = lm[263].y;
-  const browRiseL = eyeL_y - browL_y;
-  const browRiseR = eyeR_y - browR_y;
-
-  // Corner rise (relative to mouth center)
-  const mouthCenterY = (lm[13].y + lm[14].y) / 2;
-  const cornerRiseL = mouthCenterY - lm[61].y;
-  const cornerRiseR = mouthCenterY - lm[291].y;
+const metrics = {};
+function analyzeFrame(lm) {
+  // EAR
+  metrics.earL = (fD(lm,160,144)+fD(lm,158,153))/(2*fD(lm,33,133)+1e-5);
+  metrics.earR = (fD(lm,387,373)+fD(lm,385,380))/(2*fD(lm,263,362)+1e-5);
+  // Brow heights
+  metrics.browLY = (lm[66].y+lm[105].y)/2;
+  metrics.browRY = (lm[296].y+lm[334].y)/2;
+  // Corner
+  metrics.cornerLY = lm[61].y;
+  metrics.cornerRY = lm[291].y;
+  // Mouth
+  metrics.mouthH = fD(lm,13,14);
+  metrics.mouthW = fD(lm,61,291);
+  // Glabellar (corrugator proxy)
+  metrics.glabellarD = fD(lm,107,336);
+  // Forehead (frontalis/procerus proxy)
+  metrics.foreheadY = (lm[10].y+lm[151].y)/2;
+  // Chin (mentalis)
+  metrics.chinY = lm[152].y;
 
   // Baseline accumulation
-  if (!baselineDone && baseline.n < BASELINE_FRAMES) {
-    baseline.leftCornerY  = (baseline.leftCornerY  * baseline.n + lm[61].y)  / (baseline.n+1);
-    baseline.rightCornerY = (baseline.rightCornerY * baseline.n + lm[291].y) / (baseline.n+1);
-    baseline.leftBrowY    = (baseline.leftBrowY    * baseline.n + browL_y)   / (baseline.n+1);
-    baseline.rightBrowY   = (baseline.rightBrowY   * baseline.n + browR_y)   / (baseline.n+1);
-    baseline.leftEAR      = (baseline.leftEAR      * baseline.n + earL)      / (baseline.n+1);
-    baseline.rightEAR     = (baseline.rightEAR     * baseline.n + earR)      / (baseline.n+1);
-    baseline.jawH         = (baseline.jawH         * baseline.n + mouthH)    / (baseline.n+1);
-    baseline.n++;
-    if (baseline.n >= BASELINE_FRAMES) { baselineDone = true; }
-    document.getElementById('phaseBadge').textContent = `기준값 측정 중... ${Math.round(baseline.n/BASELINE_FRAMES*100)}%`;
+  if (!blDone && BL.n < BL_FRAMES) {
+    const f = BL.n;
+    BL.leftCornerY  = (BL.leftCornerY*f  + metrics.cornerLY)  / (f+1);
+    BL.rightCornerY = (BL.rightCornerY*f + metrics.cornerRY)  / (f+1);
+    BL.leftBrowY    = (BL.leftBrowY*f    + metrics.browLY)    / (f+1);
+    BL.rightBrowY   = (BL.rightBrowY*f   + metrics.browRY)    / (f+1);
+    BL.earL         = (BL.earL*f         + metrics.earL)      / (f+1);
+    BL.earR         = (BL.earR*f         + metrics.earR)      / (f+1);
+    BL.jawH         = (BL.jawH*f         + metrics.mouthH)    / (f+1);
+    BL.mouthW       = (BL.mouthW*f       + metrics.mouthW)    / (f+1);
+    BL.glabellarD   = (BL.glabellarD*f   + metrics.glabellarD)/ (f+1);
+    BL.foreheadY    = (BL.foreheadY*f    + metrics.foreheadY) / (f+1);
+    BL.n++;
+    if (BL.n >= BL_FRAMES) { blDone = true; document.getElementById('aBadge').textContent = '✓ 기준 측정 완료 — 평가 시작 가능'; }
+    else document.getElementById('aBadge').textContent = `기준값 측정 중 ${Math.round(BL.n/BL_FRAMES*100)}%`;
   }
 
-  // Relative metrics
-  const relCornerL = baseline.leftCornerY  - lm[61].y;  // positive = corner rose
-  const relCornerR = baseline.rightCornerY - lm[291].y;
-  const relBrowL   = baseline.leftBrowY    - browL_y;   // positive = brow rose
-  const relBrowR   = baseline.rightBrowY   - browR_y;
-  const relEarL    = earL - baseline.leftEAR;
-  const relEarR    = earR - baseline.rightEAR;
-  const relJaw     = mouthH - baseline.jawH;
+  // Relative metrics (requires baseline)
+  if (blDone) {
+    metrics.relSmileL  = BL.leftCornerY  - metrics.cornerLY;  // positive = rose
+    metrics.relSmileR  = BL.rightCornerY - metrics.cornerRY;
+    metrics.relBrowL   = BL.leftBrowY    - metrics.browLY;    // positive = rose
+    metrics.relBrowR   = BL.rightBrowY   - metrics.browRY;
+    metrics.relJaw     = metrics.mouthH  - BL.jawH;
+    metrics.relEarL    = metrics.earL    - BL.earL;
+    metrics.relEarR    = metrics.earR    - BL.earR;
+    // Corrugator proxy: glabellar NARROWING
+    metrics.corrugator = BL.glabellarD - metrics.glabellarD; // positive = narrowed = firing
+    // Frontalis compensation: brow rising while eye is closing
+    metrics.frontalBrow = BL.foreheadY - metrics.foreheadY; // positive = rose
+    // Risorius proxy: corner vector angle
+    // If rise is negative (corner went down) or horizontal → risorius/platysma
+    metrics.smileVecL  = Math.abs(metrics.relSmileL) > 0.001 ? metrics.relSmileL : 0;
+    metrics.smileVecR  = Math.abs(metrics.relSmileR) > 0.001 ? metrics.relSmileR : 0;
+    // Platysma proxy: corner descent during upward exercise
+    metrics.platysma   = Math.max(0, metrics.cornerLY - BL.leftCornerY, metrics.cornerRY - BL.rightCornerY);
+    // Symmetry
+    const smAsym  = Math.abs(metrics.relSmileL - metrics.relSmileR);
+    const brAsym  = Math.abs(metrics.relBrowL  - metrics.relBrowR);
+    const earAsym = Math.abs(metrics.earL - metrics.earR);
+    metrics.symScore = Math.max(0, 100 - (smAsym+brAsym+earAsym)/3 * 1800);
 
-  // Asymmetry score (0=perfect, higher=more asymmetric)
-  const smileAsym  = Math.abs(relCornerL - relCornerR);
-  const browAsym   = Math.abs(relBrowL   - relBrowR);
-  const earAsym    = Math.abs(earL - earR);
-  const totalAsym  = (smileAsym + browAsym + earAsym) / 3;
-  const symScore   = Math.max(0, 100 - totalAsym * 2000);
+    updateLiveUI();
+    updateCompensatorUI();
 
-  // Update UI
-  const fmt = v => (v > 0 ? '+' : '') + (v * 100).toFixed(1);
-  document.getElementById('metSmileL').textContent = fmt(relCornerL);
-  document.getElementById('metSmileR').textContent = fmt(relCornerR);
-  document.getElementById('metBrowL').textContent  = fmt(relBrowL);
-  document.getElementById('metBrowR').textContent  = fmt(relBrowR);
-  document.getElementById('metEyeL').textContent   = earL.toFixed(3);
-  document.getElementById('metEyeR').textContent   = earR.toFixed(3);
-  document.getElementById('metJaw').textContent    = fmt(relJaw);
-  document.getElementById('metAsym').textContent   = Math.round(symScore);
-
-  // Asymmetry bar
-  const asymPct = Math.min(100, totalAsym * 2000);
-  document.getElementById('asymBarFill').style.width = Math.max(2, 100 - asymPct) + '%';
-  document.getElementById('asymVal').textContent = Math.round(symScore);
-
-  // Push to measurement buffer if running
-  if (testState === 'running') {
-    const ex = EXERCISES[currentExIdx];
-    let val = 0;
-    if (ex.measure === 'smileRise')         val = (relCornerL + relCornerR) / 2;
-    else if (ex.measure === 'browRise')     val = (relBrowL + relBrowR) / 2;
-    else if (ex.measure === 'eyeAperture')  val = (earL + earR) / 2;
-    else if (ex.measure === 'mouthWidth')   val = mouthW;
-    else if (ex.measure === 'mouthCornerAngle') val = (relCornerL + relCornerR) / 2;
-    else if (ex.measure === 'jawOpen')      val = relJaw;
-    measureBuf.push({val, symScore, relCornerL, relCornerR, relBrowL, relBrowR, earL, earR, relJaw});
+    if (assessActive) assessBuf.push({...metrics});
+    if (exState === 'running') exMeasureBuf.push({...metrics});
   }
 }
 
-// ══════════════════════════════════════════════
-// EXERCISE FLOW
-// ══════════════════════════════════════════════
-function startExercise() {
-  if (!cameraRunning || testState !== 'idle') return;
-  if (!baselineDone) { alert('기준값 측정 중입니다. 잠시 기다려주세요.'); return; }
-  const ex = EXERCISES[currentExIdx];
-  measureBuf.length = 0;
-  repCount = 0; lastRepPeak = false;
-  currentSetNum = 1;
-  testDuration = ex.duration * 1000;
-  testState = 'countdown';
+function updateLiveUI() {
+  const fmt = v => (v>=0?'+':'') + (v*100).toFixed(1);
+  document.getElementById('mSmileL').textContent = fmt(metrics.relSmileL||0);
+  document.getElementById('mSmileR').textContent = fmt(metrics.relSmileR||0);
+  document.getElementById('mBrowL').textContent  = fmt(metrics.relBrowL||0);
+  document.getElementById('mBrowR').textContent  = fmt(metrics.relBrowR||0);
+  document.getElementById('mEyeL').textContent   = (metrics.earL||0).toFixed(3);
+  document.getElementById('mEyeR').textContent   = (metrics.earR||0).toFixed(3);
+  document.getElementById('mSym').textContent    = Math.round(metrics.symScore||0);
 
-  document.getElementById('startBtn').disabled = true;
-  document.getElementById('stopBtn').disabled = false;
+  // Top-level feedback dots (assess screen)
+  const setDot = (dotId,txtId,val,thresh,label,firing) => {
+    const d=document.getElementById(dotId), t=document.getElementById(txtId);
+    const fire = Math.abs(val)>thresh;
+    d.className='fb-dot '+(fire?'bad':'good');
+    t.textContent=label+(fire?' ⚠':'');
+  };
+  setDot('fbMigang','fbMigangTxt',metrics.corrugator||0,0.003,'미간');
+  setDot('fbBrow','fbBrowTxt',metrics.relBrowL||0,0.003,'눈썹');
+  setDot('fbCorner','fbCornerTxt',metrics.relSmileL||0,-0.002,'입꼬리');
+  setDot('fbFront','fbFrontTxt',metrics.frontalBrow||0,0.003,'이마 보상');
+}
 
-  // 3-second countdown
-  let cd = 3;
-  document.getElementById('phaseBadge').textContent = `${ex.name} 준비 ${cd}...`;
-  document.getElementById('phasePrompt').textContent = ex.instruction.slice(0,40) + '...';
-  const cdInterval = setInterval(() => {
-    cd--;
-    if (cd <= 0) {
-      clearInterval(cdInterval);
-      beginSet();
-    } else {
-      document.getElementById('phaseBadge').textContent = `${cd}...`;
+function updateCompensatorUI() {
+  if (exState !== 'running') return;
+  const ex = EXERCISES[exIdx];
+  if (!ex) return;
+  const lines = ex.compensators.map(comp => {
+    let firing = false;
+    let val = 0;
+    if (comp.key==='corrugator') { val=metrics.corrugator||0; firing=val>0.004; }
+    else if (comp.key==='frontalis') { val=metrics.frontalBrow||0; firing=val>0.003 && exState==='running'; }
+    else if (comp.key==='risorius') {
+      // Detect: corner moves too horizontal (not enough rise)
+      firing = (metrics.relSmileL||0) < 0.002 && (metrics.mouthW > BL.mouthW*1.03);
     }
+    else if (comp.key==='platysma') { val=metrics.platysma||0; firing=val>0.004; }
+    else if (comp.key==='lipCompress') { firing = (metrics.mouthW||0) < BL.mouthW*0.9; }
+    else if (comp.key==='dao') { firing = (metrics.relSmileL||0)<-0.002||(metrics.relSmileR||0)<-0.002; }
+    const dot = firing ? '🔴' : '🟢';
+    const cls = firing ? 'comp-firing' : 'comp-ok';
+    return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+      <span>${dot}</span>
+      <span class="${cls}"><b>${comp.name}</b></span>
+      ${firing?`<span style="color:var(--danger);font-size:.7rem">⚠ ${comp.cue}</span>`:''}
+    </div>`;
+  });
+  document.getElementById('compFeedback').innerHTML = lines.join('');
+
+  // Feedback dots on program camera
+  ex.compensators.forEach((comp,i) => {
+    const dot = document.getElementById('pComp'+(i+1)+'Dot');
+    const txt = document.getElementById('pComp'+(i+1)+'Txt');
+    if (!dot) return;
+    let firing = false;
+    if (comp.key==='corrugator') firing=(metrics.corrugator||0)>0.004;
+    else if (comp.key==='frontalis') firing=(metrics.frontalBrow||0)>0.003;
+    else if (comp.key==='risorius') firing=(metrics.relSmileL||0)<0.002&&(metrics.mouthW>BL.mouthW*1.03);
+    else if (comp.key==='platysma') firing=(metrics.platysma||0)>0.004;
+    dot.className='fb-dot '+(firing?'bad':'good');
+    txt.textContent=comp.name+(firing?' ⚠':'');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// ASSESSMENT
+// ═══════════════════════════════════════════════════════════
+function renderAssessGrid() {
+  const grid = document.getElementById('assessGrid');
+  grid.innerHTML = ASSESS_TESTS.map((t,i) => {
+    const done = assessResults[t.id] !== undefined;
+    return `<div class="assess-card${done?' done':''}" id="ac_${t.id}">
+      <div class="ac-icon">${t.icon}</div>
+      <div class="ac-name">${t.name}</div>
+      ${done ? `<div class="ac-score" style="color:var(--accent3)">✓</div>` : `<div style="font-size:.65rem;color:var(--dim)">${t.desc}</div>`}
+    </div>`;
+  }).join('');
+}
+
+let assessIdx2 = -1;
+function startAssessment() {
+  if (!cameraActive || !blDone) { alert('기준값 측정이 완료되지 않았습니다. 잠시 기다리세요.'); return; }
+  // Clear previous
+  Object.keys(assessResults).forEach(k => delete assessResults[k]);
+  assessIdx2 = 0;
+  document.getElementById('aStartBtn').disabled = true;
+  document.getElementById('aSkipBtn').style.display = '';
+  document.getElementById('aSkipBtn').disabled = false;
+  document.getElementById('aTimerCard').style.display = '';
+  runAssessTest();
+}
+
+function runAssessTest() {
+  if (assessIdx2 >= ASSESS_TESTS.length) { finishAssessment(); return; }
+  const t = ASSESS_TESTS[assessIdx2];
+  assessBuf = [];
+  assessActive = true;
+
+  // Highlight current card
+  document.querySelectorAll('.assess-card').forEach((c,i) => {
+    c.classList.toggle('active', i===assessIdx2);
+  });
+
+  document.getElementById('aTimerLabel').textContent = `${assessIdx2+1}/${ASSESS_TESTS.length}: ${t.name}`;
+  document.getElementById('aPhasePrompt').textContent = t.instruction;
+  document.getElementById('aBadge').textContent = `${t.icon} ${t.name}`;
+
+  let cd = 3;
+  document.getElementById('aTimer').textContent = '3';
+  const cdInt = setInterval(() => {
+    cd--;
+    if (cd <= 0) { clearInterval(cdInt); doAssessTest(t); }
+    else document.getElementById('aTimer').textContent = cd;
   }, 1000);
 }
 
-function beginSet() {
-  const ex = EXERCISES[currentExIdx];
-  testState = 'running';
-  testStartTime = Date.now();
-  document.getElementById('timerLabel').textContent = `세트 ${currentSetNum} / ${ex.sets}`;
-  document.getElementById('phaseBadge').textContent = `${ex.icon} ${ex.name}`;
-
-  timerInterval = setInterval(updateTimer, 100);
+function doAssessTest(t) {
+  const dur = t.duration * 1000;
+  const start = Date.now();
+  document.getElementById('aProgress').style.width = '0%';
+  const iv = setInterval(() => {
+    const el = Date.now() - start;
+    const pct = Math.min(100, (el/dur)*100);
+    const rem = Math.ceil((dur-el)/1000);
+    document.getElementById('aTimer').textContent = `${Math.floor(rem/60)}:${String(rem%60).padStart(2,'0')}`;
+    document.getElementById('aProgress').style.width = pct + '%';
+    if (el >= dur) {
+      clearInterval(iv);
+      assessActive = false;
+      assessResults[t.id] = computeAssessMetrics(t, [...assessBuf]);
+      document.getElementById('ac_'+t.id).classList.remove('active');
+      document.getElementById('ac_'+t.id).classList.add('done');
+      document.getElementById('ac_'+t.id).innerHTML =
+        `<div class="ac-icon">${t.icon}</div><div class="ac-name">${t.name}</div><div class="ac-score" style="color:var(--accent3)">✓</div>`;
+      assessIdx2++;
+      setTimeout(runAssessTest, 800);
+    }
+  }, 100);
 }
 
-function updateTimer() {
-  const ex = EXERCISES[currentExIdx];
-  const elapsed = Date.now() - testStartTime;
-  const remaining = Math.max(0, testDuration - elapsed);
-  const pct = ((testDuration - remaining) / testDuration) * 100;
-
-  const secs = Math.ceil(remaining / 1000);
-  document.getElementById('timerDisplay').textContent = `${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
-  document.getElementById('progressFill').style.width = pct + '%';
-
-  // Phase prompt
-  const phase = ex.phase;
-  const frac  = elapsed / testDuration;
-  let prompt = '';
-  if (phase === 'smile') {
-    prompt = frac < 0.3 ? '자연스럽게...' : frac < 0.7 ? '😊 활짝 웃어보세요!' : '천천히 이완...';
-  } else if (phase === 'resist') {
-    prompt = `이마 올리고 → 저항 유지 ${ex.holdSec}초`;
-  } else if (phase === 'squint') {
-    prompt = frac < 0.5 ? '👁 아래 눈꺼풀 올리기' : '천천히 이완...';
-  } else if (phase === 'puff') {
-    prompt = '볼에 공기 → 좌↔우 이동';
-  } else if (phase === 'snarl') {
-    prompt = '코 옆 근육 올리기 ↑';
-  } else if (phase === 'chin') {
-    prompt = frac < 0.5 ? '턱 운동 유지' : '천천히 이완...';
-  } else if (phase === 'vowel') {
-    const v = ['아','에','이','오','우'][Math.floor(frac * 5) % 5];
-    prompt = `"${v}" — 크고 과장되게`;
-  }
-  document.getElementById('phasePrompt').textContent = prompt;
-
-  // Rep counting (threshold crossing)
-  if (measureBuf.length > 0) {
-    const last = measureBuf[measureBuf.length-1].val;
-    const isHigh = last > 0.003;
-    if (isHigh && !lastRepPeak) { repCount++; lastRepPeak = true; }
-    else if (!isHigh) lastRepPeak = false;
-    document.getElementById('repCounter').textContent = `반복 ${repCount}회`;
-  }
-
-  if (elapsed >= testDuration) {
-    clearInterval(timerInterval);
-    onSetComplete();
-  }
+function skipTest() {
+  assessActive = false;
+  assessResults[ASSESS_TESTS[assessIdx2].id] = null;
+  assessIdx2++;
+  setTimeout(runAssessTest, 300);
 }
 
-function onSetComplete() {
-  const ex = EXERCISES[currentExIdx];
-  if (currentSetNum < ex.sets) {
-    testState = 'idle';
-    currentSetNum++;
-    let restCountdown = 15;
-    document.getElementById('phaseBadge').textContent = `휴식 ${restCountdown}초`;
-    document.getElementById('timerLabel').textContent = `세트 ${currentSetNum-1} 완료 · 휴식`;
-    document.getElementById('phasePrompt').textContent = `다음: 세트 ${currentSetNum}`;
-    const restInt = setInterval(() => {
-      restCountdown--;
-      document.getElementById('phaseBadge').textContent = `휴식 ${restCountdown}초`;
-      document.getElementById('timerDisplay').textContent = `0:${String(restCountdown).padStart(2,'0')}`;
-      if (restCountdown <= 0) { clearInterval(restInt); beginSet(); }
+function computeAssessMetrics(t, buf) {
+  if (!buf.length) return null;
+  const avg = key => buf.reduce((a,b)=>(a+(b[key]||0)),0)/buf.length;
+  const maxVal = key => Math.max(...buf.map(b=>b[key]||0));
+  return {
+    smileL: avg('relSmileL'), smileR: avg('relSmileR'),
+    maxSmileL: maxVal('relSmileL'), maxSmileR: maxVal('relSmileR'),
+    browL: avg('relBrowL'), browR: avg('relBrowR'),
+    maxBrowL: maxVal('relBrowL'), maxBrowR: maxVal('relBrowR'),
+    earL: avg('earL'), earR: avg('earR'),
+    jaw: avg('relJaw'), maxJaw: maxVal('relJaw'),
+    corrugator: avg('corrugator'), frontalComp: avg('frontalBrow'),
+    platysma: avg('platysma'),
+    sym: avg('symScore'), n: buf.length,
+  };
+}
+
+function finishAssessment() {
+  assessActive = false;
+  document.getElementById('aStartBtn').disabled = false;
+  document.getElementById('aSkipBtn').style.display = 'none';
+  document.getElementById('aTimerCard').style.display = 'none';
+  document.getElementById('aBadge').textContent = '평가 완료!';
+
+  // Compute zone scores
+  computeZoneScores();
+  showAssessResults();
+  saveAssessToHistory();
+}
+
+function computeZoneScores() {
+  const sm = assessResults['smile'];
+  const br = assessResults['browRaise'];
+  const ey = assessResults['eyeClose'];
+  const mo = assessResults['mouthOpen'];
+  const lp = assessResults['lipSeal'];
+
+  // Upper face: brow raise + eye close
+  let upper = 50;
+  if (br) {
+    const brRange = ((br.maxBrowL||0) + (br.maxBrowR||0))/2 * 1000;
+    const brAsym  = Math.abs((br.browL||0) - (br.browR||0)) * 1000;
+    const brComp  = (br.corrugator||0) * 500; // compensator penalty
+    upper = Math.min(100, Math.max(0, brRange * 4 - brComp - brAsym));
+  }
+  if (ey) {
+    const eyComp = (ey.frontalComp||0) * 800;
+    const eyScore = Math.max(0, 80 - eyComp);
+    upper = (upper + eyScore) / 2;
+  }
+  zoneScores.upper = Math.round(upper);
+
+  // Mid face: smile
+  let mid = 50;
+  if (sm) {
+    const smRange = ((sm.maxSmileL||0) + (sm.maxSmileR||0))/2 * 1000;
+    const smAsym  = Math.abs((sm.smileL||0) - (sm.smileR||0)) * 1000;
+    const plat    = (sm.platysma||0) * 800;
+    mid = Math.min(100, Math.max(0, smRange * 3.5 + sm.sym*0.3 - smAsym*0.5 - plat));
+  }
+  zoneScores.mid = Math.round(mid);
+
+  // Lower face: mouth open + lip seal
+  let lower = 50;
+  if (mo) { lower = Math.min(100, (mo.maxJaw||0) * 1200 + 40); }
+  zoneScores.lower = Math.round(lower);
+
+  // Neck/chin: overall symmetry proxy
+  zoneScores.neck = Math.round(assessResults['baseline']?.sym || 50);
+
+  // Determine priority zones (score < 60)
+  priorityZones.length = 0;
+  Object.entries(zoneScores).forEach(([z,s]) => { if(s!==null && s<65) priorityZones.push(z); });
+
+  // Update exercise priorities
+  EXERCISES.forEach(ex => { ex.priority = priorityZones.includes(ex.zone); });
+}
+
+function showAssessResults() {
+  const rows = Object.entries(zoneScores).map(([z,s]) => {
+    const label = {upper:'상부 (눈/이마)',mid:'중부 (볼/팔자)',lower:'하부 (입/입꼬리)',neck:'목/턱'}[z];
+    const cls = s>=75?'good':s>=55?'ok':'bad';
+    const bar = `<div style="width:${s||0}%;height:4px;background:${s>=75?'var(--accent3)':s>=55?'var(--accent4)':'var(--danger)'};border-radius:2px;margin-top:3px;"></div>`;
+    return `<div class="oc-row">
+      <span class="oc-key">${label}</span>
+      <div style="text-align:right">
+        <span class="oc-val ${cls}">${s??'—'}점</span>
+        ${bar}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Compensator patterns detected
+  const br = assessResults['browRaise'];
+  const sm = assessResults['smile'];
+  const ey = assessResults['eyeClose'];
+  const warnings = [];
+  if (br?.corrugator > 0.003) warnings.push('눈썹 올리기 중 <b>미간주름근 보상</b> 감지 — 이마 주름 위험');
+  if (sm?.platysma > 0.003)   warnings.push('미소 중 <b>광경근 보상</b> 감지 — 볼 처짐 가속 위험');
+  if (ey?.frontalComp > 0.003) warnings.push('눈 감기 중 <b>이마 보상</b> 감지 — 안륜근 약화 패턴');
+  if (sm?.maxSmileL && sm?.maxSmileR) {
+    const diff = Math.abs(sm.maxSmileL - sm.maxSmileR) * 100;
+    if (diff > 0.5) warnings.push(`미소 좌우 차이 ${diff.toFixed(1)} — 비대칭 개선 필요`);
+  }
+
+  const prescription = priorityZones.length
+    ? `집중 개선 구역: <b>${priorityZones.map(z=>({upper:'상부',mid:'중부',lower:'하부',neck:'목/턱'})[z]).join(', ')}</b><br>` +
+      EXERCISES.filter(e=>e.priority).map(e=>`• ${e.icon} ${e.name}`).join('<br>')
+    : '전체 구역 균형 유지 중. 전체 프로그램 진행을 권장합니다.';
+
+  document.getElementById('aoSub').textContent = `전체 평균 ${Math.round(Object.values(zoneScores).filter(Boolean).reduce((a,b)=>a+b,0)/4)}점`;
+  document.getElementById('aoResults').innerHTML = rows +
+    (warnings.length ? `<div style="margin:10px 0;padding:8px;background:rgba(248,113,113,.08);border-radius:6px;border-left:3px solid var(--danger);font-size:.75rem;line-height:1.7;">${warnings.join('<br>')}</div>` : '');
+  document.getElementById('aoPrescription').innerHTML = prescription;
+  document.getElementById('assessOverlay').classList.add('visible');
+}
+
+function closeAssessOverlay() { document.getElementById('assessOverlay').classList.remove('visible'); }
+function goToProgram() { closeAssessOverlay(); showScreen('program'); }
+
+// ═══════════════════════════════════════════════════════════
+// EXERCISE (PROGRAM SCREEN)
+// ═══════════════════════════════════════════════════════════
+function renderExList(filter) {
+  const list = document.getElementById('exList');
+  const filtered = filter === 'priority' ? EXERCISES.filter(e=>e.priority) :
+                   filter === 'all'      ? EXERCISES :
+                   EXERCISES.filter(e=>e.zone===filter);
+  list.innerHTML = filtered.map((ex,i) => {
+    const globalIdx = EXERCISES.indexOf(ex);
+    const done = exScores[ex.id] !== undefined;
+    const isPri = ex.priority;
+    return `<div class="ex-row${globalIdx===exIdx?' active':''}${done?' done':''}${isPri?' priority':''}" onclick="selectEx(${globalIdx})">
+      <span class="er-icon">${ex.icon}</span>
+      <div class="er-info">
+        <div class="er-name">${ex.name}</div>
+        <div class="er-meta">
+          <span class="badge badge-${ex.zone}">${{upper:'상부',mid:'중부',lower:'하부',neck:'목/턱'}[ex.zone]}</span>
+          ${isPri?'<span class="badge badge-priority">우선</span>':''}
+          <span style="margin-left:3px;">${ex.muscle.split('(')[0].trim()}</span>
+        </div>
+      </div>
+      ${done ? `<span class="er-score" style="color:${exScores[ex.id]>=75?'var(--accent3)':exScores[ex.id]>=55?'var(--accent4)':'var(--danger)'};">${exScores[ex.id]}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function filterEx(f, btn) {
+  document.querySelectorAll('#zoneFilter .btn').forEach(b=>b.classList.replace('btn-primary','btn-secondary'));
+  btn.classList.replace('btn-secondary','btn-primary');
+  renderExList(f);
+}
+
+function selectEx(idx) {
+  exIdx = idx;
+  const ex = EXERCISES[idx];
+  renderExList(document.querySelector('#zoneFilter .btn-primary')?.textContent||'all');
+  document.getElementById('pStartBtn').disabled = !cameraActive || exState!=='idle';
+  document.getElementById('exDetail').innerHTML = `
+    <div style="font-size:1rem;font-weight:800;color:var(--accent);margin-bottom:3px;">${ex.icon} ${ex.name}</div>
+    <div style="font-size:.68rem;color:var(--accent2);margin-bottom:5px;">${ex.muscle}</div>
+    <div style="font-size:.78rem;color:var(--dim);margin-bottom:8px;">${ex.desc}</div>
+    <div style="padding:8px;background:rgba(244,114,182,.07);border-left:3px solid var(--accent);border-radius:6px;font-size:.77rem;line-height:1.6;margin-bottom:8px;">${ex.instruction}</div>
+    <div style="padding:6px 8px;background:rgba(251,191,36,.07);border-left:3px solid var(--accent4);border-radius:6px;font-size:.72rem;color:var(--accent4);line-height:1.5;">
+      👆 ${ex.tipFingerPlace}
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;font-size:.7rem;color:var(--dim);">
+      <span>⏱ ${ex.duration}초/세트</span><span>×${ex.sets}세트</span><span>⏸ ${ex.holdSec}초 유지</span>
+    </div>`;
+
+  // Show compensators
+  document.getElementById('compFeedback').innerHTML = ex.compensators.map(c=>
+    `<div style="margin-bottom:5px;"><span style="color:var(--dim)">⚠ 주의:</span> <b>${c.name}</b><br>
+    <span style="font-size:.7rem;color:var(--dim)">감지 단서: ${c.cue}</span></div>`
+  ).join('<hr style="border:none;border-top:1px solid var(--border);margin:5px 0;">');
+}
+
+function startExercise() {
+  if (!cameraActive || exState!=='idle') return;
+  if (!blDone) { alert('기준값 측정 중입니다. 잠시 기다리세요.'); return; }
+  const ex = EXERCISES[exIdx];
+  exMeasureBuf.length = 0;
+  exSetNum = 1;
+  exState = 'countdown';
+  document.getElementById('pStartBtn').disabled = true;
+  document.getElementById('pStopBtn').disabled = false;
+
+  let cd = 3;
+  document.getElementById('pBadge').textContent = `${ex.name} 준비 ${cd}...`;
+  const cdInt = setInterval(() => {
+    cd--;
+    if (cd<=0){ clearInterval(cdInt); beginExSet(); }
+    else document.getElementById('pBadge').textContent = `${cd}...`;
+  }, 1000);
+}
+
+function beginExSet() {
+  const ex = EXERCISES[exIdx];
+  exState = 'running';
+  exStartTime = Date.now();
+  const dur = ex.duration * 1000;
+  document.getElementById('pTimerLbl').textContent = `세트 ${exSetNum} / ${ex.sets}`;
+  document.getElementById('pBadge').textContent = `${ex.icon} ${ex.name}`;
+
+  exTimer = setInterval(() => {
+    const el = Date.now() - exStartTime;
+    const rem = Math.max(0, dur - el);
+    const pct = (el/dur)*100;
+    document.getElementById('pTimer').textContent = `${Math.floor(Math.ceil(rem/1000)/60)}:${String(Math.ceil(rem/1000)%60).padStart(2,'0')}`;
+    document.getElementById('pProgress').style.width = pct + '%';
+
+    const frac = el/dur;
+    const phase = ex.phase;
+    let prompt = '';
+    if (phase==='smile')    prompt = frac<0.2?'중립...' : frac<0.7?'😊 볼을 위로 끌어올리세요!' : '천천히 이완...';
+    else if(phase==='browRaise') prompt = `눈썹 올리고 유지 ${ex.holdSec}초 — 이마 주름 없이`;
+    else if(phase==='eyeSquint') prompt = frac<0.5?'👁 아래 눈꺼풀만 위로' : '이완...';
+    else if(phase==='puff') prompt = '볼 공기 → 좌↔우 이동';
+    else if(phase==='snarl') prompt = '코 옆 ↑ 올리기';
+    else if(phase==='chin') prompt = frac<0.5?'유지...' : '천천히 이완';
+    else if(phase==='vowel'){
+      const v=['아','에','이','오','우'][Math.floor(frac*5)%5];
+      prompt = `"${v}" — 과장되게 크게`;
+    }
+    document.getElementById('pPrompt').textContent = prompt;
+
+    if (el >= dur) { clearInterval(exTimer); onExSetDone(); }
+  }, 100);
+}
+
+function onExSetDone() {
+  const ex = EXERCISES[exIdx];
+  if (exSetNum < ex.sets) {
+    exState = 'rest';
+    exSetNum++;
+    let rest = 15;
+    document.getElementById('pBadge').textContent = `휴식 ${rest}초`;
+    document.getElementById('pTimerLbl').textContent = `세트 ${exSetNum-1} 완료 · 휴식`;
+    document.getElementById('pPrompt').textContent = `다음: 세트 ${exSetNum}`;
+    const ri = setInterval(() => {
+      rest--;
+      document.getElementById('pBadge').textContent = `휴식 ${rest}초`;
+      document.getElementById('pTimer').textContent = `0:${String(rest).padStart(2,'0')}`;
+      if (rest<=0){ clearInterval(ri); beginExSet(); }
     }, 1000);
   } else {
-    testState = 'done';
+    exState = 'done';
     finishExercise();
   }
 }
 
 function finishExercise() {
-  const ex = EXERCISES[currentExIdx];
-  clearInterval(timerInterval);
-  document.getElementById('stopBtn').disabled = true;
-  document.getElementById('phaseBadge').textContent = '✓ 완료';
+  const ex = EXERCISES[exIdx];
+  clearInterval(exTimer);
+  document.getElementById('pStopBtn').disabled = true;
+  document.getElementById('pBadge').textContent = '✓ 완료';
 
-  // Compute score
-  const score = computeScore();
-  exerciseScores[ex.id] = score;
-
-  // Show result
-  showResult(ex, score);
+  const score = computeExScore(ex);
+  exScores[ex.id] = score;
   updateFFI();
-  renderExerciseList(document.querySelector('.zone-tab.active').textContent === '전체' ? 'all' :
-    {상부:'upper',중부:'mid',하부:'lower','목/턱':'neck'}[document.querySelector('.zone-tab.active').textContent] || 'all');
+  renderExList(document.querySelector('#zoneFilter .btn-primary')?.textContent||'all');
+  showExResult(ex, score);
+  saveExToHistory(score);
 }
 
-function computeScore() {
-  if (measureBuf.length === 0) return 50;
-  const ex = EXERCISES[currentExIdx];
-  const vals = measureBuf.map(m => m.val);
-  const symScores = measureBuf.map(m => m.symScore);
-
-  // Activation score: how much the target muscle moved
-  const maxVal = Math.max(...vals);
-  const avgVal = vals.reduce((a,b)=>a+b,0) / vals.length;
-  const activationScore = Math.min(100, Math.max(0, avgVal * 2000 + 50));
-
-  // Symmetry score
-  const avgSym = symScores.reduce((a,b)=>a+b,0) / symScores.length;
-
-  // Rep score (relative to expected)
-  const expectedReps = Math.floor(ex.duration / (ex.holdSec * 2));
-  const repScore = Math.min(100, (repCount / Math.max(1, expectedReps)) * 100);
-
-  return Math.round(activationScore * 0.5 + avgSym * 0.3 + repScore * 0.2);
+function computeExScore(ex) {
+  const buf = exMeasureBuf;
+  if (!buf.length) return 50;
+  const avg = key => buf.reduce((a,b)=>(a+(b[key]||0)),0)/buf.length;
+  const activation = Math.min(100, Math.max(0, avg(ex.measure==='smileRise'?'relSmileL':'relBrowL') * 1500 + 50));
+  const symmetry   = avg('symScore');
+  // Compensator penalty
+  let compPenalty = 0;
+  ex.compensators.forEach(c => {
+    if (c.key==='corrugator') compPenalty += avg('corrugator') * 300;
+    else if (c.key==='frontalis') compPenalty += avg('frontalBrow') * 300;
+    else if (c.key==='platysma') compPenalty += avg('platysma') * 300;
+  });
+  return Math.round(Math.min(100, Math.max(0, activation*0.5 + symmetry*0.35 - compPenalty*0.15)));
 }
 
-function showResult(ex, score) {
-  const buf = measureBuf;
-  if (buf.length === 0) return;
+function showExResult(ex, score) {
+  const buf = exMeasureBuf;
+  if (!buf.length) return;
+  const avg = key => buf.reduce((a,b)=>(a+(b[key]||0)),0)/buf.length;
+  const fmt = v => (v>=0?'+':'')+(v*100).toFixed(1);
+  const cls = s => s>=75?'good':s>=55?'ok':'bad';
 
-  const smileL = buf.map(m=>m.relCornerL);
-  const smileR = buf.map(m=>m.relCornerR);
-  const avgSmileL = (smileL.reduce((a,b)=>a+b,0)/smileL.length*100).toFixed(1);
-  const avgSmileR = (smileR.reduce((a,b)=>a+b,0)/smileR.length*100).toFixed(1);
-  const asymPct   = (Math.abs(parseFloat(avgSmileL)-parseFloat(avgSmileR))).toFixed(1);
-  const avgSym    = (buf.map(m=>m.symScore).reduce((a,b)=>a+b,0)/buf.length).toFixed(0);
-  const browAsymL = (buf.map(m=>m.relBrowL).reduce((a,b)=>a+b,0)/buf.length*100).toFixed(1);
-  const browAsymR = (buf.map(m=>m.relBrowR).reduce((a,b)=>a+b,0)/buf.length*100).toFixed(1);
+  const compRows = ex.compensators.map(c => {
+    let avgV = 0;
+    if (c.key==='corrugator') avgV = avg('corrugator');
+    else if (c.key==='frontalis') avgV = avg('frontalBrow');
+    else if (c.key==='platysma') avgV = avg('platysma');
+    const firing = avgV > 0.003;
+    return `<div class="oc-row"><span class="oc-key">${c.name}</span><span class="${firing?'bad':'good'}">${firing?'⚠ 활성화됨':'✓ 억제됨'}</span></div>`;
+  }).join('');
 
-  const sc = n => n>=70?'good':n>=50?'ok':'bad';
-
-  document.getElementById('resultTitle').textContent = `${ex.icon} ${ex.name} 완료`;
-  document.getElementById('resultSubtitle').textContent = `${ex.sets}세트 × ${ex.duration}초 · 반복 ${repCount}회`;
-  document.getElementById('resultRows').innerHTML = `
-    <div class="result-row"><span class="result-key">FFI 점수</span><span class="result-val ${sc(score)}">${score}점</span></div>
-    <div class="result-row"><span class="result-key">좌우 대칭</span><span class="result-val ${sc(avgSym)}">${avgSym}점</span></div>
-    <div class="result-row"><span class="result-key">좌 입꼬리 상승</span><span class="result-val">${avgSmileL > 0 ? '+' : ''}${avgSmileL}</span></div>
-    <div class="result-row"><span class="result-key">우 입꼬리 상승</span><span class="result-val">${avgSmileR > 0 ? '+' : ''}${avgSmileR}</span></div>
-    <div class="result-row"><span class="result-key">비대칭 차이</span><span class="result-val ${parseFloat(asymPct)<0.5?'good':parseFloat(asymPct)<1.5?'ok':'bad'}">${asymPct}</span></div>
-    <div class="result-row"><span class="result-key">눈썹 좌/우 상승</span><span class="result-val">${browAsymL > 0?'+':''}${browAsymL} / ${browAsymR > 0?'+':''}${browAsymR}</span></div>
-    <div class="result-row"><span class="result-key">근육 활성화 평가</span><span class="result-val ${sc(score)}">${score>=80?'우수 💪':score>=60?'양호 👍':'보완 필요 💡'}</span></div>`;
-
-  document.getElementById('resultNextBtn').style.display = seqMode ? '' : 'none';
+  document.getElementById('ocTitle').textContent = `${ex.icon} ${ex.name} 완료`;
+  document.getElementById('ocSub').textContent = `${ex.sets}세트 완료`;
+  document.getElementById('ocRows').innerHTML = `
+    <div class="oc-row"><span class="oc-key">FFI 점수</span><span class="${cls(score)}">${score}점</span></div>
+    <div class="oc-row"><span class="oc-key">좌우 대칭</span><span class="${cls(Math.round(avg('symScore')))}">${Math.round(avg('symScore'))}점</span></div>
+    <div class="oc-row"><span class="oc-key">좌 입꼬리 상승</span><span>${fmt(avg('relSmileL'))}</span></div>
+    <div class="oc-row"><span class="oc-key">우 입꼬리 상승</span><span>${fmt(avg('relSmileR'))}</span></div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:4px 0;">
+    <div style="font-size:.7rem;color:var(--dim);margin:4px 0;">보상근육 억제 여부</div>
+    ${compRows}`;
+  document.getElementById('ocNext').style.display = seqMode ? '' : 'none';
   document.getElementById('resultOverlay').classList.add('visible');
 }
 
-function closeResult() {
+function closeOverlay() {
   document.getElementById('resultOverlay').classList.remove('visible');
-  testState = 'idle';
-  document.getElementById('startBtn').disabled = false;
-  document.getElementById('phaseBadge').textContent = '운동 완료 — 다음 운동을 선택하세요';
-  document.getElementById('timerDisplay').textContent = '0:00';
-  document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('phasePrompt').textContent = '';
-  document.getElementById('repCounter').textContent = '';
+  exState = 'idle';
+  document.getElementById('pStartBtn').disabled = false;
+  document.getElementById('pTimer').textContent = '0:00';
+  document.getElementById('pProgress').style.width = '0%';
+  document.getElementById('pPrompt').textContent = '';
+  document.getElementById('pReps').textContent = '';
 }
 
 function stopExercise() {
-  clearInterval(timerInterval);
-  testState = 'idle';
-  document.getElementById('startBtn').disabled = false;
-  document.getElementById('stopBtn').disabled = true;
-  document.getElementById('phaseBadge').textContent = '중지됨';
-  document.getElementById('timerDisplay').textContent = '0:00';
-  document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('phasePrompt').textContent = '';
+  clearInterval(exTimer);
+  exState = 'idle';
+  document.getElementById('pStartBtn').disabled = false;
+  document.getElementById('pStopBtn').disabled = true;
+  document.getElementById('pBadge').textContent = '중지됨';
+  document.getElementById('pTimer').textContent = '0:00';
+  document.getElementById('pProgress').style.width = '0%';
 }
 
-// ══════════════════════════════════════════════
-// FFI SCORE
-// ══════════════════════════════════════════════
-function updateFFI() {
-  const completedIds = Object.keys(exerciseScores);
-  if (completedIds.length === 0) return;
-
-  // Domain scores
-  const domainMap = {upper:[], mid:[], lower:[], neck:[]};
-  EXERCISES.forEach(ex => {
-    if (exerciseScores[ex.id] !== undefined) domainMap[ex.zone].push(exerciseScores[ex.id]);
-  });
-  const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
-  const d1 = avg(domainMap.upper);
-  const d2 = avg(domainMap.mid);
-  const d3 = avg(domainMap.lower);
-  const d4 = avg(domainMap.neck);
-  const all = completedIds.map(id => exerciseScores[id]);
-  const total = Math.round(avg(all));
-
-  // Update ring
-  const arc = document.getElementById('ffiArc');
-  const circumference = 263.9;
-  arc.style.strokeDashoffset = circumference - (total / 100) * circumference;
-  document.getElementById('ffiScoreVal').textContent = total;
-  document.getElementById('ffiHeaderScore').textContent = `FFI ${total}`;
-
-  // Domain bars
-  const domains = [
-    {label:'상부 (눈/이마)', val:d1, max:20},
-    {label:'중부 (볼/팔자)', val:d2, max:30},
-    {label:'하부 (입꼬리)', val:d3, max:30},
-    {label:'목/턱',          val:d4, max:20},
-  ];
-  document.getElementById('ffiDomains').innerHTML = domains.map(d => `
-    <div class="domain-bar">
-      <div class="domain-row">
-        <span class="domain-name">${d.label}</span>
-        <span class="domain-score">${d.val !== null ? Math.round(d.val) : '—'}</span>
-      </div>
-      <div class="domain-track">
-        <div class="domain-fill" style="width:${d.val !== null ? d.val : 0}%"></div>
-      </div>
-    </div>`).join('');
-}
-
-// ══════════════════════════════════════════════
-// SEQUENTIAL (FULL PROGRAM)
-// ══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// SEQUENTIAL
+// ═══════════════════════════════════════════════════════════
 function startFullProgram() {
-  seqMode = true;
-  seqIdx = 0;
-  Object.keys(exerciseScores).forEach(k => delete exerciseScores[k]);
-  document.getElementById('resultOverlay').classList.remove('visible');
-  seqAdvance();
+  seqMode = true; seqIdx = 0;
+  Object.keys(exScores).forEach(k=>delete exScores[k]);
+  closeOverlay();
+  const order = priorityZones.length
+    ? [...EXERCISES.filter(e=>e.priority), ...EXERCISES.filter(e=>!e.priority)]
+    : EXERCISES;
+  window._seqOrder = order;
+  seqAdvanceInner();
 }
 
-function seqAdvance() {
-  if (seqIdx >= EXERCISES.length) { showFinalReport(); return; }
-  selectExercise(seqIdx);
-  closeResult();
-  // Auto-start after 4s
-  if (cameraRunning) {
-    document.getElementById('phaseBadge').textContent = `${seqIdx+1}/${EXERCISES.length}: ${EXERCISES[seqIdx].name} 준비 중...`;
-    setTimeout(() => {
-      if (testState === 'idle' && baselineDone) startExercise();
-    }, 4000);
-  }
+function seqAdvanceInner() {
+  const order = window._seqOrder || EXERCISES;
+  if (seqIdx >= order.length) { showFullSummary(); return; }
+  selectEx(EXERCISES.indexOf(order[seqIdx]));
+  closeOverlay();
+  document.getElementById('pBadge').textContent = `${seqIdx+1}/${order.length}: ${order[seqIdx].name} 준비 중...`;
+  if (cameraActive) setTimeout(() => { if(exState==='idle'&&blDone) startExercise(); }, 3500);
 }
 
-function seqNext() {
-  seqIdx++;
-  seqAdvance();
-}
+function seqNext() { seqIdx++; seqAdvanceInner(); }
 
-function showFinalReport() {
+function showFullSummary() {
   seqMode = false;
-  const scores = EXERCISES.map(ex => exerciseScores[ex.id] ?? null).filter(s => s !== null);
-  const total = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
-
-  document.getElementById('resultTitle').textContent = '🏆 Full Program 완료!';
-  document.getElementById('resultSubtitle').textContent = `총 ${scores.length}개 운동 완료 · FFI ${total}점`;
-  document.getElementById('resultRows').innerHTML = EXERCISES.map(ex => {
-    const s = exerciseScores[ex.id];
-    return `<div class="result-row">
-      <span class="result-key">${ex.icon} ${ex.name}</span>
-      <span class="result-val ${s!==undefined?scoreColor(s).replace('var(--','').replace(')','').replace('accent3','good').replace('accent4','ok').replace('#f87171','bad'):''}">
-        ${s !== undefined ? s + '점' : '—'}</span>
-    </div>`;
-  }).join('') + `<div class="result-row" style="border-top:2px solid var(--accent);margin-top:8px;padding-top:8px">
-    <span class="result-key" style="font-weight:700;color:var(--text)">FFI 총점</span>
-    <span class="result-val" style="color:var(--accent);font-size:1.1rem">${total}점 / 100</span>
-  </div>`;
-  document.getElementById('resultNextBtn').style.display = 'none';
+  const order = window._seqOrder || EXERCISES;
+  const scored = order.filter(e=>exScores[e.id]!==undefined);
+  const total = Math.round(scored.reduce((a,e)=>a+exScores[e.id],0)/scored.length);
+  document.getElementById('ocTitle').textContent = '🏆 Full Program 완료!';
+  document.getElementById('ocSub').textContent = `${scored.length}개 운동 · FFI ${total}점`;
+  document.getElementById('ocRows').innerHTML = order.map(e=>{
+    const s=exScores[e.id];
+    return `<div class="oc-row"><span class="oc-key">${e.icon} ${e.name}</span><span class="${s>=75?'good':s>=55?'ok':'bad'}">${s??'—'}점</span></div>`;
+  }).join('')+`<div class="oc-row" style="border-top:2px solid var(--accent);font-size:1rem;">
+    <span class="oc-key" style="font-weight:700;color:var(--text)">총 FFI</span>
+    <span style="color:var(--accent);font-weight:800;font-size:1.1rem;">${total}점</span></div>`;
+  document.getElementById('ocNext').style.display='none';
   document.getElementById('resultOverlay').classList.add('visible');
   updateFFI();
 }
 
-// ══════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════
-window.onerror = (msg, src, line) => console.error(`JS Error: ${msg} at ${src}:${line}`);
+// ═══════════════════════════════════════════════════════════
+// FFI
+// ═══════════════════════════════════════════════════════════
+function updateFFI() {
+  const all = EXERCISES.filter(e=>exScores[e.id]!==undefined);
+  if (!all.length) return;
+  const total = Math.round(all.reduce((a,e)=>a+exScores[e.id],0)/all.length);
+  document.getElementById('ffiVal').textContent = total;
+  const arc = document.getElementById('ffiArc');
+  arc.style.strokeDashoffset = 207.3 - (total/100)*207.3;
+
+  const zones = ['upper','mid','lower','neck'];
+  const labels = ['상부 (눈/이마)','중부 (볼/팔자)','하부 (입꼬리)','목/턱'];
+  document.getElementById('ffiDomains').innerHTML = zones.map((z,i)=>{
+    const exs = EXERCISES.filter(e=>e.zone===z&&exScores[e.id]!==undefined);
+    const s = exs.length ? Math.round(exs.reduce((a,e)=>a+exScores[e.id],0)/exs.length) : null;
+    const col = s>=75?'var(--accent3)':s>=55?'var(--accent4)':'var(--danger)';
+    return `<div style="margin-bottom:7px;">
+      <div style="display:flex;justify-content:space-between;font-size:.68rem;margin-bottom:2px;">
+        <span style="color:var(--dim);">${labels[i]}</span>
+        <span style="font-weight:700;color:${col}">${s??'—'}</span>
+      </div>
+      <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
+        <div style="width:${s||0}%;height:100%;background:${col};border-radius:2px;transition:width .4s;"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════════
+function saveAssessToHistory() {
+  const hist = JSON.parse(localStorage.getItem(HIST_KEY)||'{"assess":[],"exercise":[]}');
+  hist.assess.push({ date: new Date().toISOString(), zones: {...zoneScores} });
+  if (hist.assess.length > 30) hist.assess = hist.assess.slice(-30);
+  localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+}
+
+function saveExToHistory(score) {
+  const hist = JSON.parse(localStorage.getItem(HIST_KEY)||'{"assess":[],"exercise":[]}');
+  const ex = EXERCISES[exIdx];
+  hist.exercise.push({ date: new Date().toISOString(), exId: ex.id, exName: ex.name, score });
+  if (hist.exercise.length > 100) hist.exercise = hist.exercise.slice(-100);
+  localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+}
+
+function renderHistory() {
+  const hist = JSON.parse(localStorage.getItem(HIST_KEY)||'{"assess":[],"exercise":[]}');
+
+  // Assess history
+  const aEl = document.getElementById('histAssess');
+  if (!hist.assess.length) { aEl.textContent = '평가 기록 없음'; }
+  else {
+    aEl.innerHTML = `<div class="hist-list">${hist.assess.slice().reverse().map(r => {
+      const d = new Date(r.date);
+      const dateStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+      const zones = r.zones;
+      const bars = Object.entries(zones).map(([z,s])=>{
+        const col=s>=75?'#34d399':s>=55?'#fbbf24':'#f87171';
+        return `<div class="hist-hbar-wrap">
+          <span class="hist-hbar-lbl">${{upper:'상부',mid:'중부',lower:'하부',neck:'목/턱'}[z]}</span>
+          <div class="hist-hbar"><div class="hist-hbar-fill" style="width:${s||0}%;background:${col};"></div></div>
+          <span style="font-size:.65rem;min-width:28px;text-align:right;color:${col}">${s??'—'}</span>
+        </div>`;
+      }).join('');
+      const avg = Math.round(Object.values(zones).filter(Boolean).reduce((a,b)=>a+b,0)/4);
+      return `<div class="hist-row">
+        <span class="hist-date">${dateStr}</span>
+        <div class="hist-bars">${bars}</div>
+        <div class="hist-total">${avg}</div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  // Exercise history (grouped by exId, show trend)
+  const fEl = document.getElementById('histFFI');
+  if (!hist.exercise.length) { fEl.textContent = '운동 기록 없음'; }
+  else {
+    // Group by exId
+    const byEx = {};
+    hist.exercise.forEach(r => {
+      if (!byEx[r.exId]) byEx[r.exId] = {name:r.exName, scores:[]};
+      byEx[r.exId].scores.push({date:r.date, score:r.score});
+    });
+    fEl.innerHTML = Object.entries(byEx).map(([id,{name,scores}]) => {
+      const latest = scores[scores.length-1].score;
+      const trend  = scores.length>1 ? latest-scores[scores.length-2].score : 0;
+      const col    = latest>=75?'#34d399':latest>=55?'#fbbf24':'#f87171';
+      const trendTxt = trend>0?`<span style="color:#34d399">▲${trend}</span>`:trend<0?`<span style="color:#f87171">▼${Math.abs(trend)}</span>`:'—';
+      const dots = scores.slice(-8).map(s=>{
+        const c=s.score>=75?'#34d399':s.score>=55?'#fbbf24':'#f87171';
+        return `<div style="width:6px;height:${Math.round(s.score/100*28)+2}px;background:${c};border-radius:2px;align-self:flex-end;"></div>`;
+      }).join('');
+      return `<div class="hist-row" style="align-items:center;">
+        <div style="flex:1;"><div style="font-size:.82rem;font-weight:600;">${name}</div>
+          <div style="font-size:.65rem;color:var(--dim);">${scores.length}회 기록</div></div>
+        <div style="display:flex;gap:2px;align-items:flex-end;height:32px;margin:0 12px;">${dots}</div>
+        <div style="text-align:right;min-width:60px;">
+          <div style="font-size:1.1rem;font-weight:800;color:${col}">${latest}</div>
+          <div style="font-size:.65rem;">${trendTxt}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
 </script>
 </body>
 </html>
