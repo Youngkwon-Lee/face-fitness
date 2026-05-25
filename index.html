@@ -193,7 +193,7 @@ header{
   position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
   pointer-events:none;z-index:2;transition: opacity 0.5s ease;
 }
-.camera-guide-svg {height:min(88%,380px);width:auto;opacity:0.92;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.6));flex-shrink:0;}
+.camera-guide-svg {height:min(92%,400px);width:auto;opacity:0.95;filter:drop-shadow(0 8px 28px rgba(0,0,0,0.7));flex-shrink:0;}
 .camera-guide-copy{
   padding:7px 14px;border-radius:999px;
   background:rgba(10, 10, 26, 0.68);border:1px solid rgba(129,140,248,0.16);
@@ -481,7 +481,25 @@ header{
   <div class="assess-layout">
 
     <!-- Left -->
-    <div style="display:flex;flex-direction:column;gap:12px;">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+
+      <!-- ── 얼굴 평가 가이드 헤더 ── -->
+      <div style="padding:4px 2px 0;">
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:5px;">
+          <div style="width:38px;height:38px;flex-shrink:0;border-radius:10px;border:1px solid rgba(129,140,248,.25);background:rgba(99,102,241,.08);display:flex;align-items:center;justify-content:center;overflow:hidden;">
+            <img src="face-guide.svg" style="width:34px;height:34px;object-fit:cover;object-position:center 30%;" alt="">
+          </div>
+          <div>
+            <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:900;letter-spacing:1.5px;background:linear-gradient(130deg,#c4b5fd 0%,#818cf8 60%,#f472b6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;">얼굴 평가 가이드</div>
+            <div style="font-size:.73rem;color:var(--dim);margin-top:2px;letter-spacing:.3px;">정면을 보고 얼굴 중심을 맞춰 주세요</div>
+          </div>
+        </div>
+        <div id="camStartHint" style="font-size:.72rem;color:var(--accent);letter-spacing:.5px;padding-left:2px;display:flex;align-items:center;gap:5px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M2 12C2 12 5 6 12 6s10 6 10 6-3 6-10 6S2 12 2 12z"/></svg>
+          카메라를 시작하세요
+        </div>
+      </div>
+
       <!-- Camera -->
       <div class="video-wrap" id="aVideoWrap">
         <video id="video" autoplay playsinline muted></video>
@@ -1509,6 +1527,8 @@ async function startCamera() {
     // Hide offline guide placeholders and trigger fade-in streaming animations
     const og1 = document.getElementById('offlineGuide');
     if (og1) og1.style.opacity = '0';
+    const hint = document.getElementById('camStartHint');
+    if (hint) hint.style.display = 'none';
     const og2 = document.getElementById('offlineGuide2');
     if (og2) og2.style.opacity = '0';
     video.classList.add('streaming');
