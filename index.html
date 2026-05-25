@@ -190,18 +190,26 @@ header{
 
 /* CAMERA OFFLINE SCANNER PLACEHOLDER */
 .camera-offline-guide {
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
   pointer-events:none;z-index:2;transition: opacity 0.5s ease;
 }
-.scanning-lines {width:55%;height:55%;opacity:0.85;}
-.pulsing-ellipse {
-  transform-origin:center;
-  animation: scanningPulse 3s ease-in-out infinite;
+.camera-guide-svg {width:min(68%, 280px);height:auto;opacity:0.95;filter:drop-shadow(0 10px 24px rgba(15,23,42,0.28));}
+.camera-guide-copy{
+  padding:7px 14px;border-radius:999px;
+  background:rgba(10, 10, 26, 0.68);border:1px solid rgba(129,140,248,0.16);
+  color:rgba(226,232,240,0.88);font-size:.68rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
 }
+.guide-orbit, .guide-focus-ring {transform-origin:center;animation: scanningPulse 3.2s ease-in-out infinite;}
+.guide-grid-line {animation: guideLineDrift 4s ease-in-out infinite;}
 @keyframes scanningPulse {
-  0% { transform: scale(0.96); opacity: 0.3; stroke: rgba(129, 140, 248, 0.2); }
-  50% { transform: scale(1.02); opacity: 0.9; stroke: rgba(244, 114, 182, 0.45); filter: drop-shadow(0 0 4px rgba(244, 114, 182, 0.3)); }
-  100% { transform: scale(0.96); opacity: 0.3; stroke: rgba(129, 140, 248, 0.2); }
+  0% { transform: scale(0.98); opacity: 0.42; }
+  50% { transform: scale(1.02); opacity: 0.95; }
+  100% { transform: scale(0.98); opacity: 0.42; }
+}
+@keyframes guideLineDrift {
+  0%,100% { opacity:0.2; transform:translateY(-2px); }
+  50% { opacity:0.45; transform:translateY(2px); }
 }
 
 /* SCAN TIMER OVERLAY DIRECTLY ON VIDEO */
@@ -250,7 +258,7 @@ header{
 }
 .assess-card.done{border-color:var(--accent3);background:rgba(52,211,153,.08);}
 .assess-card.done:hover{border-color:var(--accent3);background:rgba(52,211,153,.12);}
-.ac-icon{font-size:1.8rem;margin-bottom:4px;transition: transform 0.2s;}
+.ac-icon{display:flex;justify-content:center;align-items:center;min-height:40px;margin-bottom:4px;transition: transform 0.2s;}
 .assess-card:hover .ac-icon{transform: scale(1.1);}
 .ac-name{font-size:.8rem;font-weight:700;}
 .ac-score{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;margin-top:4px;}
@@ -283,7 +291,7 @@ header{
 }
 .ex-row.done{border-color:rgba(52,211,153,0.3);background:rgba(52,211,153,.04);}
 .ex-row.priority{border-left:4px solid var(--accent4);}
-.er-icon{font-size:1.3rem;width:28px;text-align:center;}
+.er-icon{display:flex;align-items:center;justify-content:center;width:34px;min-width:34px;}
 .er-info{flex:1;}
 .er-name{font-size:.82rem;font-weight:700;}
 .er-meta{display:flex;gap:4px;margin-top:4px;}
@@ -298,6 +306,9 @@ header{
 .badge-stretch{background:rgba(52,211,153,.14);color:var(--accent3);}
 .badge-strength{background:rgba(244,114,182,.14);color:var(--accent);}
 .badge-endurance{background:rgba(129,140,248,.14);color:var(--accent2);}
+.inline-icon{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;line-height:0;flex-shrink:0;}
+.inline-icon svg{display:block;}
+.icon-label{display:inline-flex;align-items:center;gap:6px;}
 
 /* COMPENSATOR PANEL */
 .comp-panel{
@@ -475,14 +486,7 @@ header{
       <div class="video-wrap" id="aVideoWrap">
         <video id="video" autoplay playsinline muted></video>
         <canvas id="overlay"></canvas>
-        <div class="camera-offline-guide" id="offlineGuide">
-          <svg viewBox="0 0 100 100" class="scanning-lines">
-            <path d="M 30,20 A 22,30 0 0,0 30,80 A 22,30 0 0,0 70,80" fill="none" stroke="rgba(129, 140, 248, 0.15)" stroke-width="0.8" stroke-dasharray="2,2"/>
-            <ellipse cx="50" cy="50" rx="25" ry="34" fill="none" stroke="rgba(129, 140, 248, 0.25)" stroke-width="1" class="pulsing-ellipse"/>
-            <line x1="15" y1="50" x2="85" y2="50" stroke="rgba(129, 140, 248, 0.08)" stroke-width="0.5" stroke-dasharray="2,4"/>
-            <line x1="50" y1="15" x2="50" y2="85" stroke="rgba(129, 140, 248, 0.08)" stroke-width="0.5" stroke-dasharray="2,4"/>
-          </svg>
-        </div>
+        <div class="camera-offline-guide" id="offlineGuide"></div>
         <div class="scan-overlay-container" id="scanOverlay" style="display:none;">
           <svg viewBox="0 0 100 100" class="scan-ring-svg">
             <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(244,114,182,0.12)" stroke-width="1.5"/>
@@ -550,10 +554,11 @@ header{
           <button onclick="resetMusclePeaks()" style="background:none;border:1px solid var(--border);color:var(--dim);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:.6rem;letter-spacing:.5px;">RESET</button>
         </div>
         <div id="muscleMonitor">
-          <!-- ZMaj (광대근) — bilateral via mouth-corner lift -->
+          <!-- ZMaj (광대근) — bilateral via mouth-corner lift (AU12) -->
           <div class="mm-muscle">
             <div class="mm-mhead">
               <span class="mm-mname">광대근 <span class="mm-msub">Zygomaticus Major</span></span>
+              <span id="mm_duchenne" style="display:none;align-items:center;gap:3px;font-size:.6rem;font-weight:700;color:#fbbf24;background:#fbbf2420;border:1px solid #fbbf2460;border-radius:10px;padding:1px 7px;">✨ Duchenne</span>
               <span class="mm-asym" id="mm_smA">—</span>
             </div>
             <div class="mm-brow">
@@ -567,7 +572,7 @@ header{
               <span class="mm-pct" id="mm_smR_pct">—</span>
             </div>
           </div>
-          <!-- Frontalis (전두근) — bilateral via brow lift -->
+          <!-- Frontalis (전두근) — bilateral via brow lift (AU1/2) -->
           <div class="mm-muscle">
             <div class="mm-mhead">
               <span class="mm-mname">전두근 <span class="mm-msub">Frontalis</span></span>
@@ -584,7 +589,7 @@ header{
               <span class="mm-pct" id="mm_brR_pct">—</span>
             </div>
           </div>
-          <!-- Orbicularis Oculi (안륜근) — bilateral via EAR -->
+          <!-- Orbicularis Oculi (안륜근) — bilateral via EAR (AU6/43) -->
           <div class="mm-muscle">
             <div class="mm-mhead">
               <span class="mm-mname">안륜근 <span class="mm-msub">Orbicularis Oculi (EAR)</span></span>
@@ -601,8 +606,25 @@ header{
               <span class="mm-pct" id="mm_eyR_pct">—</span>
             </div>
           </div>
+          <!-- LLS (입술올림근) — bilateral via alar-to-lip shortening (AU10) -->
+          <div class="mm-muscle">
+            <div class="mm-mhead">
+              <span class="mm-mname">입술올림근 <span class="mm-msub">Levator Labii Sup.</span></span>
+              <span class="mm-asym" id="mm_llsA">—</span>
+            </div>
+            <div class="mm-brow">
+              <span class="mm-side">L</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_llsL" style="width:0%"></div></div>
+              <span class="mm-pct" id="mm_llsL_pct">—</span>
+            </div>
+            <div class="mm-brow">
+              <span class="mm-side">R</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_llsR" style="width:0%"></div></div>
+              <span class="mm-pct" id="mm_llsR_pct">—</span>
+            </div>
+          </div>
           <hr class="mm-divider">
-          <!-- Corrugator (미간주름근) — single, COMPENSATOR -->
+          <!-- Corrugator (미간주름근) — single, COMPENSATOR (AU4) -->
           <div class="mm-muscle" style="margin-bottom:6px;">
             <div class="mm-mhead">
               <span class="mm-mname">미간주름근 <span class="mm-msub">Corrugator ⚠ 보상근</span></span>
@@ -613,15 +635,32 @@ header{
               <div class="mm-track"><div class="mm-fill" id="mm_corr" style="width:0%;background:var(--accent4)"></div></div>
             </div>
           </div>
-          <!-- Platysma (광경근) — single, COMPENSATOR -->
-          <div class="mm-muscle" style="margin-bottom:4px;">
+          <!-- DAO (입꼬리내림근) — bilateral, COMPENSATOR (AU15) — replaces misnamed Platysma -->
+          <div class="mm-muscle" style="margin-bottom:6px;">
             <div class="mm-mhead">
-              <span class="mm-mname">광경근 <span class="mm-msub">Platysma ⚠ 보상근</span></span>
-              <span class="mm-pct" id="mm_plat_pct">—</span>
+              <span class="mm-mname">입꼬리내림근 <span class="mm-msub">DAO ⚠ 보상근</span></span>
+              <span class="mm-asym" id="mm_daoA">—</span>
             </div>
             <div class="mm-brow">
               <span class="mm-side" style="color:var(--danger);">⚠</span>
-              <div class="mm-track"><div class="mm-fill" id="mm_plat" style="width:0%;background:var(--accent4)"></div></div>
+              <div class="mm-track"><div class="mm-fill" id="mm_daoL" style="width:0%;background:var(--accent4)"></div></div>
+              <span class="mm-pct" id="mm_daoL_pct">—</span>
+            </div>
+            <div class="mm-brow">
+              <span class="mm-side" style="color:var(--danger);">⚠</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_daoR" style="width:0%;background:var(--accent4)"></div></div>
+              <span class="mm-pct" id="mm_daoR_pct">—</span>
+            </div>
+          </div>
+          <!-- Mentalis (턱근) — single, COMPENSATOR (AU17) -->
+          <div class="mm-muscle" style="margin-bottom:4px;">
+            <div class="mm-mhead">
+              <span class="mm-mname">턱근 <span class="mm-msub">Mentalis ⚠ 보상근</span></span>
+              <span class="mm-pct" id="mm_ment_pct">—</span>
+            </div>
+            <div class="mm-brow">
+              <span class="mm-side" style="color:var(--danger);">⚠</span>
+              <div class="mm-track"><div class="mm-fill" id="mm_ment" style="width:0%;background:var(--accent4)"></div></div>
             </div>
           </div>
         </div>
@@ -635,7 +674,7 @@ header{
             <span style="font-size:1.1rem;font-weight:800;" id="mSym">—</span>
           </div>
         </div>
-        <div style="margin-top:5px;font-size:.57rem;color:var(--dim);line-height:1.4;">★ 세션 최대값 기준 정규화 · 좌우 비대칭 △은 절대값보다 신뢰도 높음 (카메라 각도 오차 상쇄) · 안륜근=EAR 비율</div>
+        <div style="margin-top:5px;font-size:.57rem;color:var(--dim);line-height:1.4;">★ 세션 최대값 기준 정규화 · 비대칭 △: 건강인 정상범위 ZMaj ±16.7% / Frontalis ±10.9% · ✨Duchenne = AU12+AU6 동시 활성화 = 진짜 미소 · DAO = 구 Platysma 오측정 수정</div>
       </div>
     </div>
   </div>
@@ -655,9 +694,9 @@ header{
         <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('mid',this)">중부</button>
         <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('lower',this)">하부</button>
         <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('neck',this)">목/턱</button>
-        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;border-color:rgba(52,211,153,.3);" onclick="filterEx('stretch',this)">🧘 스트레칭</button>
-        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;border-color:rgba(244,114,182,.3);" onclick="filterEx('strength',this)">💪 근육강화</button>
-        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;border-color:rgba(129,140,248,.3);" onclick="filterEx('endurance',this)">⏱ 지구력</button>
+        <button class="btn btn-secondary" id="filterStretchBtn" style="padding:4px 9px;font-size:.65rem;border-color:rgba(52,211,153,.3);" onclick="filterEx('stretch',this)">스트레칭</button>
+        <button class="btn btn-secondary" id="filterStrengthBtn" style="padding:4px 9px;font-size:.65rem;border-color:rgba(244,114,182,.3);" onclick="filterEx('strength',this)">근육강화</button>
+        <button class="btn btn-secondary" id="filterEnduranceBtn" style="padding:4px 9px;font-size:.65rem;border-color:rgba(129,140,248,.3);" onclick="filterEx('endurance',this)">지구력</button>
       </div>
       <div class="ex-list" id="exList"></div>
     </div>
@@ -667,14 +706,7 @@ header{
       <div class="video-wrap">
         <video id="video2" autoplay playsinline muted style="display:none;"></video>
         <canvas id="overlay2"></canvas>
-        <div class="camera-offline-guide" id="offlineGuide2">
-          <svg viewBox="0 0 100 100" class="scanning-lines">
-            <path d="M 30,20 A 22,30 0 0,0 30,80 A 22,30 0 0,0 70,80" fill="none" stroke="rgba(129, 140, 248, 0.15)" stroke-width="0.8" stroke-dasharray="2,2"/>
-            <ellipse cx="50" cy="50" rx="25" ry="34" fill="none" stroke="rgba(129, 140, 248, 0.25)" stroke-width="1" class="pulsing-ellipse"/>
-            <line x1="15" y1="50" x2="85" y2="50" stroke="rgba(129, 140, 248, 0.08)" stroke-width="0.5" stroke-dasharray="2,4"/>
-            <line x1="50" y1="15" x2="50" y2="85" stroke="rgba(129, 140, 248, 0.08)" stroke-width="0.5" stroke-dasharray="2,4"/>
-          </svg>
-        </div>
+        <div class="camera-offline-guide" id="offlineGuide2"></div>
         <div class="scan-overlay-container" id="scanOverlay2" style="display:none;">
           <svg viewBox="0 0 100 100" class="scan-ring-svg">
             <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(244,114,182,0.12)" stroke-width="1.5"/>
@@ -750,12 +782,23 @@ header{
           </div>
           <hr class="mm-divider">
           <div class="mm-muscle" style="margin-bottom:4px;">
+            <div class="mm-mhead"><span class="mm-mname">입술올림근 <span class="mm-msub">LLS</span></span><span class="mm-asym" id="pmm_llsA">—</span></div>
+            <div class="mm-brow"><span class="mm-side">L</span><div class="mm-track"><div class="mm-fill" id="pmm_llsL" style="width:0%"></div></div><span class="mm-pct" id="pmm_llsL_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side">R</span><div class="mm-track"><div class="mm-fill" id="pmm_llsR" style="width:0%"></div></div><span class="mm-pct" id="pmm_llsR_pct">—</span></div>
+          </div>
+          <hr class="mm-divider">
+          <div class="mm-muscle" style="margin-bottom:4px;">
             <div class="mm-mhead"><span class="mm-mname">미간근 <span class="mm-msub">⚠ 보상</span></span><span class="mm-pct" id="pmm_corr_pct">—</span></div>
             <div class="mm-brow"><span class="mm-side" style="color:var(--danger);">⚠</span><div class="mm-track"><div class="mm-fill" id="pmm_corr" style="width:0%;background:var(--accent4)"></div></div></div>
           </div>
+          <div class="mm-muscle" style="margin-bottom:4px;">
+            <div class="mm-mhead"><span class="mm-mname">입꼬리내림근 <span class="mm-msub">DAO ⚠ 보상</span></span><span class="mm-asym" id="pmm_daoA">—</span></div>
+            <div class="mm-brow"><span class="mm-side" style="color:var(--danger);">⚠</span><div class="mm-track"><div class="mm-fill" id="pmm_daoL" style="width:0%;background:var(--accent4)"></div></div><span class="mm-pct" id="pmm_daoL_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" style="color:var(--danger);">⚠</span><div class="mm-track"><div class="mm-fill" id="pmm_daoR" style="width:0%;background:var(--accent4)"></div></div><span class="mm-pct" id="pmm_daoR_pct">—</span></div>
+          </div>
           <div class="mm-muscle" style="margin-bottom:0;">
-            <div class="mm-mhead"><span class="mm-mname">광경근 <span class="mm-msub">⚠ 보상</span></span><span class="mm-pct" id="pmm_plat_pct">—</span></div>
-            <div class="mm-brow"><span class="mm-side" style="color:var(--danger);">⚠</span><div class="mm-track"><div class="mm-fill" id="pmm_plat" style="width:0%;background:var(--accent4)"></div></div></div>
+            <div class="mm-mhead"><span class="mm-mname">턱근 <span class="mm-msub">⚠ 보상</span></span><span class="mm-pct" id="pmm_ment_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" style="color:var(--danger);">⚠</span><div class="mm-track"><div class="mm-fill" id="pmm_ment" style="width:0%;background:var(--accent4)"></div></div></div>
           </div>
         </div>
       </div>
@@ -1086,7 +1129,7 @@ async function syncCloudHistory() {
 // ═══════════════════════════════════════════════════════════
 const EXERCISES = [
   // UPPER FACE
-  { id:'brow_press', icon:'🤨', zone:'upper', name:'이마 저항 운동', nameEn:'Brow Press',
+  { id:'brow_press', icon:'brow_press', zone:'upper', name:'이마 저항 운동', nameEn:'Brow Press',
     muscle:'전두근 (Frontalis)',
     desc:'이마 주름 예방. 눈썹을 올리면서 손가락으로 저항합니다.',
     instruction:'손가락을 눈썹 위에 얹고, 눈썹을 위로 올리려 하면서 저항. 이마에 주름이 생기지 않도록.',
@@ -1098,7 +1141,7 @@ const EXERCISES = [
     tipFingerPlace:'손가락을 미간에 가로로 얹어 미간이 좁아지는지 확인',
     measure:'browRise'
   },
-  { id:'eye_v', icon:'👁', zone:'upper', name:'V 눈 운동', nameEn:'The V',
+  { id:'eye_v', icon:'eye_v', zone:'upper', name:'V 눈 운동', nameEn:'The V',
     muscle:'안륜근 (Orbicularis Oculi)',
     desc:'눈가 주름·눈꺼풀 처짐 개선. 아래 눈꺼풀만 올립니다.',
     instruction:'검지를 바깥 눈꼬리에 살짝 대고, 아래 눈꺼풀을 위로 올립니다. 윗 눈꺼풀은 고정.',
@@ -1111,7 +1154,7 @@ const EXERCISES = [
     measure:'eyeAperture'
   },
   // MID FACE
-  { id:'cheek_lifter', icon:'🍎', zone:'mid', name:'볼 올리기', nameEn:'Cheek Lifter',
+  { id:'cheek_lifter', icon:'cheek_lifter', zone:'mid', name:'볼 올리기', nameEn:'Cheek Lifter',
     muscle:'광대근 (Zygomaticus Major)',
     desc:'볼 볼륨·탄력 핵심 운동. (Northwestern 2018 JAMA 연구)',
     instruction:'입을 O로 벌리고 입꼬리를 45도 위로. 볼 근육을 눈 쪽으로 끌어올리는 느낌.',
@@ -1123,7 +1166,7 @@ const EXERCISES = [
     tipFingerPlace:'검지를 볼 위쪽에 얹어 올라가는지 확인 / 목에 손을 대어 근육이 잡히지 않는지 확인',
     measure:'smileRise'
   },
-  { id:'nasolabial', icon:'✨', zone:'mid', name:'팔자주름 운동', nameEn:'Nasolabial Lifter',
+  { id:'nasolabial', icon:'nasolabial', zone:'mid', name:'팔자주름 운동', nameEn:'Nasolabial Lifter',
     muscle:'상순거근 (Levator Labii Superioris)',
     desc:'팔자주름 부위를 직접 자극합니다.',
     instruction:'검지를 팔자주름 위에 얹고, 코 옆 근육을 위로 끌어올립니다.',
@@ -1135,7 +1178,7 @@ const EXERCISES = [
     tipFingerPlace:'한 손은 팔자주름 위, 다른 손은 이마에 얹어 이마 보상 감시',
     measure:'smileRise'
   },
-  { id:'puffer', icon:'🐡', zone:'mid', name:'볼 공기 운동', nameEn:'The Puffer',
+  { id:'puffer', icon:'puffer', zone:'mid', name:'볼 공기 운동', nameEn:'The Puffer',
     muscle:'협근 (Buccinator)',
     desc:'볼 근육 전체 강화.',
     instruction:'볼에 공기를 가득 채우고, 좌→우→위→아래 순서로 이동. 각 위치 1초 정지.',
@@ -1146,7 +1189,7 @@ const EXERCISES = [
     tipFingerPlace:'볼 바깥에 손가락을 대어 공기 이동을 촉각으로 확인',
     measure:'mouthWidth'
   },
-  { id:'apple_cheeks', icon:'🌟', zone:'mid', name:'사과 볼', nameEn:'Apple Cheeks',
+  { id:'apple_cheeks', icon:'apple_cheeks', zone:'mid', name:'사과 볼', nameEn:'Apple Cheeks',
     muscle:'광대근 (Zygomaticus)',
     desc:'볼 위쪽 볼륨감 강화.',
     instruction:'이를 보이며 웃고, 검지로 볼 가장 높은 지점을 위쪽으로 살짝 밀면서 유지.',
@@ -1158,7 +1201,7 @@ const EXERCISES = [
     tipFingerPlace:'목에 손을 가볍게 대어 광경근 활성화 여부 확인',
     measure:'smileRise'
   },
-  { id:'fish_face', icon:'🐠', zone:'mid', name:'물고기 얼굴', nameEn:'Fish Face',
+  { id:'fish_face', icon:'fish_face', zone:'mid', name:'물고기 얼굴', nameEn:'Fish Face',
     muscle:'협근 (Buccinator)',
     desc:'볼 안쪽 깊은 근육 자극.',
     instruction:'볼을 빨아들이고, 그 상태에서 입꼬리를 위로 올립니다.',
@@ -1170,7 +1213,7 @@ const EXERCISES = [
     measure:'mouthWidth'
   },
   // LOWER FACE
-  { id:'corner_lift', icon:'😊', zone:'lower', name:'입꼬리 올리기', nameEn:'Corner Lift',
+  { id:'corner_lift', icon:'corner_lift', zone:'lower', name:'입꼬리 올리기', nameEn:'Corner Lift',
     muscle:'광대근 (ZMaj) + 협근 (Risorius)',
     desc:'처진 입꼬리 교정. 입꼬리를 45도 위로.',
     instruction:'검지를 입꼬리에 얹고 45도 위 방향으로 저항. 입꼬리를 위로 올립니다.',
@@ -1182,7 +1225,7 @@ const EXERCISES = [
     tipFingerPlace:'손가락을 입꼬리에 대어 위로 45도 저항',
     measure:'mouthCornerAngle'
   },
-  { id:'dao_stretch', icon:'🙂', zone:'lower', name:'DAO 교정 운동', nameEn:'DAO Inhibition',
+  { id:'dao_stretch', icon:'dao_stretch', zone:'lower', name:'DAO 교정 운동', nameEn:'DAO Inhibition',
     muscle:'입꼬리내림근 (DAO) 억제 + 광대근 강화',
     desc:'입꼬리를 내리는 DAO 근육을 스트레칭하고 광대근을 강화합니다.',
     instruction:'입꼬리를 최대한 아래로 내립니다. 그 저항에 맞서 힘껏 위로 올립니다.',
@@ -1193,7 +1236,7 @@ const EXERCISES = [
     tipFingerPlace:'목에 손을 대어 광경근 감시',
     measure:'mouthCornerAngle'
   },
-  { id:'vowel', icon:'🗣', zone:'lower', name:'모음 운동', nameEn:'Vowel Yell',
+  { id:'vowel', icon:'vowel', zone:'lower', name:'모음 운동', nameEn:'Vowel Yell',
     muscle:'구륜근 + 주변 전체 (Orbicularis Oris)',
     desc:'입 주변 모든 근육 종합 활성화.',
     instruction:'아-에-이-오-우를 과장되게. 각 모음에서 최대 가동 범위로.',
@@ -1205,7 +1248,7 @@ const EXERCISES = [
     measure:'mouthWidth'
   },
   // NECK/CHIN
-  { id:'giraffe', icon:'🦒', zone:'neck', name:'기린 스트레칭', nameEn:'The Giraffe',
+  { id:'giraffe', icon:'giraffe', zone:'neck', name:'기린 스트레칭', nameEn:'The Giraffe',
     muscle:'광경근 (Platysma)',
     desc:'이중턱 개선, 목 라인 선명화.',
     instruction:'머리를 뒤로 젖히고 천장을 봅니다. 혀를 입천장에 붙였다 뗍니다.',
@@ -1216,7 +1259,7 @@ const EXERCISES = [
     tipFingerPlace:'목 앞쪽(턱 아래)이 당기는 느낌 확인',
     measure:'jawOpen'
   },
-  { id:'chin_tuck', icon:'🤫', zone:'neck', name:'턱 당기기', nameEn:'Chin Tuck',
+  { id:'chin_tuck', icon:'chin_tuck', zone:'neck', name:'턱 당기기', nameEn:'Chin Tuck',
     muscle:'심경굴근 + 광경근',
     desc:'이중턱 + 목 앞 근육 강화. 자세 교정 효과.',
     instruction:'턱을 몸쪽으로 당겨 이중턱을 만듭니다(의도적으로). 유지.',
@@ -1227,7 +1270,7 @@ const EXERCISES = [
     tipFingerPlace:'손가락을 턱 끝에 대어 뒤로 당기는 방향 확인',
     measure:'jawOpen'
   },
-  { id:'jaw_jut', icon:'💪', zone:'neck', name:'턱 내밀기', nameEn:'Jaw Jut',
+  { id:'jaw_jut', icon:'jaw_jut', zone:'neck', name:'턱 내밀기', nameEn:'Jaw Jut',
     muscle:'이복근 (Digastric) + 설골상근',
     desc:'턱 아래 이복근 강화.',
     instruction:'아랫턱을 앞으로 내밀고, 머리를 45도 뒤로. 유지.',
@@ -1238,7 +1281,7 @@ const EXERCISES = [
     tipFingerPlace:'턱 아래가 당기는 느낌에 집중',
     measure:'jawOpen'
   },
-  { id:'tongue_press', icon:'👅', zone:'neck', name:'혀 천장 누르기', nameEn:'Tongue Press',
+  { id:'tongue_press', icon:'tongue_press', zone:'neck', name:'혀 천장 누르기', nameEn:'Tongue Press',
     muscle:'악설골근 (Mylohyoid) + 이설골근',
     desc:'혀 위치 교정 + 이중턱의 근본 원인 개선.',
     instruction:'혀 전체를 입천장에 강하게 밀어붙이고 유지. 턱 아래 수축 확인.',
@@ -1251,7 +1294,7 @@ const EXERCISES = [
   },
 
   // ── STRETCH ───────────────────────────────────────────────
-  { id:'jaw_release', icon:'🌀', zone:'neck', name:'턱 이완 스트레칭', nameEn:'Jaw Release',
+  { id:'jaw_release', icon:'jaw_release', zone:'neck', name:'턱 이완 스트레칭', nameEn:'Jaw Release',
     muscle:'교근 (Masseter) + 측두근 (Temporalis)',
     desc:'턱 관절 이완. 씹기 근육의 만성 긴장 해소. 이갈이·TMJ 예방.',
     instruction:'천천히 입을 최대로 벌리고 5초 유지. 천천히 닫고 2초 후 반복. 마지막에 아래턱을 좌→우로 천천히 이동.',
@@ -1260,7 +1303,7 @@ const EXERCISES = [
     tipFingerPlace:'턱 앞쪽에 손가락을 대어 열림이 균등한지 확인',
     measure:'jawOpen'
   },
-  { id:'face_release', icon:'😌', zone:'mid', name:'얼굴 전체 이완', nameEn:'Face Release',
+  { id:'face_release', icon:'face_release', zone:'mid', name:'얼굴 전체 이완', nameEn:'Face Release',
     muscle:'표정근 전체 (Mimetic Muscles) — tension-release cycle',
     desc:'표정근 과긴장 해소. 보상 패턴 리셋. 운동 전후 필수 쿨다운.',
     instruction:'눈·코·입을 최대한 쪼그려 5초 유지(Scrunch). 그 뒤 눈·입·이마를 최대한 크게 벌려 5초(Release). 이 cycle 3회.',
@@ -1269,7 +1312,7 @@ const EXERCISES = [
     tipFingerPlace:'양 손을 볼에 가볍게 대어 근육 이완을 촉각으로 확인',
     measure:'mouthWidth'
   },
-  { id:'nasolabial_stretch', icon:'✨', zone:'mid', name:'팔자주름 스트레칭', nameEn:'NLF Stretch',
+  { id:'nasolabial_stretch', icon:'nasolabial_stretch', zone:'mid', name:'팔자주름 스트레칭', nameEn:'NLF Stretch',
     muscle:'상순거근 (LLS) + 협근 (Buccinator) 스트레칭',
     desc:'팔자주름 부위 근막 이완. 근육강화 전 준비 스트레칭.',
     instruction:'검지를 팔자주름 위에 대고, 입꼬리를 아래·바깥으로 가볍게 당기며 윗 볼 근육을 위로 들어올려 저항.',
@@ -1280,7 +1323,7 @@ const EXERCISES = [
   },
 
   // ── ENDURANCE ─────────────────────────────────────────────
-  { id:'smile_hold', icon:'🙂', zone:'mid', name:'미소 지구력 훈련', nameEn:'Smile Endurance',
+  { id:'smile_hold', icon:'smile_hold', zone:'mid', name:'미소 지구력 훈련', nameEn:'Smile Endurance',
     muscle:'광대근 (ZMaj) — 근지구력',
     desc:'광대근 지구력 향상. 비대칭 교정에 가장 효과적. 40-60% 강도로 지속 유지.',
     instruction:'치아가 살짝 보이는 부드러운 미소를 유지. 최대 수축이 아닌 적당한 강도로 오래 유지. 목에 힘이 들어가지 않도록.',
@@ -1292,7 +1335,7 @@ const EXERCISES = [
     tipFingerPlace:'볼 위에 손가락을 살짝 대어 지속 수축 확인',
     measure:'smileRise'
   },
-  { id:'brow_endurance', icon:'😐', zone:'upper', name:'눈썹 위치 유지 훈련', nameEn:'Brow Endurance',
+  { id:'brow_endurance', icon:'brow_endurance', zone:'upper', name:'눈썹 위치 유지 훈련', nameEn:'Brow Endurance',
     muscle:'전두근 (Frontalis) — 근지구력',
     desc:'전두근 지구력. 눈썹 처짐 방지. 좌우 비대칭 교정에 핵심.',
     instruction:'눈썹을 자연스러운 위치보다 1-2mm 위에 고정. 이마에 주름 없이 최대한 오래 유지. 미간에 힘 주지 않도록.',
@@ -1303,7 +1346,7 @@ const EXERCISES = [
     tipFingerPlace:'이마에 손을 얹어 주름이 생기지 않는지 감시',
     measure:'browRise'
   },
-  { id:'cheek_endurance', icon:'🍎', zone:'mid', name:'볼 올리기 지구력', nameEn:'Cheek Endurance',
+  { id:'cheek_endurance', icon:'cheek_endurance', zone:'mid', name:'볼 올리기 지구력', nameEn:'Cheek Endurance',
     muscle:'광대근 (ZMaj) + 안륜근 하부 — 지구력 복합',
     desc:'볼 근육 지구력 훈련. 운동선수의 근지구력 훈련 원리 적용.',
     instruction:'볼을 눈 방향으로 올린 채 유지. 완전한 근피로가 올 때까지. 강도를 70%로 유지하다 힘들어지면 50%로 줄여도 유지.',
@@ -1331,17 +1374,17 @@ EXERCISES.forEach(e => { e.type = EXERCISE_TYPES[e.id] || 'strength'; });
 
 // Assessment tests — 총 ~40초 (기존 80초에서 단축)
 const ASSESS_TESTS = [
-  { id:'baseline',  icon:'😐', name:'안정 기준',     desc:'중립 표정 유지', duration:12,
+  { id:'baseline',  icon:'baseline', name:'안정 기준',     desc:'중립 표정 유지', duration:12,
     instruction:'자연스러운 표정을 유지하세요. 기준값을 측정합니다.', phase:'rest', measure:null },
-  { id:'smile',     icon:'😊', name:'최대 미소',     desc:'최대한 웃어보기', duration:8,
+  { id:'smile',     icon:'smile', name:'최대 미소',     desc:'최대한 웃어보기', duration:8,
     instruction:'최대한 활짝 웃으세요. 볼이 올라가는 느낌으로.', phase:'smile', measure:'smile' },
-  { id:'browRaise', icon:'🤨', name:'눈썹 올리기',   desc:'최대한 위로', duration:7,
+  { id:'browRaise', icon:'browRaise', name:'눈썹 올리기',   desc:'최대한 위로', duration:7,
     instruction:'양 눈썹을 최대한 위로 올리세요. 이마 주름 없이.', phase:'browRaise', measure:'brow' },
-  { id:'eyeClose',  icon:'😌', name:'눈 꽉 감기',   desc:'꽉 감았다 뜨기', duration:7,
+  { id:'eyeClose',  icon:'eyeClose', name:'눈 꽉 감기',   desc:'꽉 감았다 뜨기', duration:7,
     instruction:'눈을 꽉 감았다가 크게 뜨세요. 이마는 고정.', phase:'eyeClose', measure:'eye' },
-  { id:'mouthOpen', icon:'😮', name:'입 크게 벌리기', desc:'최대 가동범위', duration:7,
+  { id:'mouthOpen', icon:'mouthOpen', name:'입 크게 벌리기', desc:'최대 가동범위', duration:7,
     instruction:'입을 최대한 크게 벌리세요.', phase:'mouthOpen', measure:'jaw' },
-  { id:'lipSeal',   icon:'😶', name:'입 꼭 다물기',  desc:'입술 힘껏', duration:5,
+  { id:'lipSeal',   icon:'lipSeal', name:'입 꼭 다물기',  desc:'입술 힘껏', duration:5,
     instruction:'입술을 힘껏 다물고 유지하세요.', phase:'lipSeal', measure:'lip' },
 ];
 
@@ -1391,7 +1434,8 @@ function toggleVoice() {
 
 // ── BASELINE ───────────────────────────────────────────────
 const BL = {n:0, leftCornerY:0, rightCornerY:0, leftBrowY:0, rightBrowY:0,
-             earL:1, earR:1, jawH:0, mouthW:0, glabellarD:0, foreheadY:0};
+             earL:1, earR:1, jawH:0, mouthW:0, glabellarD:0, foreheadY:0,
+             llsDistL:0, llsDistR:0, mentalY:0, cheekLY:0, cheekRY:0};
 let blDone = false;
 const BL_FRAMES = 45; // ~1.5s
 
@@ -1415,8 +1459,10 @@ const zoneScores = {upper:null, mid:null, lower:null, neck:null};
 const priorityZones = [];
 
 // Muscle activation peak tracking (session max — used as denominator for % normalization)
-const musclePeaks = {smL:0.002,smR:0.002,brL:0.002,brR:0.002,eyL:0.002,eyR:0.002,corr:0.003,plat:0.003};
-function resetMusclePeaks(){Object.assign(musclePeaks,{smL:0.002,smR:0.002,brL:0.002,brR:0.002,eyL:0.002,eyR:0.002,corr:0.003,plat:0.003});}
+const musclePeaks = {smL:0.002,smR:0.002,brL:0.002,brR:0.002,eyL:0.002,eyR:0.002,corr:0.003,
+                     daoL:0.003,daoR:0.003,llsL:0.003,llsR:0.003,ment:0.003,au6L:0.005,au6R:0.005};
+function resetMusclePeaks(){Object.assign(musclePeaks,{smL:0.002,smR:0.002,brL:0.002,brR:0.002,eyL:0.002,eyR:0.002,corr:0.003,
+                     daoL:0.003,daoR:0.003,llsL:0.003,llsR:0.003,ment:0.003,au6L:0.005,au6R:0.005});}
 
 // History (localStorage)
 const HIST_KEY = 'ff_history';
@@ -1439,6 +1485,7 @@ function showScreen(id) {
 // ═══════════════════════════════════════════════════════════
 window.onload = () => {
   initSupabase();
+  initStaticSvgUI();
   renderAssessGrid();
   renderExList('all');
 };
@@ -1814,6 +1861,12 @@ function analyzeFrame(lm) {
   metrics.foreheadY = (lm[10].y+lm[151].y)/2;
   // Chin (mentalis)
   metrics.chinY = lm[152].y;
+  // LLS (Levator Labii Superioris) — alar-to-upper-lip distance
+  metrics.llsDistL = fD(lm, 94, 37);
+  metrics.llsDistR = fD(lm, 328, 267);
+  // AU6 cheek raiser (Duchenne smile proxy)
+  metrics.cheekLY = lm[116].y;
+  metrics.cheekRY = lm[345].y;
 
   // Baseline accumulation
   if (!blDone && BL.n < BL_FRAMES) {
@@ -1828,6 +1881,11 @@ function analyzeFrame(lm) {
     BL.mouthW       = (BL.mouthW*f       + metrics.mouthW)    / (f+1);
     BL.glabellarD   = (BL.glabellarD*f   + metrics.glabellarD)/ (f+1);
     BL.foreheadY    = (BL.foreheadY*f    + metrics.foreheadY) / (f+1);
+    BL.llsDistL     = (BL.llsDistL*f     + metrics.llsDistL)  / (f+1);
+    BL.llsDistR     = (BL.llsDistR*f     + metrics.llsDistR)  / (f+1);
+    BL.mentalY      = (BL.mentalY*f      + metrics.chinY)     / (f+1);
+    BL.cheekLY      = (BL.cheekLY*f      + metrics.cheekLY)   / (f+1);
+    BL.cheekRY      = (BL.cheekRY*f      + metrics.cheekRY)   / (f+1);
     BL.n++;
     if (BL.n >= BL_FRAMES) { blDone = true; document.getElementById('aBadge').textContent = '✓ 기준 측정 완료 — 평가 시작 가능'; }
     else document.getElementById('aBadge').textContent = `기준값 측정 중 ${Math.round(BL.n/BL_FRAMES*100)}%`;
@@ -1846,12 +1904,21 @@ function analyzeFrame(lm) {
     metrics.corrugator = BL.glabellarD - metrics.glabellarD; // positive = narrowed = firing
     // Frontalis compensation: brow rising while eye is closing
     metrics.frontalBrow = BL.foreheadY - metrics.foreheadY; // positive = rose
-    // Risorius proxy: corner vector angle
-    // If rise is negative (corner went down) or horizontal → risorius/platysma
     metrics.smileVecL  = Math.abs(metrics.relSmileL) > 0.001 ? metrics.relSmileL : 0;
     metrics.smileVecR  = Math.abs(metrics.relSmileR) > 0.001 ? metrics.relSmileR : 0;
-    // Platysma proxy: corner descent during upward exercise
-    metrics.platysma   = Math.max(0, metrics.cornerLY - BL.leftCornerY, metrics.cornerRY - BL.rightCornerY);
+    // DAO (Depressor Anguli Oris) — bilateral corner DESCENT (replaces misnamed platysma)
+    metrics.daoL     = Math.max(0, metrics.cornerLY - BL.leftCornerY);
+    metrics.daoR     = Math.max(0, metrics.cornerRY - BL.rightCornerY);
+    // LLS (Levator Labii Superioris) — alar-to-lip SHORTENING = upper lip rise
+    metrics.llsL     = Math.max(0, BL.llsDistL - metrics.llsDistL);
+    metrics.llsR     = Math.max(0, BL.llsDistR - metrics.llsDistR);
+    // Mentalis — chin tip RISE toward lower lip (puckering)
+    metrics.mentalis = Math.max(0, BL.mentalY - metrics.chinY);
+    // AU6 cheek raiser (Duchenne smile) — cheekbone rise
+    metrics.au6L     = Math.max(0, BL.cheekLY - metrics.cheekLY);
+    metrics.au6R     = Math.max(0, BL.cheekRY - metrics.cheekRY);
+    // keep platysma alias for legacy compensator checks
+    metrics.platysma = Math.max(metrics.daoL, metrics.daoR);
     // Symmetry
     const smAsym  = Math.abs(metrics.relSmileL - metrics.relSmileR);
     const brAsym  = Math.abs(metrics.relBrowL  - metrics.relBrowR);
@@ -1886,11 +1953,14 @@ function updateLiveUI() {
 // ═══════════════════════════════════════════════════════════
 // MUSCLE ACTIVATION MONITOR — bilateral comparison
 // Proxy mapping (FACS-validated movement-based):
-//   ZMaj    ← relSmileL/R (mouth corner elevation)
-//   Frontalis ← relBrowL/R (brow elevation)
-//   OrbOculi  ← earL/R relative to baseline (eye aperture)
-//   Corrugator ← corrugator (glabellar narrowing)
-//   Platysma   ← platysma (mouth corner depression)
+//   ZMaj      ← relSmileL/R (mouth corner elevation, AU12)
+//   Frontalis ← relBrowL/R (brow elevation, AU1/2)
+//   OrbOculi  ← earL/R relative to baseline (eye aperture, AU6/43)
+//   Corrugator← corrugator (glabellar narrowing, AU4)
+//   DAO       ← daoL/R (mouth corner depression, AU15) — replaces Platysma
+//   LLS       ← llsL/R (alar-to-lip shortening = upper lip rise, AU10)
+//   Mentalis  ← mentalis (chin-tip rise = puckering, AU17)
+//   AU6 cheek ← au6L/R (cheekbone rise = Duchenne co-activation)
 // ═══════════════════════════════════════════════════════════
 function updateMuscleMonitor() {
   if (!blDone) return;
@@ -1903,7 +1973,13 @@ function updateMuscleMonitor() {
   const eyL  = Math.max(0, (metrics.earL||0) - (BL.earL||0));
   const eyR  = Math.max(0, (metrics.earR||0) - (BL.earR||0));
   const corr = Math.max(0, metrics.corrugator || 0);
-  const plat = Math.max(0, metrics.platysma   || 0);
+  const daoL = Math.max(0, metrics.daoL       || 0);
+  const daoR = Math.max(0, metrics.daoR       || 0);
+  const llsL = Math.max(0, metrics.llsL       || 0);
+  const llsR = Math.max(0, metrics.llsR       || 0);
+  const ment = Math.max(0, metrics.mentalis   || 0);
+  const au6L = Math.max(0, metrics.au6L       || 0);
+  const au6R = Math.max(0, metrics.au6R       || 0);
 
   // Update session peaks
   musclePeaks.smL  = Math.max(musclePeaks.smL,  smL);
@@ -1913,17 +1989,24 @@ function updateMuscleMonitor() {
   musclePeaks.eyL  = Math.max(musclePeaks.eyL,  eyL);
   musclePeaks.eyR  = Math.max(musclePeaks.eyR,  eyR);
   musclePeaks.corr = Math.max(musclePeaks.corr, corr);
-  musclePeaks.plat = Math.max(musclePeaks.plat, plat);
+  musclePeaks.daoL = Math.max(musclePeaks.daoL, daoL);
+  musclePeaks.daoR = Math.max(musclePeaks.daoR, daoR);
+  musclePeaks.llsL = Math.max(musclePeaks.llsL, llsL);
+  musclePeaks.llsR = Math.max(musclePeaks.llsR, llsR);
+  musclePeaks.ment = Math.max(musclePeaks.ment, ment);
+  musclePeaks.au6L = Math.max(musclePeaks.au6L, au6L);
+  musclePeaks.au6R = Math.max(musclePeaks.au6R, au6R);
 
-  // Fixed anatomical scale: typical full-contraction movement ranges (landmark normalized)
-  // Prevents noise inflation when session peaks are tiny (at-rest values near 0)
-  const FS = {sm:0.020, br:0.015, ey:0.08, corr:0.012, plat:0.010};
+  // Fixed anatomical scale floors — prevent noise inflation when peaks near 0
+  const FS = {sm:0.020, br:0.015, ey:0.08, corr:0.012, dao:0.010, lls:0.010, ment:0.008, au6:0.015};
 
-  // Use SHARED peak (larger of L/R) so bilateral bars are on the same scale
-  // Floor = FIXED_SCALE so resting noise (~0.001) stays <5% (suppressed by deadband)
-  const smPk  = Math.max(musclePeaks.smL, musclePeaks.smR, FS.sm);
-  const brPk  = Math.max(musclePeaks.brL, musclePeaks.brR, FS.br);
-  const eyPk  = Math.max(musclePeaks.eyL, musclePeaks.eyR, FS.ey);
+  // Shared bilateral peaks (larger of L/R) so both bars share the same scale
+  const smPk  = Math.max(musclePeaks.smL,  musclePeaks.smR,  FS.sm);
+  const brPk  = Math.max(musclePeaks.brL,  musclePeaks.brR,  FS.br);
+  const eyPk  = Math.max(musclePeaks.eyL,  musclePeaks.eyR,  FS.ey);
+  const daoPk = Math.max(musclePeaks.daoL, musclePeaks.daoR, FS.dao);
+  const llsPk = Math.max(musclePeaks.llsL, musclePeaks.llsR, FS.lls);
+  const au6Pk = Math.max(musclePeaks.au6L, musclePeaks.au6R, FS.au6);
 
   // 5% deadband: values below noise floor rendered as 0
   const pct = (v, pk) => { const r = Math.min(100, Math.round(v / pk * 100)); return r < 5 ? 0 : r; };
@@ -1931,17 +2014,28 @@ function updateMuscleMonitor() {
   const pBrL = pct(brL, brPk), pBrR = pct(brR, brPk);
   const pEyL = pct(eyL, eyPk), pEyR = pct(eyR, eyPk);
   const pCorr = pct(corr, Math.max(musclePeaks.corr, FS.corr));
-  const pPlat = pct(plat, Math.max(musclePeaks.plat, FS.plat));
+  const pDaoL = pct(daoL, daoPk), pDaoR = pct(daoR, daoPk);
+  const pLlsL = pct(llsL, llsPk), pLlsR = pct(llsR, llsPk);
+  const pMent = pct(ment, Math.max(musclePeaks.ment, FS.ment));
+  const pAu6L = pct(au6L, au6Pk), pAu6R = pct(au6R, au6Pk);
 
   // Asymmetry = absolute percentage-point difference
-  const asSm = Math.abs(pSmL - pSmR);
-  const asBr = Math.abs(pBrL - pBrR);
-  const asEy = Math.abs(pEyL - pEyR);
+  // Threshold calibrated to healthy population norms (ZMaj ±16.7%, Frontalis ±10.9%)
+  const asSm  = Math.abs(pSmL - pSmR);
+  const asBr  = Math.abs(pBrL - pBrR);
+  const asEy  = Math.abs(pEyL - pEyR);
+  const asDao = Math.abs(pDaoL - pDaoR);
+  const asLls = Math.abs(pLlsL - pLlsR);
 
-  // Color helpers
+  // Duchenne smile: genuine smile = AU12 (ZMaj) + AU6 (cheek) co-activation
+  const duchenneL = pSmL > 30 && pAu6L > 20;
+  const duchenneR = pSmR > 30 && pAu6R > 20;
+  const duchenne  = duchenneL || duchenneR;
+
+  // Color helpers — asymmetry threshold raised to match healthy population norms
   const actCol  = v => v > 65 ? '#34d399' : v > 25 ? '#f472b6' : '#818cf8';
   const compCol = v => v < 20 ? '#34d399' : v < 50 ? '#fbbf24' : '#f87171';
-  const asymCol = v => v < 10 ? '#34d399' : v < 25 ? '#fbbf24' : '#f87171';
+  const asymCol = v => v < 20 ? '#34d399' : v < 35 ? '#fbbf24' : '#f87171';
 
   const setBar = (id, w, col) => {
     const e = document.getElementById(id);
@@ -1976,7 +2070,22 @@ function updateMuscleMonitor() {
     setAsym(p+'eyA', asEy);
 
     setBar(p+'corr', pCorr, compCol(pCorr)); setTxt(p+'corr_pct', pCorr+'%');
-    setBar(p+'plat', pPlat, compCol(pPlat)); setTxt(p+'plat_pct', pPlat+'%');
+
+    setBar(p+'daoL', pDaoL, compCol(pDaoL)); setBar(p+'daoR', pDaoR, compCol(pDaoR));
+    setTxt(p+'daoL_pct', pDaoL+'%'); setTxt(p+'daoR_pct', pDaoR+'%');
+    setAsym(p+'daoA', asDao);
+
+    setBar(p+'llsL', pLlsL, actCol(pLlsL)); setBar(p+'llsR', pLlsR, actCol(pLlsR));
+    setTxt(p+'llsL_pct', pLlsL+'%'); setTxt(p+'llsR_pct', pLlsR+'%');
+    setAsym(p+'llsA', asLls);
+
+    setBar(p+'ment', pMent, compCol(pMent)); setTxt(p+'ment_pct', pMent+'%');
+  }
+
+  // Duchenne badge (assess screen only — ZMaj row)
+  const dbEl = document.getElementById('mm_duchenne');
+  if (dbEl) {
+    dbEl.style.display = duchenne ? 'inline-flex' : 'none';
   }
 
   // Symmetry bar + score (assess screen only)
@@ -2009,10 +2118,10 @@ function updateCompensatorUI() {
     else if (comp.key==='platysma') { val=metrics.platysma||0; firing=val>0.004; }
     else if (comp.key==='lipCompress') { firing = (metrics.mouthW||0) < BL.mouthW*0.9; }
     else if (comp.key==='dao') { firing = (metrics.relSmileL||0)<-0.002||(metrics.relSmileR||0)<-0.002; }
-    const dot = firing ? '🔴' : '🟢';
+    const dot = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${firing?'var(--danger)':'var(--accent3)'};box-shadow:0 0 8px ${firing?'rgba(248,113,113,0.5)':'rgba(52,211,153,0.45)'};"></span>`;
     const cls = firing ? 'comp-firing' : 'comp-ok';
     return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-      <span>${dot}</span>
+      ${dot}
       <span class="${cls}"><b>${comp.name}</b></span>
       ${firing?`<span style="color:var(--danger);font-size:.7rem">⚠ ${comp.cue}</span>`:''}
     </div>`;
@@ -2045,7 +2154,7 @@ function renderAssessGrid() {
     const done    = assessResults[t.id] !== undefined;
     const active  = assessIdx2 === ASSESS_TESTS.indexOf(t) && (assessActive || (assessPhase==='static'||assessPhase==='dynamic'));
     return `<div class="assess-card${active?' active':''}${done?' done':''}" id="ac_${t.id}">
-      <div class="ac-icon">${t.icon}</div>
+      <div class="ac-icon">${iconHTML(t.icon, '', 28, 'inline-icon')}</div>
       <div class="ac-name" style="font-size:.72rem;">${t.name}</div>
       ${done ? `<div class="ac-score" style="color:var(--accent3);font-size:.9rem;">✓</div>`
              : `<div style="font-size:.58rem;color:var(--dim)">${t.desc}</div>`}
@@ -2112,7 +2221,7 @@ function runAssessTest() {
 
   document.getElementById('aTimerLabel').textContent = `${assessIdx2+1}/${ASSESS_TESTS.length}: ${t.name}`;
   document.getElementById('aPhasePrompt').textContent = t.instruction;
-  document.getElementById('aBadge').textContent = `${t.icon} ${t.name}`;
+  document.getElementById('aBadge').innerHTML = iconHTML(t.icon, t.name, 16);
 
   speak(t.instruction);
   let cd = 3;
@@ -2190,7 +2299,7 @@ function doAssessTest(t) {
       document.getElementById('ac_'+t.id).classList.remove('active');
       document.getElementById('ac_'+t.id).classList.add('done');
       document.getElementById('ac_'+t.id).innerHTML =
-        `<div class="ac-icon">${t.icon}</div><div class="ac-name">${t.name}</div><div class="ac-score" style="color:var(--accent3)">✓</div>`;
+        `<div class="ac-icon">${iconHTML(t.icon, '', 28, 'inline-icon')}</div><div class="ac-name">${t.name}</div><div class="ac-score" style="color:var(--accent3)">✓</div>`;
       assessIdx2++;
       playNextTest();
       setTimeout(runAssessTest, 800);
@@ -2249,7 +2358,7 @@ function finishStaticPhase() {
   assessPhase = 'static-done';
   document.getElementById('aTimerCard').style.display = 'none';
   document.getElementById('aSkipBtn').style.display = 'none';
-  document.getElementById('aBadge').textContent = '✅ 정적 평가 완료';
+  document.getElementById('aBadge').textContent = '정적 평가 완료';
   document.getElementById('aStartBtn').textContent = '정적 완료 ✓';
   const tag = document.getElementById('aPhaseTag');
   if (tag) tag.textContent = 'Phase 1 완료 → Phase 2 준비';
@@ -2482,20 +2591,20 @@ function showAssessResults() {
   const prescription = recommendedEx.length === 0
     ? '전체 점수 우수! 전체 프로그램 유지 권장입니다.'
     : (urgentList.length
-        ? `<div style="color:var(--danger);font-weight:800;font-size:.78rem;margin: 4px 0 8px;">🔴 집중 교정 필요</div>`+
+        ? `<div style="color:var(--danger);font-weight:800;font-size:.78rem;margin: 4px 0 8px;">집중 교정 필요</div>`+
           urgentList.map(r=>{
             const ex=EXERCISES.find(e=>e.id===r.id);
             return `<div style="margin-bottom:8px;padding:10px 14px;background:rgba(248,113,113,.04);border-radius:12px;border:1px solid rgba(248,113,113,0.12);border-left:4px solid var(--danger);" class="presc-card">
-              <div style="font-weight:700;font-size:0.8rem;color:var(--text);">${ex?.icon||''} ${ex?.name||r.id}</div>
+              <div style="font-weight:700;font-size:0.8rem;color:var(--text);">${iconHTML(ex?.icon||r.id, ex?.name||r.id, 18)}</div>
               <span style="font-size:.7rem;color:var(--dim);margin-top:4px;display:block;line-height:1.4;">${r.reason}</span></div>`;
           }).join('')
         : '') +
       (normalList.length
-        ? `<div style="color:var(--accent4);font-weight:800;font-size:.78rem;margin:12px 0 8px;">🟡 개선 권장 운동</div>`+
+        ? `<div style="color:var(--accent4);font-weight:800;font-size:.78rem;margin:12px 0 8px;">개선 권장 운동</div>`+
           normalList.map(r=>{
             const ex=EXERCISES.find(e=>e.id===r.id);
             return `<div style="margin-bottom:8px;padding:10px 14px;background:rgba(251,191,36,.03);border-radius:12px;border:1px solid rgba(251,191,36,0.1);border-left:4px solid var(--accent4);" class="presc-card">
-              <div style="font-weight:700;font-size:0.8rem;color:var(--text);">${ex?.icon||''} ${ex?.name||r.id}</div>
+              <div style="font-weight:700;font-size:0.8rem;color:var(--text);">${iconHTML(ex?.icon||r.id, ex?.name||r.id, 18)}</div>
               <span style="font-size:.7rem;color:var(--dim);margin-top:4px;display:block;line-height:1.4;">${r.reason}</span></div>`;
           }).join('')
         : '');
@@ -2514,9 +2623,9 @@ function goToProgram() { closeAssessOverlay(); showScreen('program'); }
 // EXERCISE (PROGRAM SCREEN)
 // ═══════════════════════════════════════════════════════════
 const TYPE_META = {
-  stretch:   {icon:'🧘', label:'스트레칭', badge:'badge-stretch'},
-  strength:  {icon:'💪', label:'근육강화',  badge:'badge-strength'},
-  endurance: {icon:'⏱',  label:'지구력',    badge:'badge-endurance'},
+  stretch:   {icon:'stretch', label:'스트레칭', badge:'badge-stretch'},
+  strength:  {icon:'strength', label:'근육강화',  badge:'badge-strength'},
+  endurance: {icon:'endurance',  label:'지구력',    badge:'badge-endurance'},
 };
 
 function renderExList(filter) {
@@ -2536,15 +2645,14 @@ function renderExList(filter) {
     const globalIdx = EXERCISES.indexOf(ex);
     const done = exScores[ex.id] !== undefined;
     const isPri = ex.priority;
-    const urgentMark = ex.recommendUrgent ? '🔴 ' : isPri ? '🟡 ' : '';
     const tm = TYPE_META[ex.type] || TYPE_META.strength;
     return `<div class="ex-row${globalIdx===exIdx?' active':''}${done?' done':''}${isPri?' priority':''}" onclick="selectEx(${globalIdx})">
-      <span class="er-icon">${ex.icon}</span>
+      <span class="er-icon">${iconHTML(ex.icon, '', 30, 'inline-icon')}</span>
       <div class="er-info">
-        <div class="er-name">${urgentMark}${ex.name}</div>
+        <div class="er-name">${ex.recommendUrgent ? `${priorityMarkerSVG('urgent')} ` : isPri ? `${priorityMarkerSVG('priority')} ` : ''}${ex.name}</div>
         <div class="er-meta">
           <span class="badge badge-${ex.zone}">${{upper:'상부',mid:'중부',lower:'하부',neck:'목/턱'}[ex.zone]}</span>
-          <span class="badge ${tm.badge}">${tm.icon} ${tm.label}</span>
+          <span class="badge ${tm.badge}">${iconHTML(tm.icon, tm.label, 12)}</span>
           ${isPri?`<span class="badge badge-priority">${ex.recommendUrgent?'집중':'권장'}</span>`:''}
         </div>
         ${isPri&&ex.recommendReason ? `<div style="font-size:.6rem;color:${ex.recommendUrgent?'var(--danger)':'var(--accent4)'};margin-top:2px;line-height:1.3;">${ex.recommendReason}</div>` : ''}
@@ -2583,6 +2691,30 @@ const FACE_ZONES = {
   fullFace:   [{type:'ellipse',cx:50,cy:60,rx:38,ry:50,col:'#f472b6'}],
 };
 
+const ASSESS_ICON_ZONES = {
+  baseline: ['fullFace'],
+  smile: ['cheeks','mouthCorners','lips'],
+  browRaise: ['forehead','brows'],
+  eyeClose: ['eyes'],
+  mouthOpen: ['lips','chin'],
+  lipSeal: ['lips'],
+};
+
+function zoneHighlightMarkup(zones, opts={}) {
+  const fillOpacity = opts.fillOpacity ?? '30';
+  const blur = opts.blur ?? 3;
+  return zones.flatMap(z => FACE_ZONES[z] || []).map(s => {
+    const fill = s.col + fillOpacity;
+    const stroke = s.col;
+    const filter = `drop-shadow(0 0 ${blur}px ${s.col})`;
+    if (s.type==='ellipse') return `<ellipse cx="${s.cx}" cy="${s.cy}" rx="${s.rx}" ry="${s.ry}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="filter:${filter}"/>`;
+    if (s.type==='circle')  return `<circle cx="${s.cx}" cy="${s.cy}" r="${s.r}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="filter:${filter}"/>`;
+    if (s.type==='rect')    return `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" rx="${s.rx||0}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="filter:${filter}"/>`;
+    if (s.type==='path')    return `<path d="${s.d}" fill="none" stroke="${stroke}" stroke-width="${s.sw||2}" stroke-linecap="round" style="filter:${filter}"/>`;
+    return '';
+  }).join('');
+}
+
 const EX_ZONES = {
   brow_press:    ['forehead','brows'],
   eye_v:         ['eyes'],
@@ -2600,6 +2732,145 @@ const EX_ZONES = {
   jaw_jut:       ['underChin'],
   tongue_press:  ['underChin'],
 };
+
+function faceIconSVG(iconKey, size=32) {
+  const zones = EX_ZONES[iconKey] || ASSESS_ICON_ZONES[iconKey] || [];
+  const height = Math.round(size * 1.28);
+  return `<span class="inline-icon" aria-hidden="true"><svg viewBox="0 0 100 130" width="${size}" height="${height}">
+    <path d="M50 11 C34 11 22 23 19 41 C17 55 18 76 24 92 C28 103 35 113 44 118 C48 120 52 120 56 118 C65 113 72 103 76 92 C82 76 83 55 81 41 C78 23 66 11 50 11Z"
+      fill="rgba(15,23,42,0.14)" stroke="rgba(226,232,240,0.82)" stroke-width="2"/>
+    <path d="M26 58 Q27 44 22 44 Q18 47 19 56 Q20 64 25 67" fill="none" stroke="rgba(148,163,184,0.46)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M74 58 Q73 44 78 44 Q82 47 81 56 Q80 64 75 67" fill="none" stroke="rgba(148,163,184,0.46)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M31 33 Q39 28 46 31" fill="none" stroke="rgba(251,191,36,0.9)" stroke-width="2.1" stroke-linecap="round"/>
+    <path d="M54 31 Q61 28 69 33" fill="none" stroke="rgba(251,191,36,0.9)" stroke-width="2.1" stroke-linecap="round"/>
+    <path d="M29 47 Q35 42 42 47 Q35 51 29 47Z" fill="none" stroke="rgba(248,250,252,0.92)" stroke-width="1.9" stroke-linejoin="round"/>
+    <path d="M58 47 Q65 42 71 47 Q65 51 58 47Z" fill="none" stroke="rgba(248,250,252,0.92)" stroke-width="1.9" stroke-linejoin="round"/>
+    <circle cx="35.7" cy="47.2" r="1.8" fill="rgba(244,114,182,0.88)"/>
+    <circle cx="64.3" cy="47.2" r="1.8" fill="rgba(244,114,182,0.88)"/>
+    <path d="M49 48 C47 58 45 67 45 74 C45 78 47 81 50 81 C53 81 55 78 55 74 C55 67 53 58 51 48" fill="none" stroke="rgba(148,163,184,0.85)" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M45 82 Q50 84 55 82" fill="none" stroke="rgba(148,163,184,0.7)" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M40 86 Q50 92 60 86" fill="none" stroke="rgba(244,114,182,0.92)" stroke-width="2" stroke-linecap="round"/>
+    <path d="M40 86 Q50 82 60 86" fill="none" stroke="rgba(251,191,36,0.72)" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M35 92 Q50 100 65 92" fill="none" stroke="rgba(148,163,184,0.58)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M31 64 Q33 78 39 88" fill="none" stroke="rgba(244,114,182,0.18)" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M69 64 Q67 78 61 88" fill="none" stroke="rgba(244,114,182,0.18)" stroke-width="1.1" stroke-linecap="round"/>
+    ${zoneHighlightMarkup(zones, {fillOpacity:'36', blur:2.5})}
+  </svg></span>`;
+}
+
+function metricIconSVG(kind, size=14) {
+  if (kind === 'stretch') {
+    return `<span class="inline-icon" aria-hidden="true"><svg viewBox="0 0 18 18" width="${size}" height="${size}">
+      <path d="M4 14 C5.6 8.8 8 5.8 14 4" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M11.8 3.8 H14.4 V6.4" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M14.2 3.8 L11.1 6.9" fill="none" stroke="#86efac" stroke-width="1.4" stroke-linecap="round"/>
+    </svg></span>`;
+  }
+  if (kind === 'endurance') {
+    return `<span class="inline-icon" aria-hidden="true"><svg viewBox="0 0 18 18" width="${size}" height="${size}">
+      <circle cx="9" cy="9" r="5.8" fill="none" stroke="#818cf8" stroke-width="1.8"/>
+      <path d="M9 5.8 V9 L12 10.6" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M6.2 2.9 H11.8" fill="none" stroke="#818cf8" stroke-width="1.4" stroke-linecap="round"/>
+    </svg></span>`;
+  }
+  return `<span class="inline-icon" aria-hidden="true"><svg viewBox="0 0 18 18" width="${size}" height="${size}">
+    <path d="M3.5 7.2 H6.2 V10.8 H3.5" fill="none" stroke="#f472b6" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M11.8 7.2 H14.5 V10.8 H11.8" fill="none" stroke="#f472b6" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M6.2 9 H11.8" fill="none" stroke="#f9a8d4" stroke-width="2.2" stroke-linecap="round"/>
+  </svg></span>`;
+}
+
+function priorityMarkerSVG(kind='priority', size=12) {
+  const stroke = kind === 'urgent' ? '#f87171' : '#fbbf24';
+  const fill = kind === 'urgent' ? 'rgba(248,113,113,0.18)' : 'rgba(251,191,36,0.18)';
+  return `<span class="inline-icon" aria-hidden="true"><svg viewBox="0 0 16 16" width="${size}" height="${size}">
+    <circle cx="8" cy="8" r="5.5" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
+    <circle cx="8" cy="8" r="2.2" fill="${stroke}"/>
+  </svg></span>`;
+}
+
+function iconHTML(iconKey, label='', size=28, cls='icon-label') {
+  const icon = EX_ZONES[iconKey] || ASSESS_ICON_ZONES[iconKey]
+    ? faceIconSVG(iconKey, size)
+    : metricIconSVG(iconKey, size);
+  const safeLabel = label ? `<span>${label}</span>` : '';
+  return `<span class="${cls}">${icon}${safeLabel}</span>`;
+}
+
+function cameraGuideSVG(uid='cameraGuide') {
+  const strokeId = `${uid}_stroke`;
+  const fillId = `${uid}_fill`;
+  const glowId = `${uid}_glow`;
+  const meshId = `${uid}_mesh`;
+  return `<svg viewBox="0 0 220 260" class="camera-guide-svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="${strokeId}" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0%" stop-color="rgba(129,140,248,0.92)"/>
+        <stop offset="55%" stop-color="rgba(244,114,182,0.9)"/>
+        <stop offset="100%" stop-color="rgba(251,191,36,0.82)"/>
+      </linearGradient>
+      <linearGradient id="${fillId}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="rgba(129,140,248,0.12)"/>
+        <stop offset="100%" stop-color="rgba(244,114,182,0.04)"/>
+      </linearGradient>
+      <filter id="${glowId}" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <pattern id="${meshId}" width="12" height="12" patternUnits="userSpaceOnUse">
+        <circle cx="1.8" cy="1.8" r="1.2" fill="rgba(129,140,248,0.16)"/>
+      </pattern>
+    </defs>
+    <ellipse cx="110" cy="118" rx="79" ry="100" fill="none" stroke="rgba(129,140,248,0.16)" stroke-width="2" stroke-dasharray="5 8" class="guide-orbit"/>
+    <path d="M110 22 C84 22 61 37 50 63 C42 83 40 112 43 139 C47 168 60 194 80 210 C89 217 98 221 110 221 C122 221 131 217 140 210 C160 194 173 168 177 139 C180 112 178 83 170 63 C159 37 136 22 110 22Z"
+      fill="url(#${fillId})" stroke="url(#${strokeId})" stroke-width="3.2" filter="url(#${glowId})" class="guide-focus-ring"/>
+    <path d="M60 118 H160" fill="none" stroke="rgba(129,140,248,0.18)" stroke-width="1.5" stroke-dasharray="4 7" class="guide-grid-line"/>
+    <path d="M110 34 V214" fill="none" stroke="rgba(129,140,248,0.16)" stroke-width="1.4" stroke-dasharray="4 8" class="guide-grid-line"/>
+    <path d="M110 30 C84 30 63 43 53 66 C45 84 43 109 46 135 C49 162 60 187 77 201 C87 209 97 213 110 213 C123 213 133 209 143 201 C160 187 171 162 174 135 C177 109 175 84 167 66 C157 43 136 30 110 30Z"
+      fill="rgba(15,23,42,0.08)" stroke="rgba(241,245,249,0.92)" stroke-width="2.4"/>
+    <path d="M63 90 Q65 73 57 73 Q49 78 50 92 Q51 103 61 108" fill="none" stroke="rgba(148,163,184,0.44)" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M157 90 Q155 73 163 73 Q171 78 170 92 Q169 103 159 108" fill="none" stroke="rgba(148,163,184,0.44)" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M78 80 Q93 69 107 74" fill="none" stroke="rgba(251,191,36,0.94)" stroke-width="3.1" stroke-linecap="round"/>
+    <path d="M113 74 Q127 69 142 80" fill="none" stroke="rgba(251,191,36,0.94)" stroke-width="3.1" stroke-linecap="round"/>
+    <path d="M71 106 Q86 93 100 105 Q86 116 71 106Z" fill="none" stroke="rgba(248,250,252,0.96)" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M120 105 Q134 93 149 106 Q134 116 120 105Z" fill="none" stroke="rgba(248,250,252,0.96)" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="86.5" cy="105.5" r="4" fill="rgba(244,114,182,0.9)"/>
+    <circle cx="133.5" cy="105.5" r="4" fill="rgba(244,114,182,0.9)"/>
+    <path d="M106 108 C102 127 98 147 98 161 C98 169 102 174 110 174 C118 174 122 169 122 161 C122 147 118 127 114 108" fill="none" stroke="rgba(148,163,184,0.94)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M98 178 Q110 183 122 178" fill="none" stroke="rgba(148,163,184,0.74)" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M84 183 Q110 199 136 183" fill="none" stroke="rgba(244,114,182,0.95)" stroke-width="3.1" stroke-linecap="round"/>
+    <path d="M84 183 Q110 172 136 183" fill="none" stroke="rgba(251,191,36,0.82)" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M91 196 Q110 208 129 196" fill="none" stroke="rgba(148,163,184,0.7)" stroke-width="2.1" stroke-linecap="round"/>
+    <path d="M74 124 Q76 152 88 174" fill="none" stroke="rgba(244,114,182,0.24)" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M146 124 Q144 152 132 174" fill="none" stroke="rgba(244,114,182,0.24)" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M82 69 Q110 55 138 69" fill="none" stroke="rgba(129,140,248,0.2)" stroke-width="1.2" stroke-dasharray="2 5"/>
+    <path d="M69 114 Q110 96 151 114" fill="none" stroke="rgba(129,140,248,0.16)" stroke-width="1.2" stroke-dasharray="2 5"/>
+    <path d="M84 184 Q110 170 136 184" fill="none" stroke="rgba(129,140,248,0.15)" stroke-width="1.2" stroke-dasharray="2 5"/>
+    <ellipse cx="85" cy="137" rx="18" ry="13" fill="rgba(244,114,182,0.12)" stroke="rgba(244,114,182,0.48)" stroke-width="1.2"/>
+    <ellipse cx="135" cy="137" rx="18" ry="13" fill="rgba(244,114,182,0.12)" stroke="rgba(244,114,182,0.48)" stroke-width="1.2"/>
+    <path d="M76 224 Q84 214 92 206" fill="none" stroke="rgba(148,163,184,0.55)" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M144 224 Q136 214 128 206" fill="none" stroke="rgba(148,163,184,0.55)" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M57 64 Q110 12 163 64" fill="none" stroke="url(#${strokeId})" stroke-opacity="0.22" stroke-width="1.2"/>
+    <path d="M72 54 Q110 34 148 54" fill="url(#${meshId})" opacity="0.45"/>
+  </svg>
+  <div class="camera-guide-copy">이마, 눈, 입이 정면을 향하게 맞춰 주세요</div>`;
+}
+
+function initStaticSvgUI() {
+  ['offlineGuide', 'offlineGuide2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = cameraGuideSVG(id);
+  });
+  const buttons = [
+    ['filterStretchBtn', 'stretch', '스트레칭'],
+    ['filterStrengthBtn', 'strength', '근육강화'],
+    ['filterEnduranceBtn', 'endurance', '지구력'],
+  ];
+  buttons.forEach(([id, icon, label]) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.innerHTML = iconHTML(icon, label, 14);
+  });
+}
 
 // Which muscles are typically WEAK vs OVERACTIVE (aging pattern)
 const MUSCLE_STATUS = {
@@ -2621,19 +2892,7 @@ const MUSCLE_STATUS = {
 
 function faceSVG(exId) {
   const zones = EX_ZONES[exId] || [];
-  // Build highlight shapes
-  const highlights = zones.flatMap(z => FACE_ZONES[z]||[]);
-
-  const shapes = highlights.map(s => {
-    const fill = s.col + '40'; // 25% opacity fill
-    const stroke = s.col;
-    const filter = `drop-shadow(0 0 3px ${s.col})`;
-    if (s.type==='ellipse') return `<ellipse cx="${s.cx}" cy="${s.cy}" rx="${s.rx}" ry="${s.ry}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="filter:${filter}"/>`;
-    if (s.type==='circle')  return `<circle cx="${s.cx}" cy="${s.cy}" r="${s.r}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="filter:${filter}"/>`;
-    if (s.type==='rect')    return `<rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" rx="${s.rx||0}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" style="filter:${filter}"/>`;
-    if (s.type==='path')    return `<path d="${s.d}" fill="none" stroke="${stroke}" stroke-width="${s.sw||2}" stroke-linecap="round" style="filter:${filter}"/>`;
-    return '';
-  }).join('');
+  const shapes = zoneHighlightMarkup(zones, {fillOpacity:'40', blur:3});
 
   return `<svg viewBox="0 0 100 130" width="90" height="117" style="flex-shrink:0;">
     <defs>
@@ -2697,18 +2956,18 @@ function selectEx(idx) {
     <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;">
       ${svgMarkup}
       <div style="flex:1;">
-        <div style="font-size:.95rem;font-weight:800;color:var(--accent);margin-bottom:2px;">${ex.icon} ${ex.name}</div>
+        <div style="font-size:.95rem;font-weight:800;color:var(--accent);margin-bottom:2px;">${iconHTML(ex.icon, ex.name, 18)}</div>
         <div style="font-size:.65rem;color:var(--accent2);margin-bottom:4px;">${ex.muscle}</div>
         <div style="font-size:.75rem;color:var(--dim);line-height:1.5;">${ex.desc}</div>
         <div style="display:flex;gap:8px;margin-top:6px;font-size:.68rem;color:var(--dim);flex-wrap:wrap;">
-          <span class="badge ${(TYPE_META[ex.type]||TYPE_META.strength).badge}" style="font-size:.62rem;">${(TYPE_META[ex.type]||TYPE_META.strength).icon} ${(TYPE_META[ex.type]||TYPE_META.strength).label}</span>
+          <span class="badge ${(TYPE_META[ex.type]||TYPE_META.strength).badge}" style="font-size:.62rem;">${iconHTML((TYPE_META[ex.type]||TYPE_META.strength).icon, (TYPE_META[ex.type]||TYPE_META.strength).label, 12)}</span>
           <span>⏱ ${ex.duration}초</span><span>×${ex.sets}세트</span><span>⏸ ${ex.holdSec}초 유지</span>
         </div>
       </div>
     </div>
     <div style="padding:8px 10px;background:rgba(244,114,182,.07);border-left:3px solid var(--accent);border-radius:6px;font-size:.76rem;line-height:1.6;margin-bottom:6px;">${ex.instruction}</div>
     <div style="padding:5px 8px;background:rgba(251,191,36,.07);border-left:3px solid var(--accent4);border-radius:6px;font-size:.7rem;color:var(--accent4);line-height:1.5;">
-      👆 ${ex.tipFingerPlace}
+      TIP ${ex.tipFingerPlace}
     </div>
     ${muscleInfo}`;
 
@@ -2774,8 +3033,8 @@ function beginExSet() {
   exStartTime = Date.now();
   const dur = ex.duration * 1000;
   const tm = TYPE_META[ex.type] || TYPE_META.strength;
-  document.getElementById('pTimerLbl').textContent = `세트 ${exSetNum} / ${ex.sets}  ${tm.icon} ${tm.label}`;
-  document.getElementById('pBadge').textContent = `${ex.icon} ${ex.name}`;
+  document.getElementById('pTimerLbl').innerHTML = `세트 ${exSetNum} / ${ex.sets} ${iconHTML(tm.icon, tm.label, 13)}`;
+  document.getElementById('pBadge').innerHTML = iconHTML(ex.icon, ex.name, 16);
 
   // Show scanning progress ring during active exercise
   const scanOverlay2 = document.getElementById('scanOverlay2');
@@ -2806,8 +3065,8 @@ function beginExSet() {
     let prompt = '';
     if (phase==='smile') {
       if (frac<0.18)      prompt='자연스럽게...';
-      else if(frac<0.22)  { prompt='😊 볼을 위로 끌어올리세요!'; speak('볼을 위로 끌어올리세요'); }
-      else if(frac<0.7)   prompt='😊 볼을 위로 끌어올리세요!';
+      else if(frac<0.22)  { prompt='볼을 위로 끌어올리세요!'; speak('볼을 위로 끌어올리세요'); }
+      else if(frac<0.7)   prompt='볼을 위로 끌어올리세요!';
       else                { prompt='천천히 이완...'; if(frac<0.72) speak('천천히 이완하세요'); }
     } else if(phase==='browRaise') {
       if(frac<0.12)       { prompt='이마 펴고...'; }
@@ -2816,7 +3075,7 @@ function beginExSet() {
     } else if(phase==='eyeSquint') {
       if(frac<0.12)       { prompt='준비...'; }
       else if(frac<0.16)  { prompt='아래 눈꺼풀 올리기'; speak('아래 눈꺼풀만 위로 올리세요. 이마는 고정.'); }
-      else if(frac<0.5)     prompt='👁 아래 눈꺼풀만 위로';
+      else if(frac<0.5)     prompt='아래 눈꺼풀만 위로';
       else                  prompt='이완...';
     } else if(phase==='puff') {
       if(frac<0.05) speak('볼에 공기를 채우고 좌우로 이동하세요');
@@ -2836,7 +3095,7 @@ function beginExSet() {
     // Training-type overlay (appended if no phase prompt set)
     if (!prompt) {
       if (ex.type==='stretch')   prompt = frac < 0.5 ? '천천히 스트레칭 → 유지...' : '천천히 이완';
-      if (ex.type==='endurance') prompt = frac < 0.75 ? `${tm.icon} 부드럽게 유지...` : '조금만 더 버티세요!';
+      if (ex.type==='endurance') prompt = frac < 0.75 ? `${tm.label} 강도로 부드럽게 유지...` : '조금만 더 버티세요!';
     }
     // Type-specific suffix hint
     if (prompt && ex.type==='stretch'   && !prompt.includes('이완')) prompt += '  (천천히)';
@@ -2942,7 +3201,7 @@ function showExResult(ex, score) {
     return `<div class="oc-row"><span class="oc-key">${c.name}</span><span class="${firing?'bad':'good'}">${firing?'⚠ 활성화됨':'✓ 억제됨'}</span></div>`;
   }).join('');
 
-  document.getElementById('ocTitle').textContent = `${ex.icon} ${ex.name} 완료`;
+  document.getElementById('ocTitle').innerHTML = `${iconHTML(ex.icon, ex.name, 20)} 완료`;
   document.getElementById('ocSub').textContent = `${ex.sets}세트 완료`;
   document.getElementById('ocRows').innerHTML = `
     <div class="oc-row"><span class="oc-key">FFI 점수</span><span class="${cls(score)}">${score}점</span></div>
@@ -3010,11 +3269,11 @@ function showFullSummary() {
   const order = window._seqOrder || EXERCISES;
   const scored = order.filter(e=>exScores[e.id]!==undefined);
   const total = Math.round(scored.reduce((a,e)=>a+exScores[e.id],0)/scored.length);
-  document.getElementById('ocTitle').textContent = '🏆 Full Program 완료!';
+  document.getElementById('ocTitle').textContent = 'Full Program 완료';
   document.getElementById('ocSub').textContent = `${scored.length}개 운동 · FFI ${total}점`;
   document.getElementById('ocRows').innerHTML = order.map(e=>{
     const s=exScores[e.id];
-    return `<div class="oc-row"><span class="oc-key">${e.icon} ${e.name}</span><span class="${s>=75?'good':s>=55?'ok':'bad'}">${s??'—'}점</span></div>`;
+    return `<div class="oc-row"><span class="oc-key">${iconHTML(e.icon, e.name, 16)}</span><span class="${s>=75?'good':s>=55?'ok':'bad'}">${s??'—'}점</span></div>`;
   }).join('')+`<div class="oc-row" style="border-top:2px solid var(--accent);font-size:1rem;">
     <span class="oc-key" style="font-weight:700;color:var(--text)">총 FFI</span>
     <span style="color:var(--accent);font-weight:800;font-size:1.1rem;">${total}점</span></div>`;
@@ -3182,7 +3441,7 @@ function renderHistory() {
       const trend    = sorted2.length > 1 ? latest - sorted2[sorted2.length-2].score : 0;
       const col      = latest>=75?'#34d399':latest>=55?'#fbbf24':'#f87171';
       const trendTxt = trend>0?`<span style="color:#34d399">▲${trend}</span>`:trend<0?`<span style="color:#f87171">▼${Math.abs(trend)}</span>`:'<span style="color:var(--dim)">—</span>';
-      const typeMeta  = {stretch:{icon:'🧘',col:'var(--accent3)'},strength:{icon:'💪',col:'var(--accent)'},endurance:{icon:'⏱',col:'var(--accent2)'}};
+      const typeMeta  = {stretch:{icon:'stretch',col:'var(--accent3)'},strength:{icon:'strength',col:'var(--accent)'},endurance:{icon:'endurance',col:'var(--accent2)'}};
       const tm       = typeMeta[type]||typeMeta.strength;
       const dots     = sorted2.slice(-8).map(s=>{
         const c=s.score>=75?'#34d399':s.score>=55?'#fbbf24':'#f87171';
@@ -3191,7 +3450,7 @@ function renderHistory() {
       const cloudMark = scores.some(s=>s._cloud) ? `<span style="font-size:.5rem;color:var(--accent3);margin-left:3px;">☁</span>` : '';
       return `<div class="hist-row" style="align-items:center;">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:.82rem;font-weight:600;">${tm.icon} ${name}${cloudMark}</div>
+          <div style="font-size:.82rem;font-weight:600;">${iconHTML(tm.icon, name, 15)}${cloudMark}</div>
           <div style="font-size:.63rem;color:var(--dim);">${sorted2.length}회 기록</div>
         </div>
         <div style="display:flex;gap:2px;align-items:flex-end;height:32px;margin:0 10px;">${dots}</div>
