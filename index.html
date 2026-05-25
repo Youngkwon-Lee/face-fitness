@@ -193,7 +193,7 @@ header{
   position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
   pointer-events:none;z-index:2;transition: opacity 0.5s ease;
 }
-.camera-guide-svg {width:min(68%, 280px);height:auto;opacity:0.95;filter:drop-shadow(0 10px 24px rgba(15,23,42,0.28));}
+.camera-guide-svg {height:min(88%,380px);width:auto;opacity:0.92;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.6));flex-shrink:0;}
 .camera-guide-copy{
   padding:7px 14px;border-radius:999px;
   background:rgba(10, 10, 26, 0.68);border:1px solid rgba(129,140,248,0.16);
@@ -2737,23 +2737,25 @@ function faceIconSVG(iconKey, size=32) {
   const zones = EX_ZONES[iconKey] || ASSESS_ICON_ZONES[iconKey] || [];
   const height = Math.round(size * 1.28);
   return `<span class="inline-icon" aria-hidden="true"><svg viewBox="0 0 100 130" width="${size}" height="${height}">
-    <path d="M50 11 C34 11 22 23 19 41 C17 55 18 76 24 92 C28 103 35 113 44 118 C48 120 52 120 56 118 C65 113 72 103 76 92 C82 76 83 55 81 41 C78 23 66 11 50 11Z"
-      fill="rgba(15,23,42,0.14)" stroke="rgba(226,232,240,0.82)" stroke-width="2"/>
-    <path d="M26 58 Q27 44 22 44 Q18 47 19 56 Q20 64 25 67" fill="none" stroke="rgba(148,163,184,0.46)" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M74 58 Q73 44 78 44 Q82 47 81 56 Q80 64 75 67" fill="none" stroke="rgba(148,163,184,0.46)" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M31 33 Q39 28 46 31" fill="none" stroke="rgba(251,191,36,0.9)" stroke-width="2.1" stroke-linecap="round"/>
-    <path d="M54 31 Q61 28 69 33" fill="none" stroke="rgba(251,191,36,0.9)" stroke-width="2.1" stroke-linecap="round"/>
-    <path d="M29 47 Q35 42 42 47 Q35 51 29 47Z" fill="none" stroke="rgba(248,250,252,0.92)" stroke-width="1.9" stroke-linejoin="round"/>
-    <path d="M58 47 Q65 42 71 47 Q65 51 58 47Z" fill="none" stroke="rgba(248,250,252,0.92)" stroke-width="1.9" stroke-linejoin="round"/>
-    <circle cx="35.7" cy="47.2" r="1.8" fill="rgba(244,114,182,0.88)"/>
-    <circle cx="64.3" cy="47.2" r="1.8" fill="rgba(244,114,182,0.88)"/>
-    <path d="M49 48 C47 58 45 67 45 74 C45 78 47 81 50 81 C53 81 55 78 55 74 C55 67 53 58 51 48" fill="none" stroke="rgba(148,163,184,0.85)" stroke-width="1.7" stroke-linecap="round"/>
-    <path d="M45 82 Q50 84 55 82" fill="none" stroke="rgba(148,163,184,0.7)" stroke-width="1.4" stroke-linecap="round"/>
-    <path d="M40 86 Q50 92 60 86" fill="none" stroke="rgba(244,114,182,0.92)" stroke-width="2" stroke-linecap="round"/>
-    <path d="M40 86 Q50 82 60 86" fill="none" stroke="rgba(251,191,36,0.72)" stroke-width="1.2" stroke-linecap="round"/>
-    <path d="M35 92 Q50 100 65 92" fill="none" stroke="rgba(148,163,184,0.58)" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M31 64 Q33 78 39 88" fill="none" stroke="rgba(244,114,182,0.18)" stroke-width="1.1" stroke-linecap="round"/>
-    <path d="M69 64 Q67 78 61 88" fill="none" stroke="rgba(244,114,182,0.18)" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M50 10 C37 10 26 18 21 31 C17 41 16 54 18 68 C20 85 26 100 36 111 C41 116 45 119 50 119 C55 119 59 116 64 111 C74 100 80 85 82 68 C84 54 83 41 79 31 C74 18 63 10 50 10Z"
+      fill="rgba(255,255,255,0.02)" stroke="rgba(226,232,240,0.82)" stroke-width="1.9"/>
+    <path d="M24 57 Q24 45 20 45 Q17 48 18 56 Q19 63 23 66" fill="none" stroke="rgba(148,163,184,0.3)" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M76 57 Q76 45 80 45 Q83 48 82 56 Q81 63 77 66" fill="none" stroke="rgba(148,163,184,0.3)" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M31 33 Q38 29 45 31" fill="none" stroke="rgba(226,232,240,0.76)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M55 31 Q62 29 69 33" fill="none" stroke="rgba(226,232,240,0.76)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M28 48 Q35 42 42 46" fill="none" stroke="rgba(241,245,249,0.88)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M58 46 Q65 42 72 48" fill="none" stroke="rgba(241,245,249,0.88)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M29 48 Q35 52 41 48" fill="none" stroke="rgba(241,245,249,0.55)" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M59 48 Q65 52 71 48" fill="none" stroke="rgba(241,245,249,0.55)" stroke-width="1.1" stroke-linecap="round"/>
+    <circle cx="35.4" cy="47.6" r="1.2" fill="rgba(226,232,240,0.7)"/>
+    <circle cx="64.6" cy="47.6" r="1.2" fill="rgba(226,232,240,0.7)"/>
+    <path d="M49 46 C47 54 45 63 44 72 C43 79 45 83 50 83 C55 83 57 79 56 72 C55 63 53 54 51 46" fill="none" stroke="rgba(148,163,184,0.72)" stroke-width="1.45" stroke-linecap="round"/>
+    <path d="M46 84 Q50 86 54 84" fill="none" stroke="rgba(148,163,184,0.54)" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M41 89 Q50 94 59 89" fill="none" stroke="rgba(241,245,249,0.84)" stroke-width="1.45" stroke-linecap="round"/>
+    <path d="M42 89 Q50 86 58 89" fill="none" stroke="rgba(241,245,249,0.52)" stroke-width="1" stroke-linecap="round"/>
+    <path d="M38 95 Q50 101 62 95" fill="none" stroke="rgba(148,163,184,0.38)" stroke-width="1.15" stroke-linecap="round"/>
+    <path d="M33 66 Q35 77 41 87" fill="none" stroke="rgba(148,163,184,0.12)" stroke-width="0.9" stroke-linecap="round"/>
+    <path d="M67 66 Q65 77 59 87" fill="none" stroke="rgba(148,163,184,0.12)" stroke-width="0.9" stroke-linecap="round"/>
     ${zoneHighlightMarkup(zones, {fillOpacity:'36', blur:2.5})}
   </svg></span>`;
 }
@@ -2798,62 +2800,8 @@ function iconHTML(iconKey, label='', size=28, cls='icon-label') {
 }
 
 function cameraGuideSVG(uid='cameraGuide') {
-  const strokeId = `${uid}_stroke`;
-  const fillId = `${uid}_fill`;
-  const glowId = `${uid}_glow`;
-  const meshId = `${uid}_mesh`;
-  return `<svg viewBox="0 0 220 260" class="camera-guide-svg" aria-hidden="true">
-    <defs>
-      <linearGradient id="${strokeId}" x1="0" x2="1" y1="0" y2="1">
-        <stop offset="0%" stop-color="rgba(129,140,248,0.92)"/>
-        <stop offset="55%" stop-color="rgba(244,114,182,0.9)"/>
-        <stop offset="100%" stop-color="rgba(251,191,36,0.82)"/>
-      </linearGradient>
-      <linearGradient id="${fillId}" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stop-color="rgba(129,140,248,0.12)"/>
-        <stop offset="100%" stop-color="rgba(244,114,182,0.04)"/>
-      </linearGradient>
-      <filter id="${glowId}" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur stdDeviation="4" result="blur"/>
-        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-      <pattern id="${meshId}" width="12" height="12" patternUnits="userSpaceOnUse">
-        <circle cx="1.8" cy="1.8" r="1.2" fill="rgba(129,140,248,0.16)"/>
-      </pattern>
-    </defs>
-    <ellipse cx="110" cy="118" rx="79" ry="100" fill="none" stroke="rgba(129,140,248,0.16)" stroke-width="2" stroke-dasharray="5 8" class="guide-orbit"/>
-    <path d="M110 22 C84 22 61 37 50 63 C42 83 40 112 43 139 C47 168 60 194 80 210 C89 217 98 221 110 221 C122 221 131 217 140 210 C160 194 173 168 177 139 C180 112 178 83 170 63 C159 37 136 22 110 22Z"
-      fill="url(#${fillId})" stroke="url(#${strokeId})" stroke-width="3.2" filter="url(#${glowId})" class="guide-focus-ring"/>
-    <path d="M60 118 H160" fill="none" stroke="rgba(129,140,248,0.18)" stroke-width="1.5" stroke-dasharray="4 7" class="guide-grid-line"/>
-    <path d="M110 34 V214" fill="none" stroke="rgba(129,140,248,0.16)" stroke-width="1.4" stroke-dasharray="4 8" class="guide-grid-line"/>
-    <path d="M110 30 C84 30 63 43 53 66 C45 84 43 109 46 135 C49 162 60 187 77 201 C87 209 97 213 110 213 C123 213 133 209 143 201 C160 187 171 162 174 135 C177 109 175 84 167 66 C157 43 136 30 110 30Z"
-      fill="rgba(15,23,42,0.08)" stroke="rgba(241,245,249,0.92)" stroke-width="2.4"/>
-    <path d="M63 90 Q65 73 57 73 Q49 78 50 92 Q51 103 61 108" fill="none" stroke="rgba(148,163,184,0.44)" stroke-width="1.8" stroke-linecap="round"/>
-    <path d="M157 90 Q155 73 163 73 Q171 78 170 92 Q169 103 159 108" fill="none" stroke="rgba(148,163,184,0.44)" stroke-width="1.8" stroke-linecap="round"/>
-    <path d="M78 80 Q93 69 107 74" fill="none" stroke="rgba(251,191,36,0.94)" stroke-width="3.1" stroke-linecap="round"/>
-    <path d="M113 74 Q127 69 142 80" fill="none" stroke="rgba(251,191,36,0.94)" stroke-width="3.1" stroke-linecap="round"/>
-    <path d="M71 106 Q86 93 100 105 Q86 116 71 106Z" fill="none" stroke="rgba(248,250,252,0.96)" stroke-width="2.5" stroke-linejoin="round"/>
-    <path d="M120 105 Q134 93 149 106 Q134 116 120 105Z" fill="none" stroke="rgba(248,250,252,0.96)" stroke-width="2.5" stroke-linejoin="round"/>
-    <circle cx="86.5" cy="105.5" r="4" fill="rgba(244,114,182,0.9)"/>
-    <circle cx="133.5" cy="105.5" r="4" fill="rgba(244,114,182,0.9)"/>
-    <path d="M106 108 C102 127 98 147 98 161 C98 169 102 174 110 174 C118 174 122 169 122 161 C122 147 118 127 114 108" fill="none" stroke="rgba(148,163,184,0.94)" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M98 178 Q110 183 122 178" fill="none" stroke="rgba(148,163,184,0.74)" stroke-width="1.8" stroke-linecap="round"/>
-    <path d="M84 183 Q110 199 136 183" fill="none" stroke="rgba(244,114,182,0.95)" stroke-width="3.1" stroke-linecap="round"/>
-    <path d="M84 183 Q110 172 136 183" fill="none" stroke="rgba(251,191,36,0.82)" stroke-width="1.7" stroke-linecap="round"/>
-    <path d="M91 196 Q110 208 129 196" fill="none" stroke="rgba(148,163,184,0.7)" stroke-width="2.1" stroke-linecap="round"/>
-    <path d="M74 124 Q76 152 88 174" fill="none" stroke="rgba(244,114,182,0.24)" stroke-width="1.4" stroke-linecap="round"/>
-    <path d="M146 124 Q144 152 132 174" fill="none" stroke="rgba(244,114,182,0.24)" stroke-width="1.4" stroke-linecap="round"/>
-    <path d="M82 69 Q110 55 138 69" fill="none" stroke="rgba(129,140,248,0.2)" stroke-width="1.2" stroke-dasharray="2 5"/>
-    <path d="M69 114 Q110 96 151 114" fill="none" stroke="rgba(129,140,248,0.16)" stroke-width="1.2" stroke-dasharray="2 5"/>
-    <path d="M84 184 Q110 170 136 184" fill="none" stroke="rgba(129,140,248,0.15)" stroke-width="1.2" stroke-dasharray="2 5"/>
-    <ellipse cx="85" cy="137" rx="18" ry="13" fill="rgba(244,114,182,0.12)" stroke="rgba(244,114,182,0.48)" stroke-width="1.2"/>
-    <ellipse cx="135" cy="137" rx="18" ry="13" fill="rgba(244,114,182,0.12)" stroke="rgba(244,114,182,0.48)" stroke-width="1.2"/>
-    <path d="M76 224 Q84 214 92 206" fill="none" stroke="rgba(148,163,184,0.55)" stroke-width="1.7" stroke-linecap="round"/>
-    <path d="M144 224 Q136 214 128 206" fill="none" stroke="rgba(148,163,184,0.55)" stroke-width="1.7" stroke-linecap="round"/>
-    <path d="M57 64 Q110 12 163 64" fill="none" stroke="url(#${strokeId})" stroke-opacity="0.22" stroke-width="1.2"/>
-    <path d="M72 54 Q110 34 148 54" fill="url(#${meshId})" opacity="0.45"/>
-  </svg>
-  <div class="camera-guide-copy">이마, 눈, 입이 정면을 향하게 맞춰 주세요</div>`;
+  return `<img src="face-guide.svg" class="camera-guide-svg" alt="얼굴 평가 가이드" draggable="false">
+  <div class="camera-guide-copy">정면을 보고 얼굴 중심을 맞춰 주세요</div>`;
 }
 
 function initStaticSvgUI() {

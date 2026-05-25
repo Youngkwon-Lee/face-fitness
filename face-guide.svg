@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" width="400" height="520">
+
+<defs>
+  <!-- ── BACKGROUNDS ── -->
+  <radialGradient id="bgG" cx="50%" cy="40%" r="65%">
+    <stop offset="0%"   stop-color="#0c1828"/>
+    <stop offset="100%" stop-color="#020810"/>
+  </radialGradient>
+
+  <radialGradient id="faceAmbG"
+    gradientUnits="userSpaceOnUse" cx="200" cy="200" fx="200" fy="170" r="140">
+    <stop offset="0%"   stop-color="#c4b5fd" stop-opacity="0.07"/>
+    <stop offset="100%" stop-color="#c4b5fd" stop-opacity="0"/>
+  </radialGradient>
+
+  <!-- ── SCAN LINE PATTERN ── -->
+  <pattern id="scanPat" x="0" y="0" width="400" height="7" patternUnits="userSpaceOnUse">
+    <line x1="0" y1="0" x2="400" y2="0" stroke="#c4b5fd" stroke-width="0.4"/>
+  </pattern>
+
+  <!-- ── GLOW FILTERS ── -->
+  <filter id="gFace" x="-25%" y="-25%" width="150%" height="150%">
+    <feGaussianBlur stdDeviation="7" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="gLav" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="5" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="gLavSm" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="3" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="gCyan" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="4.5" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="gCyanSm" x="-80%" y="-80%" width="260%" height="260%">
+    <feGaussianBlur stdDeviation="2.5" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="gPink" x="-80%" y="-80%" width="260%" height="260%">
+    <feGaussianBlur stdDeviation="3.5" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="gMint" x="-80%" y="-80%" width="260%" height="260%">
+    <feGaussianBlur stdDeviation="3" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="gVio" x="-80%" y="-80%" width="260%" height="260%">
+    <feGaussianBlur stdDeviation="3" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+
+  <!-- ── CLIP for targeting ring decoration ── -->
+  <clipPath id="ringClip">
+    <rect x="50" y="60" width="300" height="400"/>
+  </clipPath>
+</defs>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- BACKGROUND                                   -->
+<!-- ════════════════════════════════════════════ -->
+<rect width="400" height="520" fill="url(#bgG)"/>
+<rect width="400" height="520" fill="url(#scanPat)" opacity="0.038"/>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- HUD FRAME                                    -->
+<!-- ════════════════════════════════════════════ -->
+
+<!-- Corner brackets -->
+<g stroke="#c4b5fd" stroke-width="1.6" fill="none" opacity="0.55">
+  <path d="M 20 44 L 20 20 L 44 20"/>
+  <path d="M 356 20 L 380 20 L 380 44"/>
+  <path d="M 20 476 L 20 500 L 44 500"/>
+  <path d="M 356 500 L 380 500 L 380 476"/>
+</g>
+
+<!-- Corner tick marks (secondary) -->
+<g stroke="#c4b5fd" stroke-width="0.7" fill="none" opacity="0.3">
+  <path d="M 30 48 L 30 30 L 48 30"/>
+  <path d="M 352 30 L 370 30 L 370 48"/>
+  <path d="M 30 472 L 30 490 L 48 490"/>
+  <path d="M 352 490 L 370 490 L 370 472"/>
+</g>
+
+<!-- Header label -->
+<text x="200" y="13" text-anchor="middle"
+  font-family="'SF Mono',ui-monospace,monospace" font-size="7.5"
+  letter-spacing="3.5" fill="#c4b5fd" opacity="0.65">FACIAL MOVEMENT ASSESSMENT</text>
+
+<!-- Sub-header divider line -->
+<line x1="60" y1="19" x2="340" y2="19" stroke="#c4b5fd" stroke-width="0.4" opacity="0.25"/>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- TARGETING RINGS                              -->
+<!-- ════════════════════════════════════════════ -->
+
+<!-- Outer dashed ring -->
+<circle cx="200" cy="226" r="155" fill="none" stroke="#c4b5fd"
+  stroke-width="0.6" stroke-dasharray="8 5" opacity="0.18"/>
+
+<!-- Middle ring (partial arcs only for aesthetic HUD feel) -->
+<path d="M 200 68 A 158 158 0 0 1 340 280" fill="none"
+  stroke="#818cf8" stroke-width="0.5" opacity="0.14"/>
+<path d="M 200 384 A 158 158 0 0 1 60 173" fill="none"
+  stroke="#818cf8" stroke-width="0.5" opacity="0.14"/>
+
+<!-- Inner ring just inside face -->
+<circle cx="200" cy="226" r="128" fill="none" stroke="#c4b5fd"
+  stroke-width="0.3" stroke-dasharray="3 8" opacity="0.1"/>
+
+<!-- Crosshair at face center -->
+<g stroke="#c4b5fd" stroke-width="0.5" opacity="0.2">
+  <line x1="190" y1="226" x2="210" y2="226"/>
+  <line x1="200" y1="216" x2="200" y2="236"/>
+</g>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- REFERENCE GUIDELINES                         -->
+<!-- ════════════════════════════════════════════ -->
+
+<!-- Symmetry axis -->
+<line x1="200" y1="52" x2="200" y2="432"
+  stroke="#c4b5fd" stroke-width="0.5" stroke-dasharray="4 7" opacity="0.1"/>
+
+<!-- Eye-level horizontal -->
+<line x1="88" y1="207" x2="312" y2="207"
+  stroke="#67e8f9" stroke-width="0.4" stroke-dasharray="3 6" opacity="0.1"/>
+
+<!-- Lip-level horizontal -->
+<line x1="120" y1="308" x2="280" y2="308"
+  stroke="#c4b5fd" stroke-width="0.4" stroke-dasharray="2 8" opacity="0.08"/>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- FACE AMBIENT BLOOM                           -->
+<!-- ════════════════════════════════════════════ -->
+<ellipse cx="200" cy="215" rx="105" ry="140"
+  fill="url(#faceAmbG)" opacity="1"/>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- FACE OUTLINE                                 -->
+<!-- ════════════════════════════════════════════ -->
+
+<!-- The face path: smooth oval, narrowing to chin -->
+<!-- Inner dark fill — prevents "floating lines" look -->
+<path d="
+  M 200 72
+  C 258 72 305 99 314 146
+  C 321 182 320 218 314 248
+  C 303 294 280 334 258 354
+  C 238 372 221 382 200 382
+  C 179 382 162 372 142 354
+  C 120 334 97 294 86 248
+  C 80 218 79 182 86 146
+  C 95 99 142 72 200 72 Z"
+  fill="#07101e" opacity="0.72"/>
+
+<!-- Outer glow layer (blurred, wide) -->
+<path d="
+  M 200 72
+  C 258 72 305 99 314 146
+  C 321 182 320 218 314 248
+  C 303 294 280 334 258 354
+  C 238 372 221 382 200 382
+  C 179 382 162 372 142 354
+  C 120 334 97 294 86 248
+  C 80 218 79 182 86 146
+  C 95 99 142 72 200 72 Z"
+  fill="none" stroke="#c4b5fd" stroke-width="4"
+  filter="url(#gFace)" opacity="0.28"/>
+
+<!-- Sharp face line -->
+<path d="
+  M 200 72
+  C 258 72 305 99 314 146
+  C 321 182 320 218 314 248
+  C 303 294 280 334 258 354
+  C 238 372 221 382 200 382
+  C 179 382 162 372 142 354
+  C 120 334 97 294 86 248
+  C 80 218 79 182 86 146
+  C 95 99 142 72 200 72 Z"
+  fill="none" stroke="#ddd6fe" stroke-width="1.3"/>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- NECK HINT                                    -->
+<!-- ════════════════════════════════════════════ -->
+<path d="M 170 382 C 167 400 164 416 162 428"
+  stroke="#c4b5fd" stroke-width="0.7" fill="none" opacity="0.18"/>
+<path d="M 230 382 C 233 400 236 416 238 428"
+  stroke="#c4b5fd" stroke-width="0.7" fill="none" opacity="0.18"/>
+<!-- Collar hint -->
+<path d="M 162 428 Q 200 435 238 428"
+  stroke="#c4b5fd" stroke-width="0.5" fill="none" opacity="0.12"/>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- EYEBROWS  (Frontalis / AU1–2)                -->
+<!-- ════════════════════════════════════════════ -->
+
+<!-- Left brow — outer glow -->
+<path d="M 132 187 C 149 179 167 177 184 181"
+  fill="none" stroke="#a78bfa" stroke-width="4"
+  stroke-linecap="round" filter="url(#gLav)" opacity="0.28"/>
+<!-- Left brow — sharp line -->
+<path d="M 132 187 C 149 179 167 177 184 181"
+  fill="none" stroke="#a78bfa" stroke-width="2"
+  stroke-linecap="round"/>
+
+<!-- Right brow — outer glow -->
+<path d="M 216 181 C 233 177 251 179 268 187"
+  fill="none" stroke="#a78bfa" stroke-width="4"
+  stroke-linecap="round" filter="url(#gLav)" opacity="0.28"/>
+<!-- Right brow — sharp line -->
+<path d="M 216 181 C 233 177 251 179 268 187"
+  fill="none" stroke="#a78bfa" stroke-width="2"
+  stroke-linecap="round"/>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- EYES  (OrbOculi / EAR — AU6/43)              -->
+<!-- ════════════════════════════════════════════ -->
+
+<!-- LEFT EYE -->
+<!-- Subtle inner fill for non-hollow look -->
+<path d="M 139 207 Q 161 191 183 207 Q 161 223 139 207 Z"
+  fill="#67e8f9" opacity="0.05"/>
+<!-- Outer glow -->
+<path d="M 139 207 Q 161 191 183 207 Q 161 223 139 207 Z"
+  fill="none" stroke="#67e8f9" stroke-width="3.5"
+  filter="url(#gCyan)" opacity="0.3"/>
+<!-- Sharp outline -->
+<path d="M 139 207 Q 161 191 183 207 Q 161 223 139 207 Z"
+  fill="none" stroke="#67e8f9" stroke-width="1.2"/>
+
+<!-- Left iris (ring + fill) -->
+<circle cx="161" cy="207" r="8" fill="#67e8f9" opacity="0.07"
+  filter="url(#gCyan)"/>
+<circle cx="161" cy="207" r="8" fill="none"
+  stroke="#67e8f9" stroke-width="0.9" opacity="0.75"/>
+<circle cx="161" cy="207" r="3" fill="#67e8f9" opacity="0.45"/>
+<!-- Catchlight -->
+<circle cx="164.5" cy="203.5" r="1.2" fill="white" opacity="0.7"/>
+
+<!-- RIGHT EYE -->
+<path d="M 261 207 Q 239 191 217 207 Q 239 223 261 207 Z"
+  fill="#67e8f9" opacity="0.05"/>
+<path d="M 261 207 Q 239 191 217 207 Q 239 223 261 207 Z"
+  fill="none" stroke="#67e8f9" stroke-width="3.5"
+  filter="url(#gCyan)" opacity="0.3"/>
+<path d="M 261 207 Q 239 191 217 207 Q 239 223 261 207 Z"
+  fill="none" stroke="#67e8f9" stroke-width="1.2"/>
+
+<circle cx="239" cy="207" r="8" fill="#67e8f9" opacity="0.07"
+  filter="url(#gCyan)"/>
+<circle cx="239" cy="207" r="8" fill="none"
+  stroke="#67e8f9" stroke-width="0.9" opacity="0.75"/>
+<circle cx="239" cy="207" r="3" fill="#67e8f9" opacity="0.45"/>
+<circle cx="242.5" cy="203.5" r="1.2" fill="white" opacity="0.7"/>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- NOSE  (LLS alar reference)                   -->
+<!-- ════════════════════════════════════════════ -->
+
+<!-- Bridge lines — very subtle -->
+<path d="M 182 213 C 179 237 179 254 181 263"
+  stroke="#c4b5fd" stroke-width="0.7" fill="none" opacity="0.28"/>
+<path d="M 218 213 C 221 237 221 254 219 263"
+  stroke="#c4b5fd" stroke-width="0.7" fill="none" opacity="0.28"/>
+<!-- Nose base arc (alar to alar) -->
+<path d="M 181 263 Q 200 275 219 263"
+  stroke="#c4b5fd" stroke-width="0.9" fill="none" opacity="0.35"/>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- LIPS  (ZMaj / LLS / DAO / Mentalis)          -->
+<!-- ════════════════════════════════════════════ -->
+
+<!-- Upper lip — outer glow -->
+<path d="M 172 308 Q 186 298 200 296 Q 214 298 228 308"
+  fill="none" stroke="#c4b5fd" stroke-width="3.5"
+  stroke-linecap="round" filter="url(#gLavSm)" opacity="0.22"/>
+<!-- Upper lip — sharp -->
+<path d="M 172 308 Q 186 298 200 296 Q 214 298 228 308"
+  fill="none" stroke="#ddd6fe" stroke-width="1.3"
+  stroke-linecap="round"/>
+<!-- Mouth center crease -->
+<path d="M 172 308 Q 200 311 228 308"
+  fill="none" stroke="#ddd6fe" stroke-width="1.3"
+  stroke-linecap="round"/>
+<!-- Lower lip -->
+<path d="M 172 308 Q 200 323 228 308"
+  fill="none" stroke="#c4b5fd" stroke-width="1"
+  stroke-linecap="round" opacity="0.65"/>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- MUSCLE ZONE CONNECTION LINES (diagnostic)    -->
+<!-- ════════════════════════════════════════════ -->
+
+<!-- ZMaj: cheek → mouth corner -->
+<line x1="111" y1="252" x2="172" y2="308" stroke="#f472b6"
+  stroke-width="0.6" stroke-dasharray="3 5" opacity="0.22"/>
+<line x1="289" y1="252" x2="228" y2="308" stroke="#f472b6"
+  stroke-width="0.6" stroke-dasharray="3 5" opacity="0.22"/>
+
+<!-- Corrugator: glabella to inner brows -->
+<line x1="200" y1="192" x2="184" y2="181" stroke="#f472b6"
+  stroke-width="0.5" stroke-dasharray="2 4" opacity="0.2"/>
+<line x1="200" y1="192" x2="216" y2="181" stroke="#f472b6"
+  stroke-width="0.5" stroke-dasharray="2 4" opacity="0.2"/>
+
+<!-- EAR measurement lines (top lid ↔ bottom lid) -->
+<line x1="161" y1="199" x2="161" y2="215" stroke="#67e8f9"
+  stroke-width="0.6" stroke-dasharray="2 2" opacity="0.28"/>
+<line x1="239" y1="199" x2="239" y2="215" stroke="#67e8f9"
+  stroke-width="0.6" stroke-dasharray="2 2" opacity="0.28"/>
+
+<!-- LLS: alar → mouth corner -->
+<line x1="181" y1="263" x2="172" y2="308" stroke="#34d399"
+  stroke-width="0.5" stroke-dasharray="2 4" opacity="0.2"/>
+<line x1="219" y1="263" x2="228" y2="308" stroke="#34d399"
+  stroke-width="0.5" stroke-dasharray="2 4" opacity="0.2"/>
+
+<!-- Mentalis: chin → lower lip -->
+<line x1="200" y1="366" x2="200" y2="323" stroke="#34d399"
+  stroke-width="0.5" stroke-dasharray="2 4" opacity="0.22"/>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- LANDMARK DOTS                                -->
+<!-- ════════════════════════════════════════════ -->
+
+<!-- ── Eyebrow region: violet ── -->
+<g fill="#a78bfa" filter="url(#gVio)">
+  <circle cx="132" cy="187" r="3.2"/>   <!-- L outer brow -->
+  <circle cx="158" cy="179" r="2.6"/>   <!-- L brow peak -->
+  <circle cx="184" cy="181" r="3.2"/>   <!-- L inner brow -->
+  <circle cx="216" cy="181" r="3.2"/>   <!-- R inner brow -->
+  <circle cx="242" cy="179" r="2.6"/>   <!-- R brow peak -->
+  <circle cx="268" cy="187" r="3.2"/>   <!-- R outer brow -->
+</g>
+
+<!-- ── Glabella / Corrugator zone: pink ── -->
+<g fill="#f472b6" filter="url(#gPink)">
+  <circle cx="200" cy="192" r="2.8"/>
+</g>
+
+<!-- ── Eye region: cyan ── -->
+<g fill="#67e8f9" filter="url(#gCyanSm)">
+  <!-- Left eye -->
+  <circle cx="139" cy="207" r="2.8"/>   <!-- outer canthus -->
+  <circle cx="161" cy="199" r="2.2"/>   <!-- top lid -->
+  <circle cx="183" cy="207" r="2.8"/>   <!-- inner canthus -->
+  <circle cx="161" cy="215" r="2.2"/>   <!-- bottom lid -->
+  <!-- Right eye -->
+  <circle cx="261" cy="207" r="2.8"/>
+  <circle cx="239" cy="199" r="2.2"/>
+  <circle cx="217" cy="207" r="2.8"/>
+  <circle cx="239" cy="215" r="2.2"/>
+</g>
+
+<!-- ── Nose / Alar (LLS zone): mint ── -->
+<g fill="#34d399" filter="url(#gMint)">
+  <circle cx="181" cy="263" r="2.8"/>   <!-- L alar -->
+  <circle cx="200" cy="273" r="2.8"/>   <!-- nose tip -->
+  <circle cx="219" cy="263" r="2.8"/>   <!-- R alar -->
+</g>
+
+<!-- ── Cheekbones (ZMaj / AU6 zone): pink ── -->
+<g fill="#f472b6" filter="url(#gPink)">
+  <circle cx="111" cy="252" r="3.4"/>
+  <circle cx="289" cy="252" r="3.4"/>
+</g>
+
+<!-- ── Mouth region: lavender ── -->
+<g fill="#ddd6fe" filter="url(#gLavSm)">
+  <circle cx="172" cy="308" r="3.2"/>   <!-- L corner -->
+  <circle cx="200" cy="296" r="2.6"/>   <!-- upper lip center -->
+  <circle cx="228" cy="308" r="3.2"/>   <!-- R corner -->
+  <circle cx="200" cy="323" r="2.6"/>   <!-- lower lip center -->
+</g>
+
+<!-- ── Chin (Mentalis zone): mint ── -->
+<g fill="#34d399" filter="url(#gMint)">
+  <circle cx="200" cy="366" r="3.2"/>
+</g>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- MUSCLE LABELS                                -->
+<!-- ════════════════════════════════════════════ -->
+<g font-family="'SF Mono',ui-monospace,monospace" font-size="7" letter-spacing="0.8">
+
+  <!-- Left side -->
+  <text x="73" y="184" text-anchor="end" fill="#a78bfa" opacity="0.75">Frontalis</text>
+  <text x="73" y="209" text-anchor="end" fill="#67e8f9" opacity="0.75">OrbOculi</text>
+  <text x="73" y="255" text-anchor="end" fill="#f472b6" opacity="0.75">ZMaj · DAO</text>
+  <text x="73" y="310" text-anchor="end" fill="#ddd6fe" opacity="0.7">LLS · Ment.</text>
+
+  <!-- Right side -->
+  <text x="327" y="184" text-anchor="start" fill="#a78bfa" opacity="0.75">Frontalis</text>
+  <text x="327" y="209" text-anchor="start" fill="#67e8f9" opacity="0.75">OrbOculi</text>
+  <text x="327" y="255" text-anchor="start" fill="#f472b6" opacity="0.75">ZMaj · DAO</text>
+  <text x="327" y="310" text-anchor="start" fill="#ddd6fe" opacity="0.7">LLS · Ment.</text>
+
+  <!-- Center labels -->
+  <text x="200" y="196" text-anchor="middle" fill="#f472b6" opacity="0.5"
+    font-size="6" letter-spacing="0.5">Corrugator</text>
+  <text x="200" y="382" text-anchor="middle" fill="#34d399" opacity="0.55"
+    font-size="6" letter-spacing="0.5">Mentalis</text>
+</g>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- DECORATIVE HUD TICK MARKS on targeting ring  -->
+<!-- ════════════════════════════════════════════ -->
+<g stroke="#c4b5fd" stroke-width="0.8" opacity="0.3">
+  <!-- Top -->
+  <line x1="200" y1="68" x2="200" y2="78"/>
+  <!-- Bottom -->
+  <line x1="200" y1="376" x2="200" y2="386"/>
+  <!-- Left -->
+  <line x1="42"  y1="226" x2="52"  y2="226"/>
+  <!-- Right -->
+  <line x1="348" y1="226" x2="358" y2="226"/>
+</g>
+
+<!-- Corner angle indicators at eye level -->
+<g stroke="#67e8f9" stroke-width="0.6" fill="none" opacity="0.2">
+  <path d="M 78 200 L 86 200 L 86 208"/>
+  <path d="M 322 200 L 314 200 L 314 208"/>
+</g>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- BOTTOM STATUS BAR                            -->
+<!-- ════════════════════════════════════════════ -->
+<line x1="40" y1="495" x2="360" y2="495"
+  stroke="#c4b5fd" stroke-width="0.4" opacity="0.28"/>
+
+<g font-family="'SF Mono',ui-monospace,monospace" font-size="7" letter-spacing="0.5">
+  <text x="44"  y="508" fill="#34d399" opacity="0.6">● READY</text>
+  <text x="200" y="508" text-anchor="middle" fill="#c4b5fd" opacity="0.55"
+    letter-spacing="1.5">8 MUSCLES · BILATERAL · FACS</text>
+  <text x="356" y="508" text-anchor="end" fill="#c4b5fd" opacity="0.45">v2.0</text>
+</g>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- CSS ANIMATIONS (works inline / direct open)  -->
+<!-- ════════════════════════════════════════════ -->
+<style>
+  @keyframes pulse-ring {
+    0%,100% { opacity:0.18; }
+    50%      { opacity:0.38; }
+  }
+  @keyframes pulse-dot {
+    0%,100% { opacity:0.75; }
+    50%      { opacity:1;    }
+  }
+  @keyframes breathe-face {
+    0%,100% { opacity:0.27; }
+    50%      { opacity:0.45; }
+  }
+  @keyframes flicker-ready {
+    0%,90%,100% { opacity:0.6; }
+    95%          { opacity:0.1; }
+  }
+
+  circle[r="155"], circle[r="3.4"] {
+    /* targeting ring + cheek dots pulse */
+  }
+</style>
+
+<!-- Animated elements via inline style (SVG animation with SMIL) -->
+<!-- Outer ring pulse -->
+<circle cx="200" cy="226" r="155" fill="none" stroke="#c4b5fd"
+  stroke-width="0.7" stroke-dasharray="8 5" opacity="0.18">
+  <animate attributeName="opacity" values="0.1;0.32;0.1"
+    dur="3.5s" repeatCount="indefinite"/>
+</circle>
+
+<!-- Cheek glow pulse (ZMaj zone) -->
+<circle cx="111" cy="252" r="6" fill="#f472b6" opacity="0">
+  <animate attributeName="opacity" values="0;0.12;0" dur="2.8s" repeatCount="indefinite"/>
+  <animate attributeName="r"       values="4;9;4"   dur="2.8s" repeatCount="indefinite"/>
+</circle>
+<circle cx="289" cy="252" r="6" fill="#f472b6" opacity="0">
+  <animate attributeName="opacity" values="0;0.12;0" dur="2.8s" repeatCount="indefinite"/>
+  <animate attributeName="r"       values="4;9;4"   dur="2.8s" repeatCount="indefinite"/>
+</circle>
+
+<!-- Mouth corner pulse (ZMaj activation zone) -->
+<circle cx="172" cy="308" r="4" fill="#ddd6fe" opacity="0">
+  <animate attributeName="opacity" values="0;0.15;0" dur="3.2s" begin="0.4s" repeatCount="indefinite"/>
+  <animate attributeName="r"       values="3;7;3"   dur="3.2s" begin="0.4s" repeatCount="indefinite"/>
+</circle>
+<circle cx="228" cy="308" r="4" fill="#ddd6fe" opacity="0">
+  <animate attributeName="opacity" values="0;0.15;0" dur="3.2s" begin="0.4s" repeatCount="indefinite"/>
+  <animate attributeName="r"       values="3;7;3"   dur="3.2s" begin="0.4s" repeatCount="indefinite"/>
+</circle>
+
+<!-- Chin pulse (Mentalis zone) -->
+<circle cx="200" cy="366" r="4" fill="#34d399" opacity="0">
+  <animate attributeName="opacity" values="0;0.18;0" dur="4s" begin="1s" repeatCount="indefinite"/>
+  <animate attributeName="r"       values="3;8;3"   dur="4s" begin="1s" repeatCount="indefinite"/>
+</circle>
+
+<!-- Brow inner connection flash (Corrugator zone) -->
+<circle cx="200" cy="192" r="3" fill="#f472b6" opacity="0">
+  <animate attributeName="opacity" values="0;0.25;0" dur="5s" begin="2s" repeatCount="indefinite"/>
+</circle>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SCAN LINE SWEEP OVERLAY                      -->
+<!-- ════════════════════════════════════════════ -->
+<defs>
+  <linearGradient id="scanGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"   stop-color="#c4b5fd" stop-opacity="0"/>
+    <stop offset="50%"  stop-color="#c4b5fd" stop-opacity="1"/>
+    <stop offset="100%" stop-color="#c4b5fd" stop-opacity="0"/>
+  </linearGradient>
+</defs>
+
+<!-- Thin sweep beam that travels from forehead to chin -->
+<rect x="86" y="68" width="228" height="5" fill="url(#scanGrad)" opacity="0">
+  <animate attributeName="y"
+    values="68;390;68"
+    dur="6s" repeatCount="indefinite" calcMode="linear"/>
+  <animate attributeName="opacity"
+    values="0;0;0.22;0.22;0"
+    keyTimes="0;0.05;0.2;0.8;1"
+    dur="6s" repeatCount="indefinite"/>
+</rect>
+
+</svg>
