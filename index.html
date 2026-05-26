@@ -200,6 +200,17 @@ header{
   color:rgba(226,232,240,0.88);font-size:.68rem;font-weight:700;letter-spacing:.08em;
   text-transform:uppercase;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
 }
+.camera-active-guide {
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;z-index:3;opacity:0;transition:opacity 0.4s ease;
+}
+.camera-active-guide.visible {
+  opacity:0.22; /* Translucent face scanning template over video feed */
+}
+.camera-active-guide-img {
+  height:min(92%,400px);width:auto;flex-shrink:0;
+  mix-blend-mode:screen;
+}
 .guide-orbit, .guide-focus-ring {transform-origin:center;animation: scanningPulse 3.2s ease-in-out infinite;}
 .guide-grid-line {animation: guideLineDrift 4s ease-in-out infinite;}
 @keyframes scanningPulse {
@@ -487,7 +498,7 @@ header{
       <div style="padding:4px 2px 0;">
         <div style="display:flex;align-items:center;gap:11px;margin-bottom:5px;">
           <div style="width:38px;height:38px;flex-shrink:0;border-radius:10px;border:1px solid rgba(129,140,248,.25);background:rgba(99,102,241,.08);display:flex;align-items:center;justify-content:center;overflow:hidden;">
-            <img src="face-guide.svg" style="width:34px;height:34px;object-fit:cover;object-position:center 30%;" alt="">
+            <img src="images/guide-neutral.jpg" style="width:34px;height:34px;object-fit:cover;object-position:center 30%;" alt="">
           </div>
           <div>
             <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:900;letter-spacing:1.5px;background:linear-gradient(130deg,#c4b5fd 0%,#818cf8 60%,#f472b6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;">얼굴 평가 가이드</div>
@@ -505,6 +516,9 @@ header{
         <video id="video" autoplay playsinline muted></video>
         <canvas id="overlay"></canvas>
         <div class="camera-offline-guide" id="offlineGuide"></div>
+        <div class="camera-active-guide" id="activeGuide" style="display:none;">
+          <img src="images/guide-neutral.jpg" class="camera-active-guide-img" id="activeGuideImg" alt="" draggable="false">
+        </div>
         <div class="scan-overlay-container" id="scanOverlay" style="display:none;">
           <svg viewBox="0 0 100 100" class="scan-ring-svg">
             <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(244,114,182,0.12)" stroke-width="1.5"/>
@@ -725,6 +739,9 @@ header{
         <video id="video2" autoplay playsinline muted style="display:none;"></video>
         <canvas id="overlay2"></canvas>
         <div class="camera-offline-guide" id="offlineGuide2"></div>
+        <div class="camera-active-guide" id="activeGuide2" style="display:none;">
+          <img src="images/guide-neutral.jpg" class="camera-active-guide-img" id="activeGuideImg2" alt="" draggable="false">
+        </div>
         <div class="scan-overlay-container" id="scanOverlay2" style="display:none;">
           <svg viewBox="0 0 100 100" class="scan-ring-svg">
             <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(244,114,182,0.12)" stroke-width="1.5"/>
@@ -1537,6 +1554,18 @@ async function startCamera() {
     const wrap2 = video2.closest('.video-wrap');
     if (wrap2) wrap2.classList.add('active-cam');
 
+    // Show active camera guide overlays
+    const ag1 = document.getElementById('activeGuide');
+    if (ag1) {
+      ag1.style.display = 'flex';
+      setTimeout(() => ag1.classList.add('visible'), 50);
+    }
+    const ag2 = document.getElementById('activeGuide2');
+    if (ag2) {
+      ag2.style.display = 'flex';
+      setTimeout(() => ag2.classList.add('visible'), 50);
+    }
+
     resizeCanvases();
     window.addEventListener('resize', resizeCanvases);
     await loadFM();
@@ -2231,6 +2260,7 @@ function runAssessTest() {
   // Dynamic phase ends when all tests done
   if (assessIdx2 >= ASSESS_TESTS.length) { finishDynamicPhase(); return; }
   const t = ASSESS_TESTS[assessIdx2];
+  updateActiveGuideImage('assess', t.id);
   assessBuf = [];
   assessActive = true;
 
@@ -2754,6 +2784,18 @@ const EX_ZONES = {
 };
 
 function faceIconSVG(iconKey, size=32) {
+  const ASSESS_IMAGES = {
+    baseline: 'images/guide-neutral.jpg',
+    smile: 'images/guide-smile.jpg',
+    browRaise: 'images/guide-neutral.jpg',
+    eyeClose: 'images/guide-neutral.jpg',
+    mouthOpen: 'images/guide-mouth-open.jpg',
+    lipSeal: 'images/guide-lip-seal.jpg',
+  };
+  const imgUrl = ASSESS_IMAGES[iconKey];
+  if (imgUrl) {
+    return `<span class="inline-icon" aria-hidden="true"><img src="${imgUrl}" style="width:${size}px;height:${size}px;border-radius:6px;object-fit:cover;object-position:center 30%;border:1px solid rgba(129,140,248,0.25);box-shadow:0 0 6px rgba(129,140,248,0.15);" alt="" draggable="false"></span>`;
+  }
   const zones = EX_ZONES[iconKey] || ASSESS_ICON_ZONES[iconKey] || [];
   const height = Math.round(size * 1.28);
   return `<span class="inline-icon" aria-hidden="true"><svg viewBox="0 0 100 130" width="${size}" height="${height}">
@@ -2819,9 +2861,33 @@ function iconHTML(iconKey, label='', size=28, cls='icon-label') {
   return `<span class="${cls}">${icon}${safeLabel}</span>`;
 }
 
-function cameraGuideSVG(uid='cameraGuide') {
-  return `<img src="face-guide.svg" class="camera-guide-svg" alt="얼굴 평가 가이드" draggable="false">
+function cameraGuideSVG(uid='cameraGuide', imageSrc='images/guide-neutral.jpg') {
+  return `<img src="${imageSrc}" class="camera-guide-svg" alt="얼굴 평가 가이드" draggable="false">
   <div class="camera-guide-copy">정면을 보고 얼굴 중심을 맞춰 주세요</div>`;
+}
+
+function updateActiveGuideImage(screen, id) {
+  const imgId = screen === 'assess' ? 'activeGuideImg' : 'activeGuideImg2';
+  const imgEl = document.getElementById(imgId);
+  if (!imgEl) return;
+  
+  let src = 'images/guide-neutral.jpg';
+  
+  if (screen === 'assess') {
+    if (id === 'smile') src = 'images/guide-smile.jpg';
+    else if (id === 'mouthOpen') src = 'images/guide-mouth-open.jpg';
+    else if (id === 'lipSeal') src = 'images/guide-lip-seal.jpg';
+  } else {
+    const smileEx = ['smile_hold', 'cheek_lifter', 'apple_cheeks', 'corner_lift', 'dao_stretch'];
+    const openMouthEx = ['jaw_release', 'vowel', 'giraffe', 'chin_tuck', 'jaw_jut', 'tongue_press'];
+    const lipSealEx = ['puff', 'fish_face', 'puffer'];
+    
+    if (smileEx.includes(id)) src = 'images/guide-smile.jpg';
+    else if (openMouthEx.includes(id)) src = 'images/guide-mouth-open.jpg';
+    else if (lipSealEx.includes(id)) src = 'images/guide-lip-seal.jpg';
+  }
+  
+  imgEl.src = src;
 }
 
 function initStaticSvgUI() {
@@ -2900,6 +2966,7 @@ function faceSVG(exId) {
 function selectEx(idx) {
   exIdx = idx;
   const ex = EXERCISES[idx];
+  updateActiveGuideImage('program', ex.id);
   const ms = MUSCLE_STATUS[ex.id];
   renderExList(document.querySelector('#zoneFilter .btn-primary')?.textContent||'all');
   document.getElementById('pStartBtn').disabled = !cameraActive || exState!=='idle';
