@@ -1047,6 +1047,7 @@ let supabaseClient = null;
 let currentUser    = null;
 let _authTab       = 'login';
 let _personId      = null; // cached persons.id for current auth user
+let _orgId         = null; // cached organization_id (personal solo org) for current auth user
 
 function initSupabase() {
   try {
@@ -1145,7 +1146,7 @@ async function signInGoogle() {
 async function signOut() {
   closeUserMenu();
   if (supabaseClient) await supabaseClient.auth.signOut();
-  currentUser = null;
+  currentUser = null; _personId = null; _orgId = null;
   _updateAuthUI();
 }
 function openUserMenu()  { const m = document.getElementById('userMenu'); m.style.display = m.style.display === 'none' ? 'block' : 'none'; }
@@ -1155,30 +1156,24 @@ document.addEventListener('click', e => {
 });
 
 // ── CLOUD SAVE ─────────────────────────────────────────────
-// Returns persons.id for the current auth user.
-// Creates a minimal self-registered person if one doesn't exist yet.
-async function getOrCreatePersonId() {
-  if (_personId) return _personId;
-  if (!supabaseClient || !currentUser) return null;
+// Idempotent bootstrap — creates persons + personal org if needed.
+// Returns { personId, orgId } for use in all subsequent inserts.
+async function bootstrapPersonalContext() {
+  if (_personId && _orgId) return { personId: _personId, orgId: _orgId };
+  if (!supabaseClient || !currentUser) return { personId: null, orgId: null };
   try {
-    const { data: rpc } = await supabaseClient.rpc('get_my_person_id');
-    if (rpc) { _personId = rpc; return _personId; }
-    // Not in physio_app yet — create a minimal self-registered person
-    const firstName = (currentUser.email || '').split('@')[0] || 'User';
-    const { data: person, error } = await supabaseClient
-      .from('persons')
-      .insert({
-        first_name:   firstName,
-        source_type:  'self_registered',
-        user_type:    'client',
-        auth_user_id: currentUser.id,
-        email:        currentUser.email || null,
-      })
-      .select('id')
-      .single();
-    if (!error && person) { _personId = person.id; return _personId; }
-  } catch(e) { /* persons table not accessible for this user */ }
-  return null;
+    const { data: rpc } = await supabaseClient.rpc('bootstrap_consumer_app_user', {
+      p_first_name: (currentUser.email || '').split('@')[0] || null,
+      p_email:      currentUser.email || null,
+      p_app_source: 'face_fitness',
+    });
+    if (rpc && !rpc.error) {
+      _personId = rpc.person_id;
+      _orgId    = rpc.org_id;
+      return { personId: _personId, orgId: _orgId };
+    }
+  } catch(e) { /* bootstrap RPC not yet deployed — skip */ }
+  return { personId: null, orgId: null };
 }
 
 async function cloudSaveAssess(payload) {
@@ -1186,7 +1181,7 @@ async function cloudSaveAssess(payload) {
   const badge = document.getElementById('cloudBadge');
   if (badge) { badge.textContent = '⏳ 저장 중'; badge.className = 'cloud-badge syncing'; }
   try {
-    const personId = await getOrCreatePersonId();
+    const { personId, orgId } = await bootstrapPersonalContext();
     const mf    = payload.measurement_features || {};
     const zones = payload.zones || {};
     const earL  = payload.earL || 0, earR = payload.earR || 0;
@@ -1198,6 +1193,7 @@ async function cloudSaveAssess(payload) {
     if (personId) {
       const { error } = await supabaseClient.from('facial_assessment_sessions').insert({
         person_id:                  personId,
+        organization_id:            orgId || null,
         source:                     'face_fitness_app',
         symmetry_score:             payload.symScore,
         zone_upper:                 zones.upper  ?? null,
@@ -1235,7 +1231,7 @@ async function cloudSaveAssess(payload) {
 async function cloudSaveExercise(payload) {
   if (!supabaseClient || !currentUser) return;
   try {
-    const personId = await getOrCreatePersonId();
+    const { personId } = await bootstrapPersonalContext();
 
     if (personId) {
       // Look up exercises.id by code (face_ prefix)
@@ -1275,7 +1271,7 @@ async function syncCloudHistory() {
   const badge = document.getElementById('cloudBadge');
   if (badge) { badge.textContent = '⏳ 동기화'; badge.className = 'cloud-badge syncing'; }
   try {
-    const personId = await getOrCreatePersonId();
+    const { personId } = await bootstrapPersonalContext();
     let cloudAssess = [], cloudEx = [];
 
     if (personId) {
