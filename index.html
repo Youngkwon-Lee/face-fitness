@@ -466,6 +466,45 @@ header{
 .compare-zone span { font-family: 'Outfit', sans-serif; }
 .presc-card { transition: all 0.25s ease; }
 .presc-card:hover { transform: translateY(-1.5px); border-color: rgba(255,255,255,0.08); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+/* ── STATIC RESULT ENHANCED ── */
+.sr-hero{display:flex;gap:12px;align-items:center;margin-bottom:14px;}
+.sr-snap{width:80px;height:62px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--dim);}
+.sr-snap img{width:100%;height:100%;object-fit:cover;display:block;}
+.sr-score-block{flex:1;}
+.sr-score-num{font-family:'Outfit',sans-serif;font-size:2.2rem;font-weight:900;line-height:1;}
+.sr-score-bar{height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:8px;overflow:hidden;}
+.sr-score-fill{height:100%;border-radius:2px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+.sr-row2{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:.78rem;}
+.sr-row2:last-child{border-bottom:none;}
+.sr-ear-group{padding:5px 0 3px;border-bottom:1px solid rgba(255,255,255,.03);}
+.sr-ear-line{display:flex;align-items:center;gap:6px;margin-top:3px;}
+.sr-ear-side{font-family:'Outfit',sans-serif;font-size:.62rem;color:var(--accent2);font-weight:800;width:12px;text-align:center;flex-shrink:0;}
+.sr-ear-track{flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
+.sr-ear-fill{height:100%;border-radius:3px;}
+.sr-insight{margin-top:10px;padding:9px 11px;background:rgba(129,140,248,.08);border-radius:8px;border-left:3px solid var(--accent2);font-size:.74rem;line-height:1.65;color:var(--text);}
+.sr-insight-head{font-size:.56rem;font-weight:700;color:var(--accent2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;}
+
+/* ── HISTORY ENHANCED ── */
+.hist-row{display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:12px;background:rgba(255,255,255,.01);border:1px solid var(--border);transition:border-color .3s;}
+.hist-row:hover{border-color:rgba(255,255,255,.08);}
+.hist-snap-thumb{width:52px;height:40px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--dim);}
+.hist-snap-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.hist-meta-block{flex:1;min-width:0;}
+.hist-date-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.hist-sym-badge{font-family:'Outfit',sans-serif;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:10px;background:rgba(129,140,248,.15);color:var(--accent2);}
+.hist-cloud-dot{font-size:.55rem;color:var(--accent3);}
+.hist-score-big{font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:800;color:var(--accent);min-width:36px;text-align:right;flex-shrink:0;align-self:center;}
+/* SPARKLINE */
+.sym-sparkline{display:flex;align-items:flex-end;gap:2px;height:24px;margin-top:8px;}
+.sym-spark-bar{border-radius:1px 1px 0 0;flex:1;min-width:6px;max-width:18px;}
+/* COMPARE SNAPSHOTS */
+.compare-snap-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.compare-snap-box{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.compare-snap-img{width:100%;max-width:130px;height:90px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);}
+.compare-snap-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.compare-snap-label{font-size:.62rem;color:var(--dim);}
+.compare-arrow{font-size:1.2rem;color:var(--accent2);flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -779,11 +818,25 @@ header{
         <div class="progress-track"><div class="progress-fill" id="pProgress" style="width:0%"></div></div>
         <div class="phase-prompt" id="pPrompt"></div>
         <div class="rep-count" id="pReps"></div>
+        <!-- Live form quality badge -->
+        <div id="liveFormBadge" style="display:none;margin-top:10px;padding:8px 10px;border-radius:8px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);">
+          <div style="font-size:.56rem;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;">FORM QUALITY</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;">
+              <div id="liveFormBar" style="height:100%;border-radius:3px;transition:width .25s,background .25s;width:0%;"></div>
+            </div>
+            <span id="liveFormNum" style="font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:900;min-width:28px;text-align:right;">—</span>
+          </div>
+          <div id="liveFormHint" style="font-size:.62rem;color:var(--dim);margin-top:3px;min-height:14px;"></div>
+        </div>
       </div>
 
       <!-- Compensator feedback -->
       <div class="card" id="compCard">
-        <div class="card-title">⚠ 보상근육 감시</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="card-title" style="margin:0;">⚠ 보상근육 감시</div>
+          <div id="compQualityDot" style="width:10px;height:10px;border-radius:50%;background:var(--accent3);box-shadow:0 0 6px rgba(52,211,153,.5);transition:all .3s;"></div>
+        </div>
         <div id="compFeedback" style="font-size:.78rem;color:var(--dim);">운동 시작 후 활성화됩니다</div>
       </div>
 
@@ -872,6 +925,28 @@ header{
         <span class="cloud-badge local" id="cloudBadge">로컬 저장</span>
         <button id="cloudSyncBtn" class="btn btn-secondary" style="padding:3px 10px;font-size:.65rem;display:none;" onclick="syncCloudHistory()">동기화</button>
       </div>
+    </div>
+
+    <!-- Progress graph -->
+    <div class="card" id="progressCard" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="card-title" style="margin:0;">진행 그래프</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="font-size:.6rem;color:var(--dim);">목표</span>
+            <input id="goalInput" type="number" min="50" max="100" value="80"
+              style="width:42px;padding:3px 5px;background:rgba(255,255,255,.04);border:1px solid rgba(52,211,153,.3);border-radius:6px;color:var(--accent3);font-size:.75rem;font-weight:700;text-align:center;outline:none;"
+              oninput="renderProgressGraph()">
+            <span style="font-size:.6rem;color:var(--dim);">점</span>
+          </div>
+          <div id="graphLegend" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+        </div>
+      </div>
+      <div style="position:relative;">
+        <canvas id="progressCanvas" style="width:100%;display:block;cursor:crosshair;"></canvas>
+        <div id="progressTooltip" style="display:none;position:absolute;top:10px;background:rgba(10,10,28,.96);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 11px;font-size:.7rem;pointer-events:none;min-width:120px;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.4);"></div>
+      </div>
+      <div id="progressInsight" style="margin-top:8px;font-size:.72rem;color:var(--dim);line-height:1.6;min-height:18px;"></div>
     </div>
 
     <!-- Assessment history -->
@@ -1501,6 +1576,8 @@ function resetMusclePeaks(){Object.assign(musclePeaks,{smL:0.002,smR:0.002,brL:0
 
 // History (localStorage)
 const HIST_KEY = 'ff_history';
+const SNAP_KEY = 'ff_snaps';
+let staticSnapshot = null; // captured at end of static phase
 
 // ═══════════════════════════════════════════════════════════
 // SCREEN NAV
@@ -1568,6 +1645,9 @@ async function startCamera() {
 
     resizeCanvases();
     window.addEventListener('resize', resizeCanvases);
+    window.addEventListener('resize', () => {
+      if (document.getElementById('screen-history')?.classList.contains('active')) renderProgressGraph();
+    });
     await loadFM();
     cameraActive = true;
     document.getElementById('aCamBtn').textContent = '카메라 ON';
@@ -1582,6 +1662,51 @@ async function startCamera() {
     document.getElementById('aCamBtn').disabled = false;
     document.getElementById('aCamBtn').textContent = '카메라 시작';
   }
+}
+
+// ── SNAPSHOT HELPERS ──────────────────────────────────────────
+function captureSnapshot() {
+  const video = document.getElementById('video');
+  if (!video || !video.videoWidth) return null;
+  try {
+    const c = document.createElement('canvas');
+    c.width = 160; c.height = 120;
+    c.getContext('2d').drawImage(video, 0, 0, 160, 120);
+    return c.toDataURL('image/jpeg', 0.72);
+  } catch(e) { return null; }
+}
+function saveSnapshot(key, dataUrl) {
+  if (!dataUrl || !key) return;
+  try {
+    const snaps = JSON.parse(localStorage.getItem(SNAP_KEY) || '{}');
+    snaps[key] = dataUrl;
+    const keys = Object.keys(snaps).sort();
+    while (keys.length > 12) { delete snaps[keys.shift()]; }
+    localStorage.setItem(SNAP_KEY, JSON.stringify(snaps));
+  } catch(e) { /* storage full */ }
+}
+function getSnapshot(key) {
+  try {
+    return JSON.parse(localStorage.getItem(SNAP_KEY) || '{}')[key] || null;
+  } catch(e) { return null; }
+}
+function genInsight(bl) {
+  const sym = Math.round(bl.sym || 0);
+  const earL = bl.earL || 0, earR = bl.earR || 0;
+  const earPct = Math.round(Math.abs(earL - earR) / Math.max(earL, earR, 0.01) * 100);
+  const corrFire = (bl.corrugator||0) > 0.003;
+  const platFire = (bl.platysma||0) > 0.003;
+  const parts = [];
+  if (sym >= 88)      parts.push('좌우 대칭이 우수합니다');
+  else if (sym >= 75) parts.push('좌우 균형이 양호합니다');
+  else if (sym >= 60) parts.push('좌우 비대칭이 다소 있습니다');
+  else                parts.push('좌우 비대칭이 뚜렷합니다');
+  if (earPct >= 18)   parts.push(`눈 개구 ${earPct}% 차이 → 안륜근 불균형 의심`);
+  else if (earPct < 8) parts.push('눈 개구 좌우가 균형적입니다');
+  if (corrFire)       parts.push('안정 시 미간 긴장 — 만성 주름 위험');
+  if (platFire)       parts.push('안정 시 목 긴장 — 입꼬리 처짐 패턴');
+  if (!corrFire && !platFire && sym >= 75) parts.push('안정 시 근육 상태 양호');
+  return parts.join(' · ') + '. 동적 평가로 기능을 확인합니다.';
 }
 
 function resizeCanvases() {
@@ -1687,6 +1812,198 @@ function drawFaceOnBoth(lm) {
   drawFaceOnCanvas('overlay2', lm);
 
   if (burstPending) { burstPending = false; }
+}
+
+// ── EXERCISE OVERLAY HELPERS ──────────────────────────────
+function getCompFiringKey(ex) {
+  if (!ex?.compensators) return null;
+  for (const c of ex.compensators) {
+    if (c.key === 'corrugator' && (metrics.corrugator||0) > 0.004)  return 'corrugator';
+    if (c.key === 'frontalis'  && (metrics.frontalBrow||0) > 0.003) return 'frontalis';
+    if (c.key === 'platysma'   && (metrics.platysma||0) > 0.004)    return 'platysma';
+    if (c.key === 'mentalis'   && (metrics.mentalis||0) > 0.004)    return 'mentalis';
+  }
+  return null;
+}
+
+function isTargetActivating(ex) {
+  if (!ex || !blDone) return false;
+  switch (ex.phase) {
+    case 'browRaise': return (metrics.relBrowL||0) > 0.10 || (metrics.relBrowR||0) > 0.10;
+    case 'smile':     return (metrics.relSmileL||0) > 0.08 || (metrics.relSmileR||0) > 0.08;
+    case 'eyeSquint': return (metrics.earL||0) < 0.30 && (metrics.earL||0) > 0.01;
+    case 'snarl':     return (metrics.llsL||0) > 0.003 || (metrics.llsR||0) > 0.003;
+    case 'puff':      return (metrics.mouthW||0) > (BL.mouthW||0) * 1.06;
+    case 'vowel':     return (metrics.mouthH||0) > (BL.jawH||0) * 1.4;
+    default:          return false;
+  }
+}
+
+function drawExerciseOverlay(ctx, lm, W, H, lx, ly) {
+  if (exState !== 'running') return;
+  const ex = EXERCISES[exIdx];
+  if (!ex) return;
+  const t = Date.now();
+  const pulse = 0.5 + 0.5 * Math.sin(t * 0.008);
+
+  // Per-phase target zone (landmark-derived ellipse)
+  const phaseZone = {
+    browRaise: {
+      cx: (lx(70) + lx(300)) / 2,
+      cy: ly(10) + (ly(66) - ly(10)) * 0.35,
+      rx: Math.abs(lx(70) - lx(300)) * 0.62,
+      ry: Math.abs(ly(66) - ly(10)) * 0.75,
+      label: '눈썹 ↑'
+    },
+    eyeSquint: {
+      cx: (lx(33) + lx(263)) / 2,
+      cy: (ly(159) + ly(386)) / 2,
+      rx: Math.abs(lx(33) - lx(263)) * 0.6,
+      ry: Math.abs(ly(33) - ly(233)) * 1.2,
+      label: '아래 눈꺼풀 ↑'
+    },
+    smile: {
+      cx: (lx(61) + lx(291)) / 2,
+      cy: (ly(116) + ly(345) + ly(61) + ly(291)) / 4,
+      rx: Math.abs(lx(61) - lx(291)) * 0.72,
+      ry: Math.abs(ly(116) - ly(61)) * 1.3,
+      label: '볼 ↑'
+    },
+    snarl: {
+      cx: (lx(94) + lx(328)) / 2,
+      cy: (ly(94) + ly(328)) / 2,
+      rx: Math.abs(lx(94) - lx(328)) * 0.85,
+      ry: H * 0.07,
+      label: '코 옆 ↑'
+    },
+    puff: {
+      cx: W / 2,
+      cy: (ly(61) + ly(152)) / 2,
+      rx: W * 0.22,
+      ry: H * 0.15,
+      label: '볼 공기'
+    },
+    vowel: {
+      cx: W / 2,
+      cy: (ly(13) + ly(14)) / 2,
+      rx: W * 0.18,
+      ry: H * 0.12,
+      label: '입 크게'
+    },
+    chin: {
+      cx: lx(152),
+      cy: ly(152),
+      rx: W * 0.13,
+      ry: H * 0.07,
+      label: '턱 당기기'
+    }
+  }[ex.phase];
+  if (!phaseZone) return;
+
+  const active = isTargetActivating(ex);
+  const col = active ? '52,211,153' : '129,140,248';
+  const fillA = active ? (0.16 + 0.08 * pulse) : (0.04 + 0.02 * pulse);
+  const strokeA = active ? (0.75 + 0.2 * pulse) : 0.22;
+
+  ctx.save();
+  // Target ellipse fill
+  ctx.beginPath();
+  ctx.ellipse(phaseZone.cx, phaseZone.cy, phaseZone.rx, phaseZone.ry, 0, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(${col},${fillA.toFixed(2)})`;
+  ctx.fill();
+  // Target ellipse border
+  ctx.strokeStyle = `rgba(${col},${strokeA.toFixed(2)})`;
+  ctx.lineWidth = active ? (1.5 + 0.5 * pulse) : 1;
+  ctx.setLineDash(active ? [] : [4, 5]);
+  ctx.shadowBlur = active ? (10 + 6 * pulse) : 3;
+  ctx.shadowColor = `rgb(${col})`;
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // Label
+  const lblY = phaseZone.cy - phaseZone.ry - 8;
+  ctx.font = `bold ${Math.round(W * 0.031)}px 'Outfit', sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillStyle = `rgba(${col}, ${active ? 0.95 : 0.5})`;
+  ctx.shadowBlur = 5;
+  ctx.fillText(active ? '✓ 활성화!' : phaseZone.label, phaseZone.cx, Math.max(lblY, W * 0.065));
+  ctx.restore();
+
+  // Compensator zone (focused red ellipse instead of just full-screen flash)
+  const ck = getCompFiringKey(ex);
+  if (ck && compFlash > 2) {
+    const compPos = {
+      corrugator: { cx: (lx(107)+lx(336))/2, cy: (ly(107)+ly(336))/2, rx: W*0.11, ry: H*0.055, lbl: '⚠ 미간 힘빼기' },
+      frontalis:  { cx: W/2, cy: ly(10)+H*0.04, rx: W*0.22, ry: H*0.065, lbl: '⚠ 이마 힘빼기' },
+      platysma:   { cx: lx(152), cy: ly(152)+H*0.04, rx: W*0.18, ry: H*0.05, lbl: '⚠ 목 힘빼기' },
+      mentalis:   { cx: lx(152), cy: ly(152)-H*0.02, rx: W*0.12, ry: H*0.05, lbl: '⚠ 턱 힘빼기' },
+    }[ck];
+    if (compPos) {
+      const blink = Math.sin(t * 0.012) > 0;
+      if (blink) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(compPos.cx, compPos.cy, compPos.rx, compPos.ry, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(248,113,113,0.2)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(248,113,113,0.85)';
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#f87171';
+        ctx.stroke();
+        ctx.font = `bold ${Math.round(W*0.027)}px 'Outfit',sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(248,113,113,0.95)';
+        ctx.shadowBlur = 4;
+        ctx.fillText(compPos.lbl, compPos.cx, compPos.cy);
+        ctx.restore();
+      }
+    }
+  }
+}
+
+// ── LIVE FORM QUALITY ─────────────────────────────────────
+function updateLiveForm() {
+  if (exState !== 'running') return;
+  const ex = EXERCISES[exIdx];
+  if (!ex || !exMeasureBuf.length) return;
+  const recent = exMeasureBuf.slice(-12);
+  const avg = k => recent.reduce((a,b) => a + (b[k]||0), 0) / recent.length;
+
+  const activation = Math.min(100, avg(
+    ex.measure === 'smileRise'   ? 'relSmileL' :
+    ex.measure === 'eyeAperture' ? 'earL' :
+    ex.measure === 'browRise'    ? 'relBrowL' :
+    'relBrowL'
+  ) * 1600);
+  let penalty = 0;
+  ex.compensators.forEach(c => {
+    if (c.key === 'corrugator') penalty += avg('corrugator') * 450;
+    if (c.key === 'frontalis')  penalty += avg('frontalBrow') * 450;
+    if (c.key === 'platysma')   penalty += avg('platysma') * 450;
+    if (c.key === 'mentalis')   penalty += avg('mentalis') * 350;
+  });
+  const q = Math.round(Math.min(100, Math.max(0, 45 + activation * 0.45 - penalty)));
+  const col = q >= 75 ? '#34d399' : q >= 50 ? '#fbbf24' : '#f87171';
+  const hint = q >= 75 ? '잘 하고 있어요!' : q >= 50 ? '조금 더 힘을 주세요' : '보상근육 확인하세요';
+
+  const bar = document.getElementById('liveFormBar');
+  const num = document.getElementById('liveFormNum');
+  const hnt = document.getElementById('liveFormHint');
+  const bdg = document.getElementById('liveFormBadge');
+  if (bdg) { bdg.style.display = ''; bdg.style.borderColor = col + '30'; }
+  if (bar) { bar.style.width = q + '%'; bar.style.background = col; bar.style.boxShadow = `0 0 5px ${col}88`; }
+  if (num) { num.textContent = q; num.style.color = col; }
+  if (hnt) { hnt.textContent = hint; hnt.style.color = col; }
+
+  // comp quality dot
+  const dot = document.getElementById('compQualityDot');
+  if (dot) {
+    const compFiring = getCompFiringKey(ex);
+    dot.style.background = compFiring ? '#f87171' : '#34d399';
+    dot.style.boxShadow = compFiring ? '0 0 6px rgba(248,113,113,.5)' : '0 0 6px rgba(52,211,153,.5)';
+  }
 }
 
 function drawFaceOnCanvas(canvasId, lm) {
@@ -1871,6 +2188,9 @@ function drawFaceOnCanvas(canvasId, lm) {
     ctx.shadowBlur=8; ctx.shadowColor=p.col;
     ctx.beginPath(); ctx.arc(p.x,p.y,p.r*(p.life/p.maxLife),0,Math.PI*2); ctx.fill(); ctx.restore();
   }
+
+  // ── Exercise muscle zone overlay ─────────────────────────
+  if (canvasId === 'overlay2') drawExerciseOverlay(ctx, lm, W, H, lx, ly);
 
   // ── Score flash label (shown briefly at exercise complete) ─
   if (window._scoreFlash && window._scoreFlash.frames > 0) {
@@ -2406,6 +2726,7 @@ function computeAssessMetrics(t, buf) {
 function finishStaticPhase() {
   assessActive = false;
   assessPhase = 'static-done';
+  staticSnapshot = captureSnapshot();
   document.getElementById('aTimerCard').style.display = 'none';
   document.getElementById('aSkipBtn').style.display = 'none';
   document.getElementById('aBadge').textContent = '정적 평가 완료';
@@ -2422,55 +2743,70 @@ function showStaticResult() {
   const bl = assessResults['baseline'];
   if (!bl) return;
 
-  const sym     = Math.round(bl.sym || 0);
-  const earDiff = Math.abs((bl.earL||0) - (bl.earR||0));
-  const earBase = Math.max((bl.earL||0), (bl.earR||0), 0.01);
-  const earPct  = Math.round(earDiff / earBase * 100);
+  const sym      = Math.round(bl.sym || 0);
+  const earL     = bl.earL || 0, earR = bl.earR || 0;
+  const earPct   = Math.round(Math.abs(earL - earR) / Math.max(earL, earR, 0.01) * 100);
   const corrFire = (bl.corrugator||0) > 0.003;
-  const platFire = (bl.platysma||0) > 0.003;
+  const platFire = (bl.platysma||0)   > 0.003;
   const symCol   = sym >= 85 ? 'var(--accent3)' : sym >= 70 ? 'var(--accent4)' : 'var(--danger)';
+  const earCol   = earPct < 8 ? 'var(--accent3)' : earPct < 18 ? 'var(--accent4)' : 'var(--danger)';
+  const symGrade = sym >= 85 ? '우수' : sym >= 70 ? '양호' : '개선 필요';
 
-  const rows = [
-    `<div class="static-result-row">
-       <span style="color:var(--dim);">좌우 대칭</span>
-       <div style="display:flex;align-items:center;gap:8px;">
-         <div style="width:56px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;">
-           <div style="width:${sym}%;height:100%;background:${symCol};border-radius:2px;"></div>
-         </div>
-         <span style="font-weight:800;color:${symCol};">${sym}점</span>
-       </div>
-     </div>`,
-    `<div class="static-result-row">
-       <span style="color:var(--dim);">눈 개구 EAR</span>
-       <span style="font-size:.78rem;color:${earPct<8?'var(--accent3)':earPct<18?'var(--accent4)':'var(--danger)'};">
-         L ${(bl.earL||0).toFixed(3)} / R ${(bl.earR||0).toFixed(3)} &nbsp;△${earPct}%
-       </span>
-     </div>`,
-    `<div class="static-result-row">
-       <span style="color:var(--dim);">미간 긴장</span>
-       <span class="${corrFire?'bad':'good'}">${corrFire?'⚠ 긴장 감지':'✓ 이완'}</span>
-     </div>`,
-    `<div class="static-result-row">
-       <span style="color:var(--dim);">목 긴장</span>
-       <span class="${platFire?'bad':'good'}">${platFire?'⚠ 긴장 감지':'✓ 이완'}</span>
-     </div>`,
-  ].join('');
+  // EAR bar scaling
+  const earMax  = Math.max(earL, earR, 0.35);
+  const earLPct = Math.round(earL / earMax * 100);
+  const earRPct = Math.round(earR / earMax * 100);
 
-  const insights = [];
-  if (sym < 80)       insights.push(`좌우 비대칭 — 동적 평가에서 원인 확인 예정`);
-  if (corrFire)       insights.push('안정 시 미간근 긴장 — 만성 미간 주름 위험');
-  if (platFire)       insights.push('안정 시 광경근 활성 — 입꼬리 처짐 가속 패턴');
-  if (earPct > 12)    insights.push(`눈 개구 차이 ${earPct}% — 안륜근 좌우 비대칭`);
+  // Snapshot
+  const snap    = staticSnapshot;
+  const snapHtml = snap
+    ? `<div class="sr-snap"><img src="${snap}" alt="정적 스냅샷"></div>`
+    : `<div class="sr-snap">📷</div>`;
 
-  document.getElementById('staticResultContent').innerHTML = rows +
-    (insights.length
-      ? `<div style="margin-top:8px;padding:7px 10px;background:rgba(129,140,248,.08);border-radius:6px;
-            border-left:3px solid var(--accent2);font-size:.73rem;line-height:1.7;">${insights.map(i=>`• ${i}`).join('<br>')}</div>`
-      : `<div style="margin-top:8px;padding:6px 10px;background:rgba(52,211,153,.08);border-radius:6px;
-            font-size:.73rem;color:var(--accent3);">✓ 안정 시 상태 양호</div>`) +
-    `<div style="margin-top:6px;font-size:.6rem;color:var(--dim);">
-       ${bl.n}프레임 평균 · 이 기준으로 동적 평가를 진행합니다
-     </div>`;
+  document.getElementById('staticResultContent').innerHTML = `
+    <div class="sr-hero">
+      ${snapHtml}
+      <div class="sr-score-block">
+        <div style="font-size:.58rem;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;">좌우 대칭도</div>
+        <div class="sr-score-num" style="color:${symCol};">${sym}<span style="font-size:1rem;font-weight:500;opacity:.65;">점</span></div>
+        <div class="sr-score-bar"><div class="sr-score-fill" style="width:${sym}%;background:${symCol};${sym>=85?'box-shadow:0 0 6px var(--accent3-glow);':''}"></div></div>
+        <div style="font-size:.6rem;color:${symCol};margin-top:3px;font-weight:700;">${symGrade}</div>
+      </div>
+    </div>
+
+    <div class="sr-ear-group">
+      <div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:2px;">
+        <span style="color:var(--dim);">눈 개구 (EAR)</span>
+        <span style="color:${earCol};font-weight:700;">△${earPct}% &nbsp;${earPct<8?'✓ 정상':earPct<18?'⚡ 주의':'⚠ 비대칭'}</span>
+      </div>
+      <div class="sr-ear-line">
+        <span class="sr-ear-side">L</span>
+        <div class="sr-ear-track"><div class="sr-ear-fill" style="width:${earLPct}%;background:var(--accent2);"></div></div>
+        <span style="font-size:.63rem;min-width:34px;text-align:right;font-family:'Outfit',sans-serif;">${earL.toFixed(3)}</span>
+      </div>
+      <div class="sr-ear-line">
+        <span class="sr-ear-side">R</span>
+        <div class="sr-ear-track"><div class="sr-ear-fill" style="width:${earRPct}%;background:var(--accent2);"></div></div>
+        <span style="font-size:.63rem;min-width:34px;text-align:right;font-family:'Outfit',sans-serif;">${earR.toFixed(3)}</span>
+      </div>
+    </div>
+
+    <div class="sr-row2">
+      <span style="color:var(--dim);">미간 긴장</span>
+      <span class="${corrFire?'bad':'good'}">${corrFire?'⚠ 긴장 감지':'✓ 이완'}</span>
+    </div>
+    <div class="sr-row2">
+      <span style="color:var(--dim);">목 긴장</span>
+      <span class="${platFire?'bad':'good'}">${platFire?'⚠ 긴장 감지':'✓ 이완'}</span>
+    </div>
+
+    <div class="sr-insight">
+      <div class="sr-insight-head">💡 AI 인사이트</div>
+      ${genInsight(bl)}
+    </div>
+
+    <div style="margin-top:7px;font-size:.58rem;color:var(--dim);">${bl.n}프레임 평균 · 이 기준으로 동적 평가를 진행합니다</div>
+  `;
 
   document.getElementById('staticResultCard').style.display = '';
 }
@@ -3137,6 +3473,9 @@ function beginExSet() {
     if (prompt && ex.type==='endurance' && frac > 0.6 && frac < 0.65) { speak('잘 하고 있어요, 계속 유지하세요'); }
     document.getElementById('pPrompt').textContent = prompt;
 
+    // Live form quality update
+    updateLiveForm();
+
     // Compensator voice warning (max once per 5s)
     const now=Date.now();
     if(!exTimer._lastWarnT) exTimer._lastWarnT=0;
@@ -3253,6 +3592,7 @@ function showExResult(ex, score) {
 function closeOverlay() {
   document.getElementById('resultOverlay').classList.remove('visible');
   exState = 'idle';
+  hideLiveForm();
   const scanOverlay2 = document.getElementById('scanOverlay2');
   if (scanOverlay2) scanOverlay2.style.display = 'none';
   document.getElementById('pStartBtn').disabled = false;
@@ -3262,9 +3602,17 @@ function closeOverlay() {
   document.getElementById('pReps').textContent = '';
 }
 
+function hideLiveForm() {
+  const bdg = document.getElementById('liveFormBadge');
+  if (bdg) bdg.style.display = 'none';
+  const dot = document.getElementById('compQualityDot');
+  if (dot) { dot.style.background = 'var(--accent3)'; dot.style.boxShadow = '0 0 6px rgba(52,211,153,.5)'; }
+}
+
 function stopExercise() {
   clearInterval(exTimer);
   exState = 'idle';
+  hideLiveForm();
   const scanOverlay2 = document.getElementById('scanOverlay2');
   if (scanOverlay2) scanOverlay2.style.display = 'none';
   document.getElementById('pStartBtn').disabled = false;
@@ -3349,25 +3697,118 @@ function updateFFI() {
 // ═══════════════════════════════════════════════════════════
 // HISTORY
 // ═══════════════════════════════════════════════════════════
+function buildMeasurementFeatures() {
+  const bl = assessResults['baseline'];
+  const sm = assessResults['smile'];
+  const br = assessResults['browRaise'];
+  const ey = assessResults['eyeClose'];
+  const mo = assessResults['mouthOpen'];
+  const lp = assessResults['lipSeal'];
+
+  const earL = bl?.earL || 0, earR = bl?.earR || 0;
+  const earDiffPct = earR > 0.01 ? Math.abs(earL - earR) / Math.max(earL, earR) : null;
+
+  // Synkinesis: involuntary brow activation during eye close
+  const synkEyeBrow = ey ? ((ey.frontalComp||0) > 0.003 ? Math.round((ey.frontalComp||0)*1000)/10 : 0) : null;
+  // Synkinesis: platysma activation during smile
+  const synkSmilePlatysma = sm ? ((sm.platysma||0) > 0.003 ? Math.round((sm.platysma||0)*1000)/10 : 0) : null;
+  // Synkinesis: corrugator activation during brow raise
+  const synkBrowCorrugator = br ? ((br.corrugator||0) > 0.003 ? Math.round((br.corrugator||0)*1000)/10 : 0) : null;
+
+  // Semantic domain tags
+  const domains = [];
+  const symScore = Math.round(bl?.sym || 0);
+  if (symScore >= 88) domains.push('facial_symmetry:excellent');
+  else if (symScore >= 75) domains.push('facial_symmetry:good');
+  else if (symScore >= 60) domains.push('facial_symmetry:mild_asymmetry');
+  else domains.push('facial_symmetry:moderate_asymmetry');
+
+  if (earDiffPct !== null && earDiffPct > 0.18) domains.push('cn_vii_zygomatic:imbalance');
+  if (bl?.corrugator > 0.003) domains.push('corrugator_supercilii:hypertonicity');
+  if (bl?.platysma > 0.003) domains.push('platysma:hypertonicity');
+  if (synkEyeBrow > 0) domains.push('synkinesis:eye_brow');
+  if (synkSmilePlatysma > 0) domains.push('synkinesis:smile_platysma');
+  if (synkBrowCorrugator > 0) domains.push('synkinesis:brow_corrugator');
+
+  const smileAsym = sm ? Math.abs((sm.maxSmileL||0) - (sm.maxSmileR||0)) : null;
+  const browAsym  = br ? Math.abs((br.maxBrowL||0) - (br.maxBrowR||0)) : null;
+  if (smileAsym > 0.005) domains.push('cn_vii_buccal:asymmetry');
+  if (browAsym  > 0.005) domains.push('cn_vii_temporal:asymmetry');
+
+  return {
+    schema_version: 1,
+    resting_state: bl ? {
+      symmetry_score: symScore,
+      ear_left:       Math.round((earL)*1000)/1000,
+      ear_right:      Math.round((earR)*1000)/1000,
+      ear_diff_pct:   earDiffPct !== null ? Math.round(earDiffPct*1000)/10 : null,
+      corrugator_au:  Math.round((bl.corrugator||0)*10000)/10000,
+      platysma_au:    Math.round((bl.platysma||0)*10000)/10000,
+      corrugator_active: (bl.corrugator||0) > 0.003,
+      platysma_active:   (bl.platysma||0)   > 0.003,
+      sample_frames:  bl.n || 0,
+    } : null,
+    dynamic_tests: {
+      smile: sm ? {
+        max_left:   Math.round((sm.maxSmileL||0)*10000)/10000,
+        max_right:  Math.round((sm.maxSmileR||0)*10000)/10000,
+        avg_left:   Math.round((sm.smileL||0)*10000)/10000,
+        avg_right:  Math.round((sm.smileR||0)*10000)/10000,
+        asymmetry:  smileAsym !== null ? Math.round(smileAsym*10000)/10000 : null,
+        sym_score:  Math.round(sm.sym||0),
+        synkinesis_platysma: synkSmilePlatysma,
+      } : null,
+      brow_raise: br ? {
+        max_left:   Math.round((br.maxBrowL||0)*10000)/10000,
+        max_right:  Math.round((br.maxBrowR||0)*10000)/10000,
+        asymmetry:  browAsym !== null ? Math.round(browAsym*10000)/10000 : null,
+        synkinesis_corrugator: synkBrowCorrugator,
+      } : null,
+      eye_close: ey ? {
+        ear_left:  Math.round((ey.earL||0)*1000)/1000,
+        ear_right: Math.round((ey.earR||0)*1000)/1000,
+        synkinesis_frontalis: synkEyeBrow,
+      } : null,
+      mouth_open: mo ? {
+        max_jaw:  Math.round((mo.maxJaw||0)*10000)/10000,
+        avg_jaw:  Math.round((mo.jaw||0)*10000)/10000,
+      } : null,
+      lip_seal: lp ? {
+        avg_jaw: Math.round((lp.jaw||0)*10000)/10000,
+      } : null,
+    },
+    synkinesis_flags: {
+      eye_brow:         synkEyeBrow !== null && synkEyeBrow > 0,
+      smile_platysma:   synkSmilePlatysma !== null && synkSmilePlatysma > 0,
+      brow_corrugator:  synkBrowCorrugator !== null && synkBrowCorrugator > 0,
+    },
+    semantic_domains: domains,
+    zone_scores: {...zoneScores},
+  };
+}
+
 function saveAssessToHistory() {
   const bl = assessResults['baseline'];
   const avgScore = Math.round(Object.values(zoneScores).filter(v=>v!==null).reduce((a,b)=>a+b,0) /
     Object.values(zoneScores).filter(v=>v!==null).length || 0);
+  const dateKey = new Date().toISOString();
   const payload = {
-    date:       new Date().toISOString(),
-    zones:      {...zoneScores},
+    date:               dateKey,
+    zones:              {...zoneScores},
     avgScore,
-    symScore:   bl ? Math.round(bl.sym || 0) : null,
-    earL:       bl ? bl.earL : null,
-    earR:       bl ? bl.earR : null,
-    corrFiring: bl ? (bl.corrugator||0) > 0.005 : null,
-    platFiring: bl ? (bl.platysma||0)   > 0.005 : null,
+    symScore:           bl ? Math.round(bl.sym || 0) : null,
+    earL:               bl ? bl.earL : null,
+    earR:               bl ? bl.earR : null,
+    corrFiring:         bl ? (bl.corrugator||0) > 0.005 : null,
+    platFiring:         bl ? (bl.platysma||0)   > 0.005 : null,
+    snapKey:            staticSnapshot ? dateKey : null,
+    measurement_features: buildMeasurementFeatures(),
   };
+  if (staticSnapshot) saveSnapshot(dateKey, staticSnapshot);
   const hist = JSON.parse(localStorage.getItem(HIST_KEY)||'{"assess":[],"exercise":[]}');
   hist.assess.push(payload);
   if (hist.assess.length > 30) hist.assess = hist.assess.slice(-30);
   localStorage.setItem(HIST_KEY, JSON.stringify(hist));
-  // Cloud save (fire-and-forget)
   cloudSaveAssess(payload);
 }
 
@@ -3389,33 +3830,281 @@ function saveExToHistory(score) {
   cloudSaveExercise(payload);
 }
 
+// ═══════════════════════════════════════════════════════════
+// PROGRESS GRAPH
+// ═══════════════════════════════════════════════════════════
+function renderProgressGraph() {
+  const hist = JSON.parse(localStorage.getItem(HIST_KEY) || '{"assess":[],"exercise":[]}');
+  const card = document.getElementById('progressCard');
+  if (!card) return;
+
+  const all = [...hist.assess].sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (all.length < 2) {
+    card.style.display = all.length === 1 ? '' : 'none';
+    const ins = document.getElementById('progressInsight');
+    if (ins && all.length === 1) ins.textContent = '평가를 1회 더 완료하면 그래프가 나타납니다.';
+    return;
+  }
+  card.style.display = '';
+
+  const canvas = document.getElementById('progressCanvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const displayW = card.offsetWidth ? card.offsetWidth - 40 : 680;
+  const displayH = Math.max(180, Math.min(240, displayW * 0.32));
+  canvas.width  = Math.round(displayW * dpr);
+  canvas.height = Math.round(displayH * dpr);
+  canvas.style.width  = displayW + 'px';
+  canvas.style.height = displayH + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = displayW, H = displayH;
+
+  const PAD = { top: 18, right: 18, bottom: 32, left: 34 };
+  const CW = W - PAD.left - PAD.right;
+  const CH = H - PAD.top - PAD.bottom;
+  const n  = all.length;
+
+  const series = [
+    { key: 'sym',   label: '대칭도',  col: '#818cf8', data: all.map(r => r.symScore ?? null) },
+    { key: 'upper', label: '상부',    col: '#fbbf24', data: all.map(r => r.zones?.upper ?? null) },
+    { key: 'mid',   label: '중부',    col: '#f472b6', data: all.map(r => r.zones?.mid ?? null) },
+    { key: 'lower', label: '하부',    col: '#34d399', data: all.map(r => r.zones?.lower ?? null) },
+  ];
+  const goal = Math.min(100, Math.max(0, parseInt(document.getElementById('goalInput')?.value || '80')));
+
+  const xPos = i => PAD.left + (n < 2 ? CW / 2 : (i / (n - 1)) * CW);
+  const yPos = v => PAD.top + CH - (Math.max(0, Math.min(100, v)) / 100) * CH;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Y grid + labels
+  [0, 25, 50, 75, 100].forEach(v => {
+    const y = yPos(v);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + CW, y); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.font = `${Math.round(W * 0.019)}px 'Outfit', sans-serif`;
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText(v, PAD.left - 5, y);
+    ctx.restore();
+  });
+
+  // X labels
+  all.forEach((r, i) => {
+    if (n > 10 && i % Math.ceil(n / 8) !== 0 && i !== n - 1) return;
+    const d = new Date(r.date);
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = `${Math.round(W * 0.019)}px 'Outfit', sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(`${d.getMonth()+1}/${d.getDate()}`, xPos(i), PAD.top + CH + 5);
+    ctx.restore();
+  });
+
+  // Goal line
+  const gy = yPos(goal);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(52,211,153,0.55)';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([4, 6]);
+  ctx.shadowBlur = 5; ctx.shadowColor = '#34d399';
+  ctx.beginPath(); ctx.moveTo(PAD.left, gy); ctx.lineTo(PAD.left + CW, gy); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(52,211,153,0.65)';
+  ctx.font = `bold ${Math.round(W * 0.019)}px 'Outfit', sans-serif`;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+  ctx.shadowBlur = 0;
+  ctx.fillText(`목표 ${goal}`, PAD.left + 3, gy - 3);
+  ctx.restore();
+
+  // Draw each series
+  series.forEach(({ data, col }) => {
+    const pts = data.map((v, i) => v != null ? { x: xPos(i), y: yPos(v), v } : null);
+    const valid = pts.filter(Boolean);
+    if (valid.length < 1) return;
+
+    // Area fill
+    ctx.save();
+    const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + CH);
+    grad.addColorStop(0, col + '1a'); grad.addColorStop(1, col + '00');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    let started = false;
+    pts.forEach(p => {
+      if (!p) { started = false; return; }
+      if (!started) { ctx.moveTo(p.x, PAD.top + CH); ctx.lineTo(p.x, p.y); started = true; }
+      else ctx.lineTo(p.x, p.y);
+    });
+    if (started) {
+      const lastP = [...pts].reverse().find(Boolean);
+      ctx.lineTo(lastP.x, PAD.top + CH);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+
+    // Line
+    ctx.save();
+    ctx.strokeStyle = col; ctx.lineWidth = 2;
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.shadowBlur = 5; ctx.shadowColor = col + 'aa';
+    ctx.beginPath();
+    started = false;
+    pts.forEach(p => {
+      if (!p) { started = false; return; }
+      if (!started) { ctx.moveTo(p.x, p.y); started = true; }
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+    ctx.restore();
+
+    // Dots
+    pts.forEach((p, i) => {
+      if (!p) return;
+      const isLast = pts.slice(i + 1).every(q => !q);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, isLast ? 4.5 : 2.8, 0, Math.PI * 2);
+      ctx.fillStyle = col;
+      ctx.shadowBlur = isLast ? 10 : 4; ctx.shadowColor = col;
+      ctx.fill();
+      if (isLast) { // value label on last point
+        ctx.fillStyle = col;
+        ctx.font = `bold ${Math.round(W * 0.022)}px 'Outfit', sans-serif`;
+        ctx.textAlign = p.x > W * 0.75 ? 'right' : 'left';
+        ctx.textBaseline = p.y < PAD.top + 20 ? 'top' : 'bottom';
+        ctx.shadowBlur = 3;
+        ctx.fillText(p.v, p.x + (p.x > W * 0.75 ? -7 : 7), p.y + (p.y < PAD.top + 20 ? 7 : -7));
+      }
+      ctx.restore();
+    });
+  });
+
+  // Legend
+  const legend = document.getElementById('graphLegend');
+  if (legend) {
+    legend.innerHTML = series.map(s => {
+      const vals = s.data.filter(v => v != null);
+      const last = vals[vals.length - 1];
+      const trend = vals.length >= 2 ? vals[vals.length - 1] - vals[0] : null;
+      const tCol = trend > 0 ? '#34d399' : trend < 0 ? '#f87171' : 'var(--dim)';
+      const tTxt = trend != null && trend !== 0 ? (trend > 0 ? `▲${trend}` : `▼${Math.abs(trend)}`) : '';
+      return `<div style="display:flex;align-items:center;gap:4px;">
+        <div style="width:12px;height:3px;border-radius:2px;background:${s.col};box-shadow:0 0 4px ${s.col}88;"></div>
+        <span style="font-size:.6rem;color:rgba(255,255,255,.45);">${s.label}</span>
+        ${last != null ? `<span style="font-family:'Outfit',sans-serif;font-size:.65rem;font-weight:800;color:${s.col};">${last}</span>` : ''}
+        ${tTxt ? `<span style="font-size:.55rem;color:${tCol};font-weight:700;">${tTxt}</span>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // Insight
+  const ins = document.getElementById('progressInsight');
+  if (ins) {
+    const symVals = series[0].data.filter(v => v != null);
+    const first = symVals[0], last = symVals[symVals.length - 1];
+    const diff = last - first;
+    let txt = `${n}회 평가 완료 · `;
+    if (diff > 5)       txt += `대칭도 ▲${diff}점 향상 (${first} → ${last}점). `;
+    else if (diff < -5) txt += `대칭도 ▼${Math.abs(diff)}점 변화 (${first} → ${last}점). `;
+    else                txt += `대칭도 ${last}점으로 안정적. `;
+    txt += last >= goal ? `목표 ${goal}점 달성! 🎉` : `목표 ${goal}점까지 ${goal - last}점 남음.`;
+    ins.textContent = txt;
+    ins.style.color = last >= goal ? '#34d399' : 'var(--dim)';
+  }
+
+  setupGraphTooltip(canvas, all, series, PAD, CW, CH, W, H);
+}
+
+function setupGraphTooltip(canvas, sorted, series, PAD, CW, CH, W, H) {
+  const tooltip = document.getElementById('progressTooltip');
+  if (!tooltip) return;
+  const n = sorted.length;
+
+  canvas.onmousemove = (e) => {
+    if (n < 2) { tooltip.style.display = 'none'; return; }
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const segW = CW / (n - 1);
+    const idx = Math.max(0, Math.min(n - 1, Math.round((mx - PAD.left) / segW)));
+    if (Math.abs(mx - (PAD.left + idx * segW)) > segW * 0.7) { tooltip.style.display = 'none'; return; }
+
+    const r = sorted[idx];
+    const d = new Date(r.date);
+    const ds = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const rows = series.map(s => {
+      const v = s.data[idx];
+      if (v == null) return '';
+      return `<div style="display:flex;justify-content:space-between;gap:10px;margin-top:3px;">
+        <span style="color:${s.col};">● ${s.label}</span>
+        <span style="font-family:'Outfit',sans-serif;font-weight:800;color:${s.col};">${v}</span>
+      </div>`;
+    }).join('');
+    tooltip.innerHTML = `<div style="font-size:.58rem;color:rgba(255,255,255,.38);margin-bottom:3px;letter-spacing:.5px;">${ds}</div>${rows}`;
+
+    const tipX = PAD.left + idx * segW;
+    tooltip.style.left = Math.min(tipX + 12, W - 135) + 'px';
+    tooltip.style.display = 'block';
+  };
+  canvas.onmouseleave = () => { tooltip.style.display = 'none'; };
+}
+
 function renderHistory() {
+  renderProgressGraph();
   const hist = JSON.parse(localStorage.getItem(HIST_KEY)||'{"assess":[],"exercise":[]}');
 
   // ── Assessment history ────────────────────────────────────
   const aEl = document.getElementById('histAssess');
-  if (!hist.assess.length) { aEl.textContent = '평가 기록 없음'; }
+  if (!hist.assess.length) { aEl.innerHTML = '<div style="color:var(--dim);font-size:.82rem;padding:8px 0;">평가 기록 없음</div>'; }
   else {
-    aEl.innerHTML = `<div class="hist-list">${hist.assess.slice().reverse().map(r => {
+    // Sparkline — sym scores newest-last order
+    const symScores = hist.assess.map(r => r.symScore ?? 0);
+    const symMax    = Math.max(...symScores, 1);
+    const sparkBars = symScores.map((s,i) => {
+      const h = Math.round(s / symMax * 100);
+      const col = s >= 85 ? '#34d399' : s >= 70 ? '#fbbf24' : '#f87171';
+      const isLast = i === symScores.length - 1;
+      return `<div class="sym-spark-bar" style="height:${h}%;background:${col};opacity:${isLast?1:.55};${isLast?'box-shadow:0 0 4px '+col+';':''}"></div>`;
+    }).join('');
+
+    aEl.innerHTML = `
+      <div style="margin-bottom:10px;padding:8px 10px;background:rgba(129,140,248,.05);border-radius:8px;border:1px solid rgba(129,140,248,.1);">
+        <div style="font-size:.6rem;color:var(--dim);letter-spacing:1px;margin-bottom:4px;">대칭도 추이 (${symScores.length}회)</div>
+        <div class="sym-sparkline">${sparkBars}</div>
+      </div>
+      <div class="hist-list">${hist.assess.slice().reverse().map(r => {
       const d = new Date(r.date);
       const dateStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
-      const cloudDot = r._cloud ? `<span style="font-size:.55rem;color:var(--accent3);margin-left:4px;">☁</span>` : '';
       const zones = r.zones || {};
       const bars = Object.entries(zones).map(([z,s])=>{
-        const col=s>=75?'#34d399':s>=55?'#fbbf24':'#f87171';
+        const col = s>=75?'#34d399':s>=55?'#fbbf24':'#f87171';
         return `<div class="hist-hbar-wrap">
           <span class="hist-hbar-lbl">${{upper:'상부',mid:'중부',lower:'하부',neck:'목/턱'}[z]||z}</span>
           <div class="hist-hbar"><div class="hist-hbar-fill" style="width:${s||0}%;background:${col};"></div></div>
-          <span style="font-size:.65rem;min-width:28px;text-align:right;color:${col}">${s??'—'}</span>
+          <span style="font-size:.62rem;min-width:26px;text-align:right;color:${col}">${s??'—'}</span>
         </div>`;
       }).join('');
       const vals = Object.values(zones).filter(v=>v!==null&&v!==undefined);
       const avg  = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : '—';
-      const sym  = r.symScore !== null && r.symScore !== undefined ? `<span style="font-size:.6rem;color:var(--accent2);margin-left:6px;">대칭 ${r.symScore}</span>` : '';
+      const sym  = r.symScore != null ? r.symScore : null;
+      const symBadge = sym != null ? `<span class="hist-sym-badge">대칭 ${sym}</span>` : '';
+      const cloudDot = r._cloud ? `<span class="hist-cloud-dot">☁</span>` : '';
+      const snap = r.snapKey ? getSnapshot(r.snapKey) : null;
+      const thumbHtml = snap
+        ? `<div class="hist-snap-thumb"><img src="${snap}" alt=""></div>`
+        : `<div class="hist-snap-thumb">📷</div>`;
       return `<div class="hist-row">
-        <span class="hist-date">${dateStr}${cloudDot}</span>
-        <div class="hist-bars">${bars}</div>
-        <div class="hist-total">${avg}${sym}</div>
+        ${thumbHtml}
+        <div class="hist-meta-block">
+          <div class="hist-date-row">
+            <span class="hist-date">${dateStr}</span>
+            ${symBadge}${cloudDot}
+          </div>
+          <div class="hist-bars">${bars}</div>
+        </div>
+        <div class="hist-score-big">${avg}</div>
       </div>`;
     }).join('')}</div>`;
   }
@@ -3425,19 +4114,29 @@ function renderHistory() {
   const compareEl   = document.getElementById('histCompare');
   if (hist.assess.length >= 2 && compareCard) {
     compareCard.style.display = '';
-    const first  = hist.assess[hist.assess.length-1]; // oldest
-    const latest = hist.assess[0];                    // newest
+    const first  = hist.assess[hist.assess.length - 1]; // oldest
+    const latest = hist.assess[0];                      // newest
     const zoneLabels = {upper:'상부 (눈/이마)', mid:'중부 (볼/팔자)', lower:'하부 (입꼬리)', neck:'목/턱'};
     const fDate = new Date(first.date);
     const lDate = new Date(latest.date);
-    const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
-    compareEl.innerHTML = `
-      <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--dim);margin-bottom:10px;">
-        <span>● 최초: ${fmt(fDate)}</span>
-        <span>● 최근: ${fmt(lDate)}</span>
-      </div>
-      ${Object.keys(zoneLabels).map(z => {
-        const before = first.zones?.[z] ?? 0;
+    const fmt   = d => `${d.getMonth()+1}/${d.getDate()}`;
+    const firstSnap  = first.snapKey  ? getSnapshot(first.snapKey)  : null;
+    const latestSnap = latest.snapKey ? getSnapshot(latest.snapKey) : null;
+    const snapRow = (firstSnap || latestSnap) ? `
+      <div class="compare-snap-row">
+        <div class="compare-snap-box">
+          <div class="compare-snap-img">${firstSnap ? `<img src="${firstSnap}" alt="">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">📷</div>'}</div>
+          <span class="compare-snap-label">${fmt(fDate)} 최초</span>
+        </div>
+        <span class="compare-arrow">→</span>
+        <div class="compare-snap-box">
+          <div class="compare-snap-img">${latestSnap ? `<img src="${latestSnap}" alt="">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">📷</div>'}</div>
+          <span class="compare-snap-label">${fmt(lDate)} 최근</span>
+        </div>
+      </div>` : `<div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--dim);margin-bottom:10px;"><span>● 최초: ${fmt(fDate)}</span><span>● 최근: ${fmt(lDate)}</span></div>`;
+    compareEl.innerHTML = snapRow +
+      Object.keys(zoneLabels).map(z => {
+        const before = first.zones?.[z]  ?? 0;
         const after  = latest.zones?.[z] ?? 0;
         const diff   = after - before;
         const diffCol = diff > 0 ? '#34d399' : diff < 0 ? '#f87171' : 'var(--dim)';
@@ -3450,8 +4149,8 @@ function renderHistory() {
           </div>
           <span style="min-width:30px;text-align:right;font-size:.7rem;font-weight:700;color:${diffCol}">${diffTxt}</span>
         </div>`;
-      }).join('')}
-      <div style="margin-top:8px;font-size:.68rem;color:var(--dim);">
+      }).join('') +
+      `<div style="margin-top:8px;font-size:.68rem;color:var(--dim);">
         <span style="margin-right:12px;"><span style="color:var(--accent2);font-weight:700;">■</span> 최초</span>
         <span><span style="color:var(--accent3);font-weight:700;">■</span> 최근</span>
       </div>`;
