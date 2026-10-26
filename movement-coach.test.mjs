@@ -139,3 +139,6 @@ test('each side uses its own calibration noise', () => {
 test('resistance demo does not demand visible lift or eyelid movement',()=>{const item=coach.demoExample(resistanceExercise,0);assert.equal(item.delta.browL,0);assert.equal(item.delta.lowerL,0);});
 test('brow exercise demo shows glabellar co-movement instead of eye exercise cues',()=>{const item=coach.demoExample(resistanceExercise,1);assert.ok(item.delta.glabella>0);assert.equal(item.delta.lowerL,0);});
 test('all exercise demos have an explicit tracking-lost state',()=>{assert.equal(coach.demoExample(eyeExercise,2).lost,true);assert.equal(coach.demoExample(resistanceExercise,2).lost,true);});
+
+test('brow exercise target numbers describe brows, not eyelids',()=>{const d={browL:.02,browR:.03,lowerL:.01,lowerR:.01,glabella:.01};const labels=coach.movementLabels(resistanceExercise,d);assert.ok(labels.target.startsWith('눈썹 높이'));assert.ok(labels.companion.includes('미간 간격'));});
+test('eye exercise target numbers describe lower eyelids',()=>{const d={browL:0,browR:0,lowerL:.01,lowerR:.02,glabella:0};const labels=coach.movementLabels(eyeExercise,d);assert.ok(labels.target.includes('아래 눈꺼풀'));assert.ok(labels.target.includes('+2.0%'));});

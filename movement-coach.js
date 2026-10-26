@@ -136,6 +136,18 @@
     };
   }
 
+  function movementLabels(exercise, delta) {
+    const signed = value => (value >= 0 ? '+' : '') + (value * 100).toFixed(1) + '%';
+    if (exercise?.phase === 'browRaise') return {
+      target: '눈썹 높이 변화 · 화면 왼쪽 ' + signed(delta.browR) + ' / 오른쪽 ' + signed(delta.browL),
+      companion: '미간 간격 변화 · 중립 대비 ' + signed(-delta.glabella)
+    };
+    return {
+      target: '아래 눈꺼풀 변위 · 화면 왼쪽 ' + signed(delta.lowerR) + ' / 오른쪽 ' + signed(delta.lowerL),
+      companion: '눈썹 높이 변화 · 화면 왼쪽 ' + signed(delta.browR) + ' / 오른쪽 ' + signed(delta.browL)
+    };
+  }
+
   function demoExample(exercise, index) {
     const neutral = { browL:0,browR:0,lowerL:0,lowerR:0,upperL:0,upperR:0,glabella:0 };
     if (index === 2) return {label:'얼굴 놓침',lost:true};
@@ -234,8 +246,9 @@
       get('companion').textContent = description.companion;
       get('cue').textContent = description.cue;
       get('forehead').style.opacity = lastExercise && lastExercise.phase === 'browRaise' ? '.18' : '.07';
-      get('lowerNumber').textContent = '아래 눈꺼풀 변위 · 화면 왼쪽 ' + signed(state.delta.lowerR) + ' / 오른쪽 ' + signed(state.delta.lowerL);
-      get('browNumber').textContent = '눈썹 높이 변화 · 화면 왼쪽 ' + signed(state.delta.browR) + ' / 오른쪽 ' + signed(state.delta.browL);
+      const labels = movementLabels(lastExercise, state.delta);
+      get('lowerNumber').textContent = labels.target;
+      get('browNumber').textContent = labels.companion;
     }
     get('calibrate').addEventListener('click', () => { demoIndex = -1; tracker.calibrate(); render({ status: 'calibrating', progress: 0 }, false); });
     const demoCount = 3;
@@ -274,5 +287,5 @@
       destroy() { global.clearInterval(timer); root.replaceChildren(); }
     };
   }
-  global.FaceMovementCoach = { demoExample, geometry, poseUsable, changes, describe, baselineOf, createTracker, mount };
+  global.FaceMovementCoach = { movementLabels, demoExample, geometry, poseUsable, changes, describe, baselineOf, createTracker, mount };
 })(globalThis);
