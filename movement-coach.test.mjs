@@ -135,3 +135,7 @@ test('each side uses its own calibration noise', () => {
   const noise={browL:.006,browR:.03,lowerL:.006,lowerR:.006,upperL:.006,upperR:.006,glabella:.006};
   assert.ok(coach.describe(eyeExercise,d,noise).companion.includes('올라가는'));
 });
+
+test('resistance demo does not demand visible lift or eyelid movement',()=>{const item=coach.demoExample(resistanceExercise,0);assert.equal(item.delta.browL,0);assert.equal(item.delta.lowerL,0);});
+test('brow exercise demo shows glabellar co-movement instead of eye exercise cues',()=>{const item=coach.demoExample(resistanceExercise,1);assert.ok(item.delta.glabella>0);assert.equal(item.delta.lowerL,0);});
+test('all exercise demos have an explicit tracking-lost state',()=>{assert.equal(coach.demoExample(eyeExercise,2).lost,true);assert.equal(coach.demoExample(resistanceExercise,2).lost,true);});

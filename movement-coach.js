@@ -136,6 +136,16 @@
     };
   }
 
+  function demoExample(exercise, index) {
+    const neutral = { browL:0,browR:0,lowerL:0,lowerR:0,upperL:0,upperR:0,glabella:0 };
+    if (index === 2) return {label:'얼굴 놓침',lost:true};
+    if (exercise?.phase === 'browRaise') {
+      if (index === 0) return {label:exercise.id === 'brow_press'?'저항 중 위치 유지':'눈썹 위치 변화',delta:{...neutral,browL:exercise.id === 'brow_press'?0:.035,browR:exercise.id === 'brow_press'?0:.035}};
+      return {label:'미간 동반 움직임',delta:{...neutral,browL:.02,browR:.02,glabella:.05}};
+    }
+    return index === 0 ? {label:'아래 눈꺼풀 움직임',delta:{...neutral,lowerL:.035,lowerR:.035}} : {label:'눈썹 동반 움직임',delta:{...neutral,browL:.065,browR:.055,lowerL:.035,lowerR:.035}};
+  }
+
   const STYLE = `
 .mc-card{--mc-blue:var(--accent2,#818cf8);--mc-mint:var(--accent3,#34d399);--mc-amber:var(--accent4,#fbbf24);padding:16px!important}
 .mc-heading{display:flex;justify-content:space-between;gap:12px;align-items:start}.mc-heading h3{font-size:1rem;margin:0;letter-spacing:-.025em}.mc-heading p{font-size:.7rem;color:var(--dim);margin:4px 0 0}.mc-state{font-size:.65rem;color:var(--mc-blue);text-align:right;max-width:150px}
@@ -215,7 +225,7 @@
         get('browNumber').textContent = '측정값 없음';
         get('target').textContent = state.status === 'calibrating' ? '힘을 빼고 중립 표정으로 1.5초 유지' : '측정 준비';
         get('companion').textContent = state.status === 'calibrating' ? '진행 ' + (state.progress || 0) + '%' : '추적과 기준이 준비되면 상대 위치를 표시합니다';
-        get('cue').textContent = state.status === 'needs_baseline' ? '힘을 뺀 표정에서 중립 기준 설정을 눌러 주세요.' : state.status === 'calibration_retry' ? '기준 측정 중 움직임이 컸어요. 힘을 빼고 잠시 기다려 주세요.' : state.status === 'calibrating' ? '지금은 움직이지 말고 힘을 빼 주세요.' : '얼굴과 자세를 다시 맞춘 뒤 관찰을 이어가세요.';
+        get('cue').textContent = state.status === 'camera_off' ? '평가 탭에서 카메라를 켜거나 도식 체험으로 먼저 살펴보세요.' : state.status === 'needs_baseline' ? '힘을 뺀 표정에서 중립 기준 설정을 눌러 주세요.' : state.status === 'calibration_retry' ? '기준 측정 중 움직임이 컸어요. 힘을 빼고 잠시 기다려 주세요.' : state.status === 'calibrating' ? '지금은 움직이지 말고 힘을 빼 주세요.' : '얼굴과 자세를 다시 맞춘 뒤 관찰을 이어가세요.';
         return;
       }
       draw(state.delta);
@@ -228,15 +238,11 @@
       get('browNumber').textContent = '눈썹 높이 변화 · 화면 왼쪽 ' + signed(state.delta.browR) + ' / 오른쪽 ' + signed(state.delta.browL);
     }
     get('calibrate').addEventListener('click', () => { demoIndex = -1; tracker.calibrate(); render({ status: 'calibrating', progress: 0 }, false); });
-    const demos = [
-      { label: '아래 눈꺼풀 움직임', delta: { browL: 0, browR: 0, lowerL: 0.035, lowerR: 0.035, upperL: 0, upperR: 0, glabella: 0 } },
-      { label: '눈썹 동반 움직임', delta: { browL: 0.065, browR: 0.055, lowerL: 0.035, lowerR: 0.035, upperL: 0, upperR: 0, glabella: 0 } },
-      { label: '얼굴 놓침', lost: true }
-    ];
+    const demoCount = 3;
     get('demo').addEventListener('click', () => {
-      demoIndex = (demoIndex + 1) % (demos.length + 1);
-      if (demoIndex === demos.length) { demoIndex = -1; get('demo').textContent = '도식 체험'; render(tracker.state() || { status: 'camera_off' }, false); return; }
-      const item = demos[demoIndex];
+      demoIndex = (demoIndex + 1) % (demoCount + 1);
+      if (demoIndex === demoCount) { demoIndex = -1; get('demo').textContent = '도식 체험'; render(tracker.state() || { status: 'camera_off' }, false); return; }
+      const item = demoExample(lastExercise, demoIndex);
       get('demo').textContent = '체험: ' + item.label + ' · 다음';
       const state = item.lost ? { status: 'tracking_lost', delta: null } : { status: 'observing', delta: item.delta, description: describe(lastExercise || { phase: 'eyeSquint' }, item.delta, Object.fromEntries(KEYS.map(k => [k, 0.006]))) };
       render(state, true);
@@ -257,12 +263,16 @@
       select(exercise) {
         lastExercise = exercise; const state = tracker.state();
         if (state?.delta) state.description = describe(exercise, state.delta, state.noise);
-        if (demoIndex < 0) render(state || { status: 'camera_off' }, false);
+        if (demoIndex >= 0) {
+          const item = demoExample(exercise, demoIndex);
+          get('demo').textContent = '체험: ' + item.label + ' · 다음';
+          render(item.lost ? {status:'tracking_lost',delta:null} : {status:'observing',delta:item.delta,description:describe(exercise,item.delta,Object.fromEntries(KEYS.map(k=>[k,.006])))}, true);
+        } else render(state || { status: 'camera_off' }, false);
       },
       state() { return tracker.state(); },
       clear() { tracker.clear(); render({ status: 'needs_baseline' }, false); },
       destroy() { global.clearInterval(timer); root.replaceChildren(); }
     };
   }
-  global.FaceMovementCoach = { geometry, poseUsable, changes, describe, baselineOf, createTracker, mount };
+  global.FaceMovementCoach = { demoExample, geometry, poseUsable, changes, describe, baselineOf, createTracker, mount };
 })(globalThis);
