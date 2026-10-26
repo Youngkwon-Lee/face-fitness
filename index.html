@@ -506,6 +506,7 @@ header{
 .compare-snap-label{font-size:.62rem;color:var(--dim);}
 .compare-arrow{font-size:1.2rem;color:var(--accent2);flex-shrink:0;}
 </style>
+<script src="./camera-readiness.js" defer></script>
 </head>
 <body>
 
@@ -1723,15 +1724,30 @@ window.onload = () => {
 async function startCamera() {
   document.getElementById('aCamBtn').disabled = true;
   document.getElementById('aCamBtn').textContent = '로딩 중...';
+  const camBtn = document.getElementById('aCamBtn');
+  camBtn.dataset.cameraStage = 'permission-pending';
+  camBtn.dataset.faceTracked = 'false';
+  const permissionHintTimer = setTimeout(() => {
+    if (camBtn.dataset.cameraStage === 'permission-pending') {
+      camBtn.textContent = '카메라 권한 허용 대기 중...';
+    }
+  }, 3500);
   try {
     const video  = document.getElementById('video');
     const video2 = document.getElementById('video2');
     const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}});
+    clearTimeout(permissionHintTimer);
+    camBtn.dataset.cameraStage = 'initializing';
+    camBtn.textContent = '얼굴 추적 준비 중...';
     camStream = stream;
     video.srcObject = stream;
     video2.srcObject = stream;
-    await new Promise(r => video.onloadedmetadata = r);
-    video.play(); video2.play(); video2.style.display = '';
+    await window.FaceCameraReadiness.waitForMetadata(video);
+    await video.play();
+    // Secondary preview may be hidden or blocked from autoplay on WebKit.
+    // It is not required for primary face landmark tracking to start.
+    void video2.play().catch(() => {});
+    video2.style.display = '';
     
     // Hide offline guide placeholders and trigger fade-in streaming animations
     const og1 = document.getElementById('offlineGuide');
@@ -1765,6 +1781,7 @@ async function startCamera() {
     });
     await loadFM();
     cameraActive = true;
+    camBtn.dataset.cameraStage = 'ready';
     document.getElementById('aCamBtn').textContent = '카메라 ON';
     document.getElementById('aStartBtn').disabled = false;
     document.getElementById('pStartBtn').disabled = false;
@@ -1773,9 +1790,20 @@ async function startCamera() {
     document.getElementById('pFeedback').style.display = '';
     requestAnimationFrame(frameLoop);
   } catch(e) {
-    alert('카메라 접근 실패: ' + e.message);
+    clearTimeout(permissionHintTimer);
+    cameraActive = false;
+    if (camStream) {
+      camStream.getTracks().forEach(track => track.stop());
+      camStream = null;
+    }
+    document.getElementById('video').srcObject = null;
+    document.getElementById('video2').srcObject = null;
+    camBtn.dataset.cameraStage = 'error';
+    camBtn.textContent = '카메라 다시 시도';
+    document.getElementById('camStartHint').textContent =
+      window.FaceCameraReadiness.safeStatusFromError(e);
+    document.getElementById('camStartHint').style.display = '';
     document.getElementById('aCamBtn').disabled = false;
-    document.getElementById('aCamBtn').textContent = '카메라 시작';
   }
 }
 
@@ -1849,7 +1877,10 @@ async function frameLoop() {
   if (fmLoaded && video.readyState >= 2 && video.currentTime !== lastVideoTime) {
     lastVideoTime = video.currentTime;
     await faceMesh.send({image: video});
-    if (lastFaceResults?.multiFaceLandmarks?.[0]) {
+    const facePresent = !!lastFaceResults?.multiFaceLandmarks?.[0];
+    document.getElementById('aCamBtn').dataset.faceTracked = String(facePresent);
+    document.getElementById('aCamBtn').dataset.baselineReady = String(!!blDone);
+    if (facePresent) {
       const lm = lastFaceResults.multiFaceLandmarks[0];
       drawFaceOnBoth(lm);
       analyzeFrame(lm);
