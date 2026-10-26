@@ -1177,7 +1177,7 @@ async function bootstrapPersonalContext() {
 }
 
 async function cloudSaveAssess(payload) {
-  if (!supabaseClient || !currentUser) return;
+  if (assessmentSyntheticQaMode() || !supabaseClient || !currentUser) return;
   const badge = document.getElementById('cloudBadge');
   if (badge) { badge.textContent = '⏳ 저장 중'; badge.className = 'cloud-badge syncing'; }
   try {
@@ -1721,6 +1721,10 @@ window.onload = () => {
 // CAMERA
 // ═══════════════════════════════════════════════════════════
 async function startCamera() {
+  if (assessmentSyntheticQaMode()) {
+    alert('합성 QA 모드에서는 실제 카메라를 사용할 수 없습니다.');
+    return;
+  }
   document.getElementById('aCamBtn').disabled = true;
   document.getElementById('aCamBtn').textContent = '로딩 중...';
   try {
@@ -1781,6 +1785,7 @@ async function startCamera() {
 
 // ── SNAPSHOT HELPERS ──────────────────────────────────────────
 function captureSnapshot() {
+  if (assessmentSyntheticQaMode()) return null;
   const video = document.getElementById('video');
   if (!video || !video.videoWidth) return null;
   try {
@@ -1791,7 +1796,7 @@ function captureSnapshot() {
   } catch(e) { return null; }
 }
 function saveSnapshot(key, dataUrl) {
-  if (!dataUrl || !key) return;
+  if (assessmentSyntheticQaMode() || !dataUrl || !key) return;
   try {
     const snaps = JSON.parse(localStorage.getItem(SNAP_KEY) || '{}');
     snaps[key] = dataUrl;
@@ -2657,8 +2662,101 @@ function renderAssessGrid() {
 
 let assessIdx2 = -1;
 
+// Synthetic QA is only available in locally served or file-based, explicitly opted-in
+// test fixtures. Production URLs and query parameters cannot enable it.
+const ASSESSMENT_MIN_VALID_FRAMES = 20;
+function assessmentSyntheticQaMode() {
+  try {
+    return window.__FACE_FITNESS_SYNTH_QA__ === true &&
+      (location.protocol === 'file:' ||
+        ['localhost', '127.0.0.1'].includes(location.hostname));
+  } catch (_) { return false; }
+}
+
+const assessmentIntervals = new Set();
+const assessmentTimeouts = new Set();
+function assessmentClearTimers() {
+  for (const id of assessmentIntervals) clearInterval(id);
+  for (const id of assessmentTimeouts) clearTimeout(id);
+  assessmentIntervals.clear();
+  assessmentTimeouts.clear();
+}
+function assessmentEvery(fn, ms) {
+  const id = setInterval(fn, ms);
+  assessmentIntervals.add(id);
+  return id;
+}
+function assessmentAfter(fn, ms) {
+  const id = setTimeout(() => { assessmentTimeouts.delete(id); fn(); }, ms);
+  assessmentTimeouts.add(id);
+  return id;
+}
+function assessmentClearInterval(id) {
+  clearInterval(id);
+  assessmentIntervals.delete(id);
+}
+
+// All required scalar values must be finite observations derived from a detected
+// face. No missing keys may be silently coerced to zero and scored as valid.
+function assessmentValidSample(t, sample) {
+  if (!t || !sample || typeof sample !== 'object') return false;
+  const required = [
+    'symScore','earL','earR','relSmileL','relSmileR','relBrowL',
+    'relBrowR','relJaw','corrugator','frontalBrow','platysma'
+  ];
+  const baselineKeys = [
+    'cornerLY','cornerRY','browLY','browRY','mouthH','mouthW',
+    'glabellarD','foreheadY'
+  ];
+  return required.every(key => Number.isFinite(sample[key])) &&
+    (t.id !== 'baseline' || baselineKeys.every(key => Number.isFinite(sample[key]))) &&
+    sample.earL > 0 && sample.earR > 0 &&
+    sample.symScore >= 0 && sample.symScore <= 100;
+}
+function assessmentValidResult(id) {
+  const result = assessResults[id];
+  return !!result && result.n >= ASSESSMENT_MIN_VALID_FRAMES &&
+    ['sym','earL','earR','smileL','smileR','browL','browR','jaw']
+      .every(key => Number.isFinite(result[key])) &&
+    result.earL > 0 && result.earR > 0;
+}
+function assessmentHasCompleteResults() {
+  return ASSESS_TESTS.every(t => assessmentValidResult(t.id));
+}
+
+function assessmentIncomplete(message) {
+  assessmentClearTimers();
+  assessActive = false;
+  assessPhase = 'incomplete';
+  assessIdx2 = -1;
+  assessBuf = [];
+  Object.keys(assessResults).forEach(key => delete assessResults[key]);
+  staticSnapshot = null;
+  Object.keys(zoneScores).forEach(key => { zoneScores[key] = null; });
+  const start = document.getElementById('aStartBtn');
+  if (start) { start.disabled = !(cameraActive && blDone); start.textContent = '측정 다시 시작'; }
+  const skip = document.getElementById('aSkipBtn');
+  if (skip) { skip.style.display = 'none'; skip.disabled = true; }
+  for (const id of ['aTimerCard', 'staticResultCard', 'scanOverlay']) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  }
+  document.getElementById('assessOverlay')?.classList.remove('visible');
+  const badge = document.getElementById('aBadge');
+  if (badge) badge.textContent = message;
+  const tag = document.getElementById('aPhaseTag');
+  if (tag) { tag.textContent = '평가 미완료 · 점수/저장 없음'; tag.style.color = 'var(--danger)'; }
+  renderAssessGrid();
+}
+
 function startStaticPhase() {
+  if (assessPhase === 'static' || assessPhase === 'dynamic') return;
   if (!cameraActive || !blDone) { alert('기준값 측정 중입니다. 잠시 기다리세요.'); return; }
+  assessmentClearTimers();
+  staticSnapshot = null;
+  document.getElementById('assessOverlay')?.classList.remove('visible');
+  Object.keys(zoneScores).forEach(key => { zoneScores[key] = null; });
+  if (assessmentSyntheticQaMode()) document.body.dataset.assessmentQa = 'synthetic-no-media-no-storage';
   Object.keys(assessResults).forEach(k => delete assessResults[k]);
   assessIdx2 = 0;
   assessPhase = 'static';
@@ -2676,6 +2774,11 @@ function startStaticPhase() {
 }
 
 function startDynamicPhase() {
+  if (assessPhase !== 'static-done' || !assessmentValidResult('baseline')) {
+    alert('유효한 정적 평가가 완료된 경우에만 동적 평가를 시작할 수 있습니다.');
+    return;
+  }
+  assessmentClearTimers();
   assessIdx2 = 1;
   assessPhase = 'dynamic';
   document.getElementById('staticResultCard').style.display = 'none';
@@ -2690,6 +2793,7 @@ function startDynamicPhase() {
 }
 
 function runAssessTest() {
+  if (assessPhase !== 'static' && assessPhase !== 'dynamic') return;
   // Phase boundary: static phase stops after baseline (idx 1)
   if (assessPhase === 'static' && assessIdx2 >= 1) { finishStaticPhase(); return; }
   // Dynamic phase ends when all tests done
@@ -2697,7 +2801,8 @@ function runAssessTest() {
   const t = ASSESS_TESTS[assessIdx2];
   updateActiveGuideImage('assess', t.id);
   assessBuf = [];
-  assessActive = true;
+  // Countdown frames are not part of the measurement window.
+  assessActive = false;
 
   // Highlight current card
   document.querySelectorAll('.assess-card').forEach((c,i) => {
@@ -2728,10 +2833,10 @@ function runAssessTest() {
 
   document.getElementById('aTimer').textContent = '3';
   playTick();
-  const cdInt = setInterval(() => {
+  const cdInt = assessmentEvery(() => {
     cd--;
     if (cd <= 0) {
-      clearInterval(cdInt);
+      assessmentClearInterval(cdInt);
       if (scanRingArc) scanRingArc.style.transition = 'none';
       if (scanOverlay) scanOverlay.style.display = 'none';
       playGo();
@@ -2749,6 +2854,9 @@ function runAssessTest() {
 }
 
 function doAssessTest(t) {
+  if (assessPhase !== 'static' && assessPhase !== 'dynamic') return;
+  assessBuf = [];
+  assessActive = true;
   const dur = t.duration * 1000;
   const start = Date.now();
   
@@ -2763,7 +2871,7 @@ function doAssessTest(t) {
   }
 
   document.getElementById('aProgress').style.width = '0%';
-  const iv = setInterval(() => {
+  const iv = assessmentEvery(() => {
     const el = Date.now() - start;
     const pct = Math.min(100, (el/dur)*100);
     const rem = Math.ceil((dur-el)/1000);
@@ -2777,28 +2885,35 @@ function doAssessTest(t) {
     }
 
     if (el >= dur) {
-      clearInterval(iv);
+      assessmentClearInterval(iv);
       if (scanOverlay) scanOverlay.style.display = 'none';
       assessActive = false;
-      assessResults[t.id] = computeAssessMetrics(t, [...assessBuf]);
+      const validSamples = assessBuf.filter(sample => assessmentValidSample(t, sample));
+      if (validSamples.length < ASSESSMENT_MIN_VALID_FRAMES) {
+        assessmentIncomplete(t.name + ': 유효한 측정 프레임이 부족합니다. 다시 평가하세요.');
+        return;
+      }
+      const measured = computeAssessMetrics(t, validSamples);
+      if (!measured || measured.n < ASSESSMENT_MIN_VALID_FRAMES) {
+        assessmentIncomplete(t.name + ': 측정값을 확인할 수 없습니다. 다시 평가하세요.');
+        return;
+      }
+      assessResults[t.id] = measured;
       document.getElementById('ac_'+t.id).classList.remove('active');
       document.getElementById('ac_'+t.id).classList.add('done');
       document.getElementById('ac_'+t.id).innerHTML =
         `<div class="ac-icon">${iconHTML(t.icon, '', 28, 'inline-icon')}</div><div class="ac-name">${t.name}</div><div class="ac-score" style="color:var(--accent3)">✓</div>`;
       assessIdx2++;
       playNextTest();
-      setTimeout(runAssessTest, 800);
+      assessmentAfter(runAssessTest, 800);
     }
   }, 100);
 }
 
 function skipTest() {
-  const scanOverlay = document.getElementById('scanOverlay');
-  if (scanOverlay) scanOverlay.style.display = 'none';
-  assessActive = false;
-  assessResults[ASSESS_TESTS[assessIdx2].id] = null;
-  assessIdx2++;
-  setTimeout(runAssessTest, 300);
+  // A skipped test is incomplete, not a successful low/zero score.
+  if (assessPhase !== 'static' && assessPhase !== 'dynamic') return;
+  assessmentIncomplete('측정 항목을 건너뛰었습니다. 점수 없이 다시 시작하세요.');
 }
 
 // Backward-compat alias (old onclick references)
@@ -2839,9 +2954,14 @@ function computeAssessMetrics(t, buf) {
 }
 
 function finishStaticPhase() {
+  if (assessPhase !== 'static' || assessIdx2 < 1 || !assessmentValidResult('baseline')) {
+    assessmentIncomplete('정적 기준 측정이 충분하지 않습니다. 다시 평가하세요.');
+    return;
+  }
+  assessmentClearTimers();
   assessActive = false;
   assessPhase = 'static-done';
-  staticSnapshot = captureSnapshot();
+  staticSnapshot = assessmentSyntheticQaMode() ? null : captureSnapshot();
   document.getElementById('aTimerCard').style.display = 'none';
   document.getElementById('aSkipBtn').style.display = 'none';
   document.getElementById('aBadge').textContent = '정적 평가 완료';
@@ -2927,6 +3047,11 @@ function showStaticResult() {
 }
 
 function finishDynamicPhase() {
+  if (assessPhase !== 'dynamic' || assessIdx2 < ASSESS_TESTS.length || !assessmentHasCompleteResults()) {
+    assessmentIncomplete('동적 측정값이 누락됐습니다. 점수 없이 다시 평가하세요.');
+    return;
+  }
+  assessmentClearTimers();
   assessActive = false;
   assessPhase = 'done';
   document.getElementById('aStartBtn').disabled = false;
@@ -3903,6 +4028,8 @@ function buildMeasurementFeatures() {
 }
 
 function saveAssessToHistory() {
+  // Do not permit direct/inadvertent persistence from an incomplete assessment.
+  if (assessmentSyntheticQaMode() || assessPhase !== 'done' || !assessmentHasCompleteResults()) return;
   const bl = assessResults['baseline'];
   const avgScore = Math.round(Object.values(zoneScores).filter(v=>v!==null).reduce((a,b)=>a+b,0) /
     Object.values(zoneScores).filter(v=>v!==null).length || 0);
