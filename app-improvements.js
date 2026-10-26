@@ -44,6 +44,8 @@
     coach?.select(ex);
   }
   function readHistory() {
+    // QA mode must not even read another user's device records.
+    if (assessmentIOBlocked()) return { assess: [], exercise: [] };
     const hist = JSON.parse(localStorage.getItem(HIST_KEY) || '{"assess":[],"exercise":[]}');
     if (!Array.isArray(hist.assess) || !Array.isArray(hist.exercise)) throw new Error('Invalid local history');
     return hist;
@@ -53,6 +55,7 @@
     return !!currentUser && record._cloudOwner === currentUser.id;
   }
   function updateStoredRecord(localId, patch) {
+    if (assessmentIOBlocked()) return false;
     const hist = readHistory();
     const record = hist.exercise.find(r => r.localId === localId);
     if (!record) return false;
@@ -64,17 +67,16 @@
     if (document.getElementById('screen-history')?.classList.contains('active')) renderHistory();
   }
 
-  const oldLoadFM = loadFM;
-  window.loadFM = async function () {
-    await oldLoadFM();
-    // The host already uses onResults solely to retain its latest result.
-    // Keep that behavior and add a monotonic freshness timestamp, no export.
-    if (faceMesh) faceMesh.onResults(r => { lastFaceResults = r; resultAt = performance.now(); });
-  };
+  // PR #5 owns FaceMesh.onResults to enforce callback freshness and 1:1 checks.
+  // Do not replace it for coach telemetry. Observe only a verified new sequence.
   const oldFrameLoop = frameLoop;
   window.frameLoop = async function () {
+    const priorResultSequence = faceResultSequence;
     try { await oldFrameLoop(); }
     finally {
+      if (cameraActive && faceResultSequence === priorResultSequence + 1) {
+        resultAt = performance.now();
+      }
       const video = document.getElementById('video');
       coachState = coach?.update({
         time: performance.now(), resultTime: resultAt, cameraActive,
@@ -95,7 +97,7 @@
   };
   const oldStartExercise = startExercise;
   window.startExercise = function () {
-    if (!cameraActive || exState !== 'idle') return;
+    if (assessmentIOBlocked() || !cameraActive || exState !== 'idle') return;
     const state = coach?.state();
     if (supported(current()) && (!state || state.status !== 'observing' || performance.now() - resultAt > 600)) {
       alert('얼굴을 정면에 맞추고 페이스 코치의 중립 기준을 먼저 설정해 주세요.');
@@ -167,6 +169,7 @@
   };
 
   window.bootstrapPersonalContext = async function () {
+    if (assessmentIOBlocked()) return { personId: null, orgId: null };
     if (!supabaseClient || !currentUser) throw new Error('Authentication required');
     const owner = currentUser.id;
     if (_personId && _orgId && contextOwner === owner) return { personId: _personId, orgId: _orgId };
@@ -180,6 +183,7 @@
     return { personId: _personId, orgId: _orgId };
   };
   window.cloudSaveExercise = async function (payload) {
+    if (assessmentIOBlocked()) return { status: 'failed', code: 'qa_blocked' };
     if (!supabaseClient || !currentUser) return { status: 'local_only', code: 'no_user' };
     const user = { id: currentUser.id };
     const epoch = authEpoch;
@@ -191,6 +195,7 @@
     return globalThis.FaceExerciseCloud.save({ client: supabaseClient, user, context, payload, isCurrent: () => currentUser?.id === user.id && authEpoch === epoch });
   };
   window.saveExToHistory = function (score) {
+    if (assessmentIOBlocked()) return Promise.resolve({ status: 'failed', code: 'qa_blocked' });
     const ex = current();
     const localId = globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2);
     const userId = currentUser?.id || null;
@@ -247,7 +252,7 @@
   };
 
   window.syncCloudHistory = async function () {
-    if (!supabaseClient || !currentUser) return;
+    if (assessmentIOBlocked() || !supabaseClient || !currentUser) return;
     const owner = currentUser.id;
     const badge = document.getElementById('cloudBadge');
     if (badge) { badge.textContent = '서버 기록 확인 중'; badge.className = 'cloud-badge syncing'; }
@@ -315,12 +320,14 @@
 
   globalThis.FaceHistoryView = Object.freeze({
     read() {
+      if (assessmentIOBlocked()) return { assess: [], exercise: [] };
       try { const hist = readHistory(); return { assess: hist.assess.filter(visibleRecord), exercise: hist.exercise.filter(visibleRecord) }; }
       catch (_) { return { assess: [], exercise: [] }; }
     }
   });
   const oldRenderHistory = renderHistory;
   window.renderHistory = function () {
+    if (assessmentIOBlocked()) return;
     oldRenderHistory();
     const target=document.getElementById('histFFI');
     if(!target)return;

@@ -513,6 +513,7 @@ header{
 <script src="./camera-readiness.js" defer></script>
 </head>
 <body>
+<div id="assessmentSafetyStatus" role="status" hidden style="padding:12px;border:2px solid #fbbf24;text-align:center;"></div>
 
 <header>
   <div>
@@ -584,7 +585,7 @@ header{
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <button class="btn btn-primary" id="aCamBtn" onclick="startCamera()">카메라 시작</button>
         <button class="btn btn-grad" id="aStartBtn" onclick="startStaticPhase()" disabled>Phase 1 정적 평가</button>
-        <button class="btn btn-secondary" id="aSkipBtn" onclick="skipTest()" disabled style="display:none">건너뛰기</button>
+        <button class="btn btn-secondary" id="aSkipBtn" onclick="skipTest()" disabled style="display:none">평가 중단</button>
         <span id="aPhaseTag" style="font-size:.65rem;color:var(--dim);display:none;"></span>
       </div>
 
@@ -997,7 +998,7 @@ header{
     <div class="oc-sub" id="aoSub">FFI 기준 점수 측정 완료</div>
     <div id="aoResults"></div>
     <div style="margin-top:16px;padding:12px;background:rgba(244,114,182,.08);border-radius:8px;border-left:3px solid var(--accent);">
-      <div style="font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:6px;">맞춤 프로그램 처방</div>
+      <div style="font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:6px;"><span id="assessPrescriptionTitle">맞춤 프로그램 처방</span></div>
       <div id="aoPrescription" style="font-size:.78rem;color:var(--text);line-height:1.7;"></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:14px;">
@@ -1036,10 +1037,18 @@ header{
   <button class="btn btn-secondary" style="width:100%;font-size:.75rem;padding:7px;margin-top:4px;text-align:left;color:var(--danger);" onclick="signOut()">로그아웃</button>
 </div>
 
+<script src="./assessment-safety.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 <script>
+// Explicit opt-in, immutable for this page. No synthetic data is injected into the app.
+const AssessmentSafety = window.FaceAssessmentSafety;
+const ASSESSMENT_QA = new URLSearchParams(window.location.search).get('assessmentQA') === '1';
+function assessmentSafetyAvailable() {
+  return !!AssessmentSafety && ['baselineReady','validateSamples','validResult','complete','baselineSignature'].every(key => typeof AssessmentSafety[key] === 'function') && Number.isFinite(AssessmentSafety.MAX_BASELINE_AGE_MS);
+}
+function assessmentIOBlocked() { return !assessmentSafetyAvailable() || ASSESSMENT_QA; }
 // ═══════════════════════════════════════════════════════════
 // SUPABASE AUTH + CLOUD PERSISTENCE
 // Core tables (physio_app schema):
@@ -1058,6 +1067,7 @@ let _personId      = null; // cached persons.id for current auth user
 let _orgId         = null; // cached organization_id (personal solo org) for current auth user
 
 function initSupabase() {
+  if (assessmentIOBlocked()) return;
   try {
     if (!window.supabase) { console.warn('[Supabase] SDK not loaded'); return; }
     if (SUPABASE_ANON_KEY === 'YOUR_ANON_KEY') { console.warn('[Supabase] Set SUPABASE_ANON_KEY'); return; }
@@ -1098,6 +1108,7 @@ function _updateAuthUI() {
 
 // ── AUTH MODAL ─────────────────────────────────────────────
 function openAuthModal() {
+  if (assessmentIOBlocked()) return;
   document.getElementById('authModal').style.display = 'flex';
   document.getElementById('authEmail').focus();
   _setAuthMsg('', '');
@@ -1120,6 +1131,7 @@ function _setAuthMsg(msg, type) {
   el.style.display = '';
 }
 async function submitAuth() {
+  if (assessmentIOBlocked()) return;
   if (!supabaseClient) { _setAuthMsg('Supabase 미초기화 — SUPABASE_ANON_KEY를 설정하세요.', 'error'); return; }
   const email = document.getElementById('authEmail').value.trim();
   const pw    = document.getElementById('authPw').value;
@@ -1144,6 +1156,7 @@ async function submitAuth() {
   btn.textContent = _authTab === 'login' ? '로그인' : '회원가입';
 }
 async function signInGoogle() {
+  if (assessmentIOBlocked()) return;
   if (!supabaseClient) { _setAuthMsg('Supabase 미초기화.', 'error'); return; }
   const { error } = await supabaseClient.auth.signInWithOAuth({
     provider: 'google',
@@ -1152,6 +1165,7 @@ async function signInGoogle() {
   if (error) _setAuthMsg(error.message, 'error');
 }
 async function signOut() {
+  if (assessmentIOBlocked()) return;
   closeUserMenu();
   if (supabaseClient) await supabaseClient.auth.signOut();
   currentUser = null; _personId = null; _orgId = null;
@@ -1167,6 +1181,7 @@ document.addEventListener('click', e => {
 // Idempotent bootstrap — creates persons + personal org if needed.
 // Returns { personId, orgId } for use in all subsequent inserts.
 async function bootstrapPersonalContext() {
+  if (assessmentIOBlocked()) return { personId: null, orgId: null };
   if (_personId && _orgId) return { personId: _personId, orgId: _orgId };
   if (!supabaseClient || !currentUser) return { personId: null, orgId: null };
   try {
@@ -1185,11 +1200,17 @@ async function bootstrapPersonalContext() {
 }
 
 async function cloudSaveAssess(payload) {
+  if (assessmentIOBlocked() || assessPhase !== 'done' || !assessmentComplete() || !assessmentScoresReady() || assessmentPayloadGeneration.get(payload) !== assessGeneration) return;
   if (!supabaseClient || !currentUser) return;
+  const generation = assessGeneration, owner = currentUser.id;
   const badge = document.getElementById('cloudBadge');
   if (badge) { badge.textContent = '⏳ 저장 중'; badge.className = 'cloud-badge syncing'; }
   try {
     const { personId, orgId } = await bootstrapPersonalContext();
+    if (generation !== assessGeneration || currentUser?.id !== owner || !assessmentComplete() || !assessmentScoresReady() || assessPhase !== 'done') {
+      if (badge) { badge.textContent = '서버 저장 중단 · 평가/계정 변경'; badge.className = 'cloud-badge local'; }
+      return;
+    }
     const mf    = payload.measurement_features || {};
     const zones = payload.zones || {};
     const earL  = payload.earL || 0, earR = payload.earR || 0;
@@ -1237,6 +1258,7 @@ async function cloudSaveAssess(payload) {
 }
 
 async function cloudSaveExercise(payload) {
+  if (assessmentIOBlocked()) return;
   if (!supabaseClient || !currentUser) return;
   try {
     const { personId } = await bootstrapPersonalContext();
@@ -1275,6 +1297,7 @@ async function cloudSaveExercise(payload) {
 }
 
 async function syncCloudHistory() {
+  if (assessmentIOBlocked()) return;
   if (!supabaseClient || !currentUser) return;
   const badge = document.getElementById('cloudBadge');
   if (badge) { badge.textContent = '⏳ 동기화'; badge.className = 'cloud-badge syncing'; }
@@ -1634,6 +1657,7 @@ let audioCtx = null;
 let voiceOn = true;
 function getAC() { return audioCtx || (audioCtx = new (window.AudioContext||window.webkitAudioContext)()); }
 function beep(freq=660, dur=0.1, type='sine', vol=0.28) {
+  if (assessmentIOBlocked()) return;
   try {
     const ac=getAC(), osc=ac.createOscillator(), g=ac.createGain();
     osc.connect(g); g.connect(ac.destination);
@@ -1651,6 +1675,7 @@ function playNextTest() { beep(550,0.12); setTimeout(()=>beep(660,0.14),130); }
 
 let _lastSpoke = '';
 function speak(text) {
+  if (assessmentIOBlocked()) return;
   if (!voiceOn || !window.speechSynthesis || text===_lastSpoke) return;
   _lastSpoke = text;
   setTimeout(()=>{ _lastSpoke=''; }, 2500);
@@ -1685,6 +1710,7 @@ let exSetNum = 0, exTimer = null, exStartTime = 0;
 const exMeasureBuf = [];
 const exScores = {}; // ex.id -> score
 let lastFaceResults = null;
+let faceResultSequence = 0, faceResultAt = null, faceTrackingEpoch = 0;
 let seqMode = false, seqIdx = 0;
 
 // Assessment zone scores (0-100)
@@ -1719,6 +1745,13 @@ function showScreen(id) {
 // INIT
 // ═══════════════════════════════════════════════════════════
 window.onload = () => {
+  const status = document.getElementById('assessmentSafetyStatus');
+  if (assessmentIOBlocked()) {
+    status.hidden = false;
+    status.textContent = ASSESSMENT_QA ? 'QA ONLY · 촬영·스냅샷·로그인·기록 조회/저장 차단 · 합성 fixture 전용, 임상 평가 아님' : '안전성 모듈 로드 실패 · 촬영 및 저장 차단';
+    document.getElementById('aCamBtn').disabled = true;
+    document.getElementById('authBtn').disabled = true;
+  }
   initSupabase();
   initStaticSvgUI();
   renderAssessGrid();
@@ -1729,6 +1762,7 @@ window.onload = () => {
 // CAMERA
 // ═══════════════════════════════════════════════════════════
 async function startCamera() {
+  if (assessmentIOBlocked()) return;
   document.getElementById('aCamBtn').disabled = true;
   document.getElementById('aCamBtn').textContent = '로딩 중...';
   const camBtn = document.getElementById('aCamBtn');
@@ -1816,6 +1850,7 @@ async function startCamera() {
 
 // ── SNAPSHOT HELPERS ──────────────────────────────────────────
 function captureSnapshot() {
+  if (assessmentIOBlocked()) return null;
   const video = document.getElementById('video');
   if (!video || !video.videoWidth) return null;
   try {
@@ -1826,6 +1861,7 @@ function captureSnapshot() {
   } catch(e) { return null; }
 }
 function saveSnapshot(key, dataUrl) {
+  if (assessmentIOBlocked()) return;
   if (!dataUrl || !key) return;
   try {
     const snaps = JSON.parse(localStorage.getItem(SNAP_KEY) || '{}');
@@ -1836,6 +1872,7 @@ function saveSnapshot(key, dataUrl) {
   } catch(e) { /* storage full */ }
 }
 function getSnapshot(key) {
+  if (assessmentIOBlocked()) return null;
   try {
     return JSON.parse(localStorage.getItem(SNAP_KEY) || '{}')[key] || null;
   } catch(e) { return null; }
@@ -1868,30 +1905,62 @@ function resizeCanvases() {
 }
 
 async function loadFM() {
+  if (assessmentIOBlocked()) return;
   if (fmLoaded || fmLoading) return;
   fmLoading = true;
   faceMesh = new FaceMesh({locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
   faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5, minTrackingConfidence:0.5});
-  faceMesh.onResults(r => lastFaceResults = r);
+  const model = faceMesh, epoch = ++faceTrackingEpoch;
+  faceMesh.onResults(r => {
+    if (epoch !== faceTrackingEpoch || model !== faceMesh) return;
+    lastFaceResults = r;
+    faceResultAt = Date.now();
+    faceResultSequence++;
+  });
   await faceMesh.initialize();
   fmLoaded = true; fmLoading = false;
 }
 
 let lastVideoTime = -1;
 async function frameLoop() {
+  if (assessmentIOBlocked()) return;
   if (!cameraActive) return;
   const video = document.getElementById('video');
   if (fmLoaded && video.readyState >= 2 && video.currentTime !== lastVideoTime) {
     lastVideoTime = video.currentTime;
-    await faceMesh.send({image: video});
+    const before = faceResultSequence;
+    let callbackValid = false;
+    try {
+      await faceMesh.send({image: video});
+      callbackValid = faceResultSequence === before + 1;
+    } catch (_) {
+      // SDK failures must not leave an active stream with stale tracked values.
+      callbackValid = false;
+    }
+    if (!callbackValid) {
+      // A stale, missing, duplicated, late or rejected frame must not be measured.
+      faceTrackingEpoch++; cameraActive = false; fmLoaded = false; lastFaceResults = null;
+      if (camStream) camStream.getTracks().forEach(track => track.stop());
+      camStream = null;
+      video.srcObject = null; document.getElementById('video2').srcObject = null;
+      const button = document.getElementById('aCamBtn');
+      button.disabled = false;
+      button.textContent = '추적 중단 · 카메라 다시 시작';
+      button.dataset.cameraStage = 'tracking-lost';
+      button.dataset.faceTracked = 'false';
+      button.dataset.baselineReady = 'false';
+      blockAssessment('새 프레임 결과 확인 실패');
+      return;
+    }
     const facePresent = !!lastFaceResults?.multiFaceLandmarks?.[0];
-    document.getElementById('aCamBtn').dataset.faceTracked = String(facePresent);
-    document.getElementById('aCamBtn').dataset.baselineReady = String(!!blDone);
+    const button = document.getElementById('aCamBtn');
+    button.dataset.faceTracked = String(facePresent);
     if (facePresent) {
       const lm = lastFaceResults.multiFaceLandmarks[0];
       drawFaceOnBoth(lm);
-      analyzeFrame(lm);
+      analyzeFrame(lm, faceResultAt);
     }
+    button.dataset.baselineReady = String(!!blDone);
   }
   requestAnimationFrame(frameLoop);
 }
@@ -2364,7 +2433,8 @@ function drawFaceOnCanvas(canvasId, lm) {
 function fD(lm,a,b){const dx=lm[a].x-lm[b].x,dy=lm[a].y-lm[b].y;return Math.sqrt(dx*dx+dy*dy);}
 
 const metrics = {};
-function analyzeFrame(lm) {
+function analyzeFrame(lm, sampleAt) {
+  if (assessmentIOBlocked() || !Number.isFinite(sampleAt) || sampleAt > Date.now() || Date.now() - sampleAt > 1000) return;
   // EAR
   metrics.earL = (fD(lm,160,144)+fD(lm,158,153))/(2*fD(lm,33,133)+1e-5);
   metrics.earR = (fD(lm,387,373)+fD(lm,385,380))/(2*fD(lm,263,362)+1e-5);
@@ -2450,7 +2520,7 @@ function analyzeFrame(lm) {
     updateLiveUI();
     updateCompensatorUI();
 
-    if (assessActive) assessBuf.push({...metrics});
+    if (assessActive) assessBuf.push({...metrics, _sampleAt: sampleAt});
     if (exState === 'running') exMeasureBuf.push({...metrics});
   }
 }
@@ -2694,10 +2764,71 @@ function renderAssessGrid() {
 }
 
 let assessIdx2 = -1;
+const assessValidated = new Set();
+const assessmentPayloadGeneration = new WeakMap();
+let assessStaticAt = null, assessBaselineSignature = null;
+function assessmentStaticReady(reserveMs = 0) {
+  return assessmentSafetyAvailable() && assessStaticAt !== null && Date.now() >= assessStaticAt && Date.now() - assessStaticAt + reserveMs <= AssessmentSafety.MAX_BASELINE_AGE_MS &&
+    assessBaselineSignature === AssessmentSafety.baselineSignature(BL) && assessValidated.has('baseline') &&
+    AssessmentSafety.validResult(assessResults.baseline) && AssessmentSafety.baselineReady(BL, blDone);
+}
+function clearAssessmentData() {
+  assessValidated.clear();
+  assessStaticAt = null; assessBaselineSignature = null;
+  Object.keys(assessResults).forEach(k => delete assessResults[k]);
+  Object.keys(zoneScores).forEach(k => zoneScores[k] = null);
+  recommendedEx.length = 0; priorityZones.length = 0;
+  EXERCISES.forEach(ex => { ex.priority = false; ex.recommendReason = null; ex.recommendUrgent = false; });
+  document.getElementById('aoResults').innerHTML = '';
+  document.getElementById('aoPrescription').innerHTML = '';
+  document.getElementById('staticResultContent').innerHTML = '';
+  staticSnapshot = null;
+}
+let assessGeneration = 0, assessTaskToken = 0, activeAssessTask = null;
+const assessTimers = new Set();
+function clearAssessTimer(id) { clearTimeout(id); clearInterval(id); assessTimers.delete(id); }
+function cancelAssessTimers() { assessGeneration++; assessTaskToken++; activeAssessTask = null; [...assessTimers].forEach(clearAssessTimer); }
+function scheduleAssess(fn, delay, repeat = false) {
+  const generation = assessGeneration;
+  let id;
+  const callback = () => {
+    if (generation !== assessGeneration) return;
+    if (!repeat) assessTimers.delete(id);
+    fn();
+  };
+  id = repeat ? setInterval(callback, delay) : setTimeout(callback, delay);
+  assessTimers.add(id);
+  return id;
+}
+function assessmentScoresReady() {
+  return ['upper','mid','lower','neck'].every(key => Number.isFinite(zoneScores[key]) && zoneScores[key] >= 0 && zoneScores[key] <= 100);
+}
+function assessmentComplete() {
+  return assessmentStaticReady() && AssessmentSafety.complete(assessResults, assessValidated, BL, blDone);
+}
+function blockAssessment(message) {
+  cancelAssessTimers();
+  assessActive = false;
+  assessPhase = 'blocked';
+  clearAssessmentData();
+  document.getElementById('staticResultCard').style.display = 'none';
+  document.getElementById('assessOverlay').classList.remove('visible');
+  document.getElementById('aTimerCard').style.display = 'none';
+  document.getElementById('scanOverlay').style.display = 'none';
+  document.getElementById('aSkipBtn').style.display = 'none';
+  document.getElementById('aStartBtn').disabled = assessmentIOBlocked() || !cameraActive;
+  document.getElementById('aStartBtn').textContent = '평가 다시 시작';
+  document.getElementById('aBadge').textContent = '평가 차단 · ' + message;
+  document.getElementById('aPhaseTag').textContent = '미완료 · 결과/점수/저장 없음';
+  renderAssessGrid();
+  return false;
+}
 
 function startStaticPhase() {
-  if (!cameraActive || !blDone) { alert('기준값 측정 중입니다. 잠시 기다리세요.'); return; }
-  Object.keys(assessResults).forEach(k => delete assessResults[k]);
+  if (!assessmentSafetyAvailable() || !cameraActive || !AssessmentSafety.baselineReady(BL, blDone)) return blockAssessment('유효한 기준값 필요');
+  cancelAssessTimers();
+  clearAssessmentData();
+  document.getElementById('assessOverlay').classList.remove('visible');
   assessIdx2 = 0;
   assessPhase = 'static';
   document.getElementById('aStartBtn').disabled = true;
@@ -2714,6 +2845,9 @@ function startStaticPhase() {
 }
 
 function startDynamicPhase() {
+  const reserveMs = ASSESS_TESTS.slice(1).reduce((sum, test) => sum + test.duration + 3.8, 0) * 1000;
+  if (!cameraActive || assessPhase !== 'static-done' || !assessmentStaticReady(reserveMs)) return blockAssessment('최근 Phase 1 완료 및 동일한 유효 기준값 필요');
+  cancelAssessTimers();
   assessIdx2 = 1;
   assessPhase = 'dynamic';
   document.getElementById('staticResultCard').style.display = 'none';
@@ -2728,14 +2862,18 @@ function startDynamicPhase() {
 }
 
 function runAssessTest() {
+  if (!['static','dynamic'].includes(assessPhase)) return;
+  if (activeAssessTask) return blockAssessment('중복 과제 시작 차단');
   // Phase boundary: static phase stops after baseline (idx 1)
   if (assessPhase === 'static' && assessIdx2 >= 1) { finishStaticPhase(); return; }
   // Dynamic phase ends when all tests done
   if (assessIdx2 >= ASSESS_TESTS.length) { finishDynamicPhase(); return; }
   const t = ASSESS_TESTS[assessIdx2];
+  const taskToken = ++assessTaskToken;
+  activeAssessTask = { token: taskToken, test: t, stage: 'countdown' };
   updateActiveGuideImage('assess', t.id);
   assessBuf = [];
-  assessActive = true;
+  assessActive = false; // Countdown is not measurement data.
 
   // Highlight current card
   document.querySelectorAll('.assess-card').forEach((c,i) => {
@@ -2766,14 +2904,14 @@ function runAssessTest() {
 
   document.getElementById('aTimer').textContent = '3';
   playTick();
-  const cdInt = setInterval(() => {
+  const cdInt = scheduleAssess(() => {
     cd--;
     if (cd <= 0) {
-      clearInterval(cdInt);
+      clearAssessTimer(cdInt);
       if (scanRingArc) scanRingArc.style.transition = 'none';
       if (scanOverlay) scanOverlay.style.display = 'none';
       playGo();
-      doAssessTest(t);
+      doAssessTest(t, taskToken);
     } else {
       playTick();
       if (scanOverlayText) scanOverlayText.textContent = cd;
@@ -2783,10 +2921,14 @@ function runAssessTest() {
         scanRingArc.style.strokeDashoffset = (RING_LEN * (1 - cd / CD_TOTAL)).toString();
       }
     }
-  }, 1000);
+  }, 1000, true);
 }
 
-function doAssessTest(t) {
+function doAssessTest(t, taskToken) {
+  if (!['static','dynamic'].includes(assessPhase) || ASSESS_TESTS[assessIdx2] !== t || activeAssessTask?.token !== taskToken || activeAssessTask?.stage !== 'countdown') return blockAssessment('과제 상태 불일치');
+  activeAssessTask.stage = 'recording';
+  assessBuf = [];
+  assessActive = true;
   const dur = t.duration * 1000;
   const start = Date.now();
   
@@ -2801,7 +2943,8 @@ function doAssessTest(t) {
   }
 
   document.getElementById('aProgress').style.width = '0%';
-  const iv = setInterval(() => {
+  const iv = scheduleAssess(() => {
+    if (activeAssessTask?.token !== taskToken || activeAssessTask?.stage !== 'recording') return blockAssessment('과제 세대 불일치');
     const el = Date.now() - start;
     const pct = Math.min(100, (el/dur)*100);
     const rem = Math.ceil((dur-el)/1000);
@@ -2815,35 +2958,38 @@ function doAssessTest(t) {
     }
 
     if (el >= dur) {
-      clearInterval(iv);
+      clearAssessTimer(iv);
       if (scanOverlay) scanOverlay.style.display = 'none';
       assessActive = false;
-      assessResults[t.id] = computeAssessMetrics(t, [...assessBuf]);
+      const validation = assessmentSafetyAvailable() ? AssessmentSafety.validateSamples(t, assessBuf, Date.now()) : null;
+      if (!validation?.ok) return blockAssessment('측정 데이터 불충분: ' + (validation?.code || 'safety_unavailable'));
+      const result = computeAssessMetrics(t, [...assessBuf]);
+      if (!AssessmentSafety.validResult(result)) return blockAssessment('유효하지 않은 측정 결과');
+      assessResults[t.id] = result;
+      assessValidated.add(t.id);
+      if (t.id === 'baseline') {
+        assessStaticAt = assessBuf[assessBuf.length - 1]._sampleAt;
+        assessBaselineSignature = AssessmentSafety.baselineSignature(BL);
+      }
       document.getElementById('ac_'+t.id).classList.remove('active');
       document.getElementById('ac_'+t.id).classList.add('done');
       document.getElementById('ac_'+t.id).innerHTML =
         `<div class="ac-icon">${iconHTML(t.icon, '', 28, 'inline-icon')}</div><div class="ac-name">${t.name}</div><div class="ac-score" style="color:var(--accent3)">✓</div>`;
+      activeAssessTask = null;
       assessIdx2++;
       playNextTest();
-      setTimeout(runAssessTest, 800);
+      scheduleAssess(runAssessTest, 800);
     }
-  }, 100);
+  }, 100, true);
 }
 
-function skipTest() {
-  const scanOverlay = document.getElementById('scanOverlay');
-  if (scanOverlay) scanOverlay.style.display = 'none';
-  assessActive = false;
-  assessResults[ASSESS_TESTS[assessIdx2].id] = null;
-  assessIdx2++;
-  setTimeout(runAssessTest, 300);
-}
+function skipTest() { return blockAssessment('필수 과제 건너뜀 · 처음부터 다시 평가하세요'); }
 
 // Backward-compat alias (old onclick references)
 const startAssessment = startStaticPhase;
 
 function computeAssessMetrics(t, buf) {
-  if (!buf.length) return null;
+  if (!assessmentSafetyAvailable() || !AssessmentSafety.validateSamples(t, buf, Date.now()).ok) return null;
   const avg = key => buf.reduce((a,b)=>(a+(b[key]||0)),0)/buf.length;
   const maxVal = key => Math.max(...buf.map(b=>b[key]||0));
 
@@ -2877,9 +3023,10 @@ function computeAssessMetrics(t, buf) {
 }
 
 function finishStaticPhase() {
+  if (assessPhase !== 'static' || !assessmentStaticReady()) return blockAssessment('정적 평가 미완료/기준값 만료');
   assessActive = false;
   assessPhase = 'static-done';
-  staticSnapshot = captureSnapshot();
+  staticSnapshot = assessmentIOBlocked() ? null : captureSnapshot();
   document.getElementById('aTimerCard').style.display = 'none';
   document.getElementById('aSkipBtn').style.display = 'none';
   document.getElementById('aBadge').textContent = '정적 평가 완료';
@@ -2893,6 +3040,12 @@ function finishStaticPhase() {
 }
 
 function showStaticResult() {
+  if (assessPhase !== 'static-done' || !assessmentStaticReady()) return;
+  if (ASSESSMENT_QA) {
+    document.getElementById('staticResultContent').textContent = 'QA SYNTHETIC · 합성 기준값 처리 완료 · 임상 해석/진단 아님';
+    document.getElementById('staticResultCard').style.display = '';
+    return;
+  }
   const bl = assessResults['baseline'];
   if (!bl) return;
 
@@ -2965,6 +3118,8 @@ function showStaticResult() {
 }
 
 function finishDynamicPhase() {
+  if (assessPhase !== 'dynamic' || !assessmentComplete()) return blockAssessment('필수 동적 과제 미완료');
+  cancelAssessTimers();
   assessActive = false;
   assessPhase = 'done';
   document.getElementById('aStartBtn').disabled = false;
@@ -2977,12 +3132,17 @@ function finishDynamicPhase() {
   playDone();
   speak('동적 평가가 완료되었습니다. 결과를 확인하세요.');
   renderAssessGrid();
-  computeZoneScores();
+  if (computeZoneScores() === false) return;
   showAssessResults();
-  saveAssessToHistory();
+  if (!assessmentIOBlocked()) {
+    try { saveAssessToHistory(); }
+    catch (_) { document.getElementById('aBadge').textContent = '결과 생성됨 · 저장 실패 (저장 성공 아님)'; }
+  }
+  if (ASSESSMENT_QA) document.getElementById('aBadge').textContent = 'QA 합성 결과 · 촬영/저장 없음 · 임상 평가 아님';
 }
 
 function computeZoneScores() {
+  if (!assessmentComplete()) return false;
   const sm = assessResults['smile'];
   const br = assessResults['browRaise'];
   const ey = assessResults['eyeClose'];
@@ -3021,6 +3181,8 @@ function computeZoneScores() {
 
   // Neck/chin: overall symmetry proxy
   zoneScores.neck = Math.round(assessResults['baseline']?.sym || 50);
+  if (!assessmentScoresReady()) return blockAssessment('연산 결과 범위 오류');
+  if (ASSESSMENT_QA) return true; // No diagnosis-driven priorities in QA mode.
 
   // Priority: score < 90 (항상 개선 여지 표시)
   priorityZones.length = 0;
@@ -3099,6 +3261,15 @@ function buildRecommendedExercises() {
 }
 
 function showAssessResults() {
+  if (assessPhase !== 'done' || !assessmentComplete() || !assessmentScoresReady()) return false;
+  if (ASSESSMENT_QA) {
+    document.getElementById('assessPrescriptionTitle').textContent = 'QA 합성 출력 · 처방 아님';
+    document.getElementById('aoSub').textContent = 'QA SYNTHETIC · 합성 연산값 · 임상 평가 아님';
+    document.getElementById('aoResults').innerHTML = Object.entries(zoneScores).map(([zone, value]) => '<div class="oc-row">' + zone + ' · 합성값 ' + value + '</div>').join('');
+    document.getElementById('aoPrescription').textContent = '촬영·저장 차단 · 진단/정상 판정/운동 처방 없음';
+    document.getElementById('assessOverlay').classList.add('visible');
+    return true;
+  }
   const rows = Object.entries(zoneScores).map(([z,s]) => {
     const label = {upper:'상부 (눈/이마)',mid:'중부 (볼/팔자)',lower:'하부 (입/입꼬리)',neck:'목/턱'}[z];
     const cls = s>=75?'good':s>=55?'ok':'bad';
@@ -3946,6 +4117,8 @@ function buildMeasurementFeatures() {
 }
 
 function saveAssessToHistory() {
+  if (assessmentIOBlocked() || assessPhase !== 'done' || !assessmentComplete() || !assessmentScoresReady()) return;
+
   const bl = assessResults['baseline'];
   const avgScore = Math.round(Object.values(zoneScores).filter(v=>v!==null).reduce((a,b)=>a+b,0) /
     Object.values(zoneScores).filter(v=>v!==null).length || 0);
@@ -3969,10 +4142,12 @@ function saveAssessToHistory() {
   hist.assess.push(payload);
   // Preserve local records; account filtering happens in history readers.
   localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+  assessmentPayloadGeneration.set(payload, assessGeneration);
   cloudSaveAssess(payload);
 }
 
 function saveExToHistory(score) {
+  if (assessmentIOBlocked()) return;
   const ex = EXERCISES[exIdx];
   const payload = {
     date:   new Date().toISOString(),
@@ -3994,6 +4169,8 @@ function saveExToHistory(score) {
 // PROGRESS GRAPH
 // ═══════════════════════════════════════════════════════════
 function renderProgressGraph() {
+  if (assessmentIOBlocked()) return;
+  // Preserve per-account history isolation from PR #3.
   const hist = globalThis.FaceHistoryView.read();
   const card = document.getElementById('progressCard');
   if (!card) return;
@@ -4212,6 +4389,7 @@ function setupGraphTooltip(canvas, sorted, series, PAD, CW, CH, W, H) {
 }
 
 function renderHistory() {
+  if (assessmentIOBlocked()) return;
   renderProgressGraph();
   const hist = globalThis.FaceHistoryView.read();
 
