@@ -759,15 +759,15 @@ header{
     <div class="card" style="height:fit-content;max-height:85vh;display:flex;flex-direction:column;">
       <div class="card-title">운동 목록</div>
       <div style="display:flex;gap:5px;margin-bottom:8px;flex-wrap:wrap;" id="zoneFilter">
-        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('all',this)">전체</button>
-        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('priority',this)">우선순위</button>
-        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('upper',this)">상부</button>
-        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('mid',this)">중부</button>
-        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('lower',this)">하부</button>
-        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" onclick="filterEx('neck',this)">목/턱</button>
-        <button class="btn btn-secondary" id="filterStretchBtn" style="padding:4px 9px;font-size:.65rem;border-color:rgba(52,211,153,.3);" onclick="filterEx('stretch',this)">스트레칭</button>
-        <button class="btn btn-secondary" id="filterStrengthBtn" style="padding:4px 9px;font-size:.65rem;border-color:rgba(244,114,182,.3);" onclick="filterEx('strength',this)">근육강화</button>
-        <button class="btn btn-secondary" id="filterEnduranceBtn" style="padding:4px 9px;font-size:.65rem;border-color:rgba(129,140,248,.3);" onclick="filterEx('endurance',this)">지구력</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" data-ex-filter="all" onclick="filterEx('all',this)">전체</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" data-ex-filter="priority" onclick="filterEx('priority',this)">우선순위</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" data-ex-filter="upper" onclick="filterEx('upper',this)">상부</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" data-ex-filter="mid" onclick="filterEx('mid',this)">중부</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" data-ex-filter="lower" onclick="filterEx('lower',this)">하부</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:.65rem;" data-ex-filter="neck" onclick="filterEx('neck',this)">목/턱</button>
+        <button class="btn btn-secondary" id="filterStretchBtn" style="padding:4px 9px;font-size:.65rem;border-color:rgba(52,211,153,.3);" data-ex-filter="stretch" onclick="filterEx('stretch',this)">스트레칭</button>
+        <button class="btn btn-secondary" id="filterStrengthBtn" style="padding:4px 9px;font-size:.65rem;border-color:rgba(244,114,182,.3);" data-ex-filter="strength" onclick="filterEx('strength',this)">근육강화</button>
+        <button class="btn btn-secondary" id="filterEnduranceBtn" style="padding:4px 9px;font-size:.65rem;border-color:rgba(129,140,248,.3);" data-ex-filter="endurance" onclick="filterEx('endurance',this)">지구력</button>
       </div>
       <div class="ex-list" id="exList"></div>
     </div>
@@ -1704,7 +1704,7 @@ function showScreen(id) {
     b.classList.toggle('active', ['assess','program','history'][i] === id);
   });
   if (id === 'history') renderHistory();
-  if (id === 'program') renderExList('all');
+  if (id === 'program') renderExList();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1714,7 +1714,7 @@ window.onload = () => {
   initSupabase();
   initStaticSvgUI();
   renderAssessGrid();
-  renderExList('all');
+  renderExList();
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -1768,7 +1768,7 @@ async function startCamera() {
     document.getElementById('aCamBtn').textContent = '카메라 ON';
     document.getElementById('aStartBtn').disabled = false;
     document.getElementById('pStartBtn').disabled = false;
-    document.getElementById('pBadge').textContent = '운동을 선택하세요';
+    document.getElementById('pBadge').textContent = EXERCISES[exIdx].name;
     document.getElementById('aFeedback').style.display = '';
     document.getElementById('pFeedback').style.display = '';
     requestAnimationFrame(frameLoop);
@@ -3129,7 +3129,11 @@ const TYPE_META = {
   endurance: {icon:'endurance',  label:'지구력',    badge:'badge-endurance'},
 };
 
-function renderExList(filter) {
+function getActiveExFilter() {
+  return document.querySelector('#zoneFilter .btn-primary')?.dataset.exFilter || 'all';
+}
+
+function renderExList(filter = getActiveExFilter()) {
   const list = document.getElementById('exList');
   let filtered = filter === 'priority'  ? EXERCISES.filter(e=>e.priority) :
                  filter === 'stretch'   ? EXERCISES.filter(e=>e.type==='stretch') :
@@ -3417,9 +3421,10 @@ function faceSVG(exId) {
 function selectEx(idx) {
   exIdx = idx;
   const ex = EXERCISES[idx];
+  if (exState === 'idle') document.getElementById('pBadge').textContent = ex.name;
   updateActiveGuideImage('program', ex.id);
   const ms = MUSCLE_STATUS[ex.id];
-  renderExList(document.querySelector('#zoneFilter .btn-primary')?.textContent||'all');
+  renderExList();
   document.getElementById('pStartBtn').disabled = !cameraActive || exState!=='idle';
 
   const svgMarkup = faceSVG(ex.id);
@@ -3653,7 +3658,7 @@ function finishExercise() {
   playDone();
   speak(`${ex.name} 완료. ${score}점`);
   updateFFI();
-  renderExList(document.querySelector('#zoneFilter .btn-primary')?.textContent||'all');
+  renderExList();
   showExResult(ex, score);
   saveExToHistory(score);
 }
