@@ -1,0 +1,26 @@
+name: Assessment safety synthetic tests
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'assessment-safety.js'
+      - 'tests/assessment-*.cjs'
+      - '.github/workflows/assessment-safety.yml'
+  push:
+    branches: ['aside/assessment-safety-20261026']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check assessment-safety.js
+      - run: node --test tests/assessment-*.test.cjs
