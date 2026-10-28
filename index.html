@@ -3579,7 +3579,7 @@ function priorityMarkerSVG(kind='priority', size=12) {
 }
 
 function iconHTML(iconKey, label='', size=28, cls='icon-label') {
-  const icon = EX_ZONES[iconKey] || ASSESS_ICON_ZONES[iconKey]
+  const icon = EX_ZONES[iconKey] || ASSESS_ICON_ZONES[iconKey] || EXERCISES.some(ex => ex.id === iconKey)
     ? faceIconSVG(iconKey, size)
     : metricIconSVG(iconKey, size);
   const safeLabel = label ? `<span>${label}</span>` : '';
