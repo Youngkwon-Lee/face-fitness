@@ -145,3 +145,79 @@ test('missing camera readiness helper fails before opening the real camera',asyn
   assert.equal(f.element('aCamBtn').dataset.cameraFailureStep,'get-user-media');
   assert.equal(f.run('cameraActive'),false);
 });
+
+test('metadata exceptions use categorical codes without leaking raw exception details',()=>{
+  assert.deepEqual(classifyStartError({name:'TypeError',message:'PRIVATE_METADATA'},'video-metadata'),
+    {code:'metadata-type-error',step:'video-metadata'});
+  assert.deepEqual(classifyStartError({name:'InvalidStateError',message:'PRIVATE_METADATA'},'video-metadata'),
+    {code:'metadata-invalid-state',step:'video-metadata'});
+  assert.deepEqual(classifyStartError({name:'Error',message:'PRIVATE_METADATA'},'video-metadata'),
+    {code:'metadata-unclassified',step:'video-metadata'});
+  assert.deepEqual(classifyStartError({name:'Other',message:'PRIVATE_METADATA'},'video-metadata'),
+    {code:'metadata-unclassified',step:'video-metadata'});
+  assert.deepEqual(classifyStartError({name:'Error',message:'Camera video metadata error'},'video-metadata'),
+    {code:'metadata-error',step:'video-metadata'});
+  assert.doesNotMatch(JSON.stringify(classifyStartError({name:'Error',message:'PRIVATE_METADATA'},'video-metadata')),/PRIVATE/);
+});
+
+test('stream inspection publishes only bounded non-identifying state',()=>{
+  const live={readyState:'live',label:'PRIVATE_CAMERA_NAME',id:'PRIVATE_CAMERA_ID'};
+  assert.deepEqual(cameraReadiness.inspectCameraState({readyState:0,srcObject:'PRIVATE_FRAME'},
+    {getVideoTracks:()=>[live]}),
+    {stream:'acquired',track:'live',videoReadyState:'0'});
+  assert.deepEqual(cameraReadiness.inspectCameraState({readyState:1},
+    {getVideoTracks:()=>[{readyState:'ended'}]}),
+    {stream:'acquired',track:'ended',videoReadyState:'1'});
+  assert.deepEqual(cameraReadiness.inspectCameraState({readyState:88},
+    {getVideoTracks:()=>{throw new Error('PRIVATE_DRIVER')}}),
+    {stream:'acquired',track:'unknown',videoReadyState:'unknown'});
+  assert.deepEqual(cameraReadiness.inspectCameraState({readyState:0},null),
+    {stream:'none',track:'none',videoReadyState:'0'});
+  assert.doesNotMatch(JSON.stringify(cameraReadiness.inspectCameraState({readyState:0},
+    {getVideoTracks:()=>[live]})),/PRIVATE_/);
+});
+
+test('metadata stage preserves pre-cleanup state and blocks repeated camera requests',async()=>{
+  const f=fixture({qa:false});
+  f.context.FaceCameraReadiness={...cameraReadiness,waitForMetadata:async()=>{
+    const e=new TypeError('PRIVATE_DRIVER_MESSAGE');
+    throw e;
+  }};
+  let calls=0,stopped=0;
+  f.context.navigator.mediaDevices.getUserMedia=async()=>{
+    calls++;
+    return {getVideoTracks:()=>[{readyState:'live',label:'PRIVATE_CAMERA_LABEL'}],
+      getTracks:()=>[{stop(){stopped++;}}]};
+  };
+  f.element('video').readyState=0;
+  await f.run('startCamera()');
+  const btn=f.element('aCamBtn');
+  assert.equal(calls,1);
+  assert.equal(stopped,1);
+  assert.equal(btn.dataset.cameraStage,'error');
+  assert.equal(btn.dataset.cameraAttemptCount,'1');
+  assert.equal(btn.dataset.cameraStreamState,'acquired');
+  assert.equal(btn.dataset.cameraTrackAtMetadata,'live');
+  assert.equal(btn.dataset.cameraVideoReadyAtMetadata,'0');
+  assert.equal(btn.dataset.cameraFailureStep,'video-metadata');
+  assert.equal(btn.dataset.cameraFailureCode,'metadata-type-error');
+  assert.equal(btn.disabled,true);
+  assert.doesNotMatch(f.element('camStartHint').textContent,/PRIVATE_/);
+  await f.run('startCamera()');
+  assert.equal(calls,1);
+  assert.equal(btn.dataset.cameraRetryBlocked,'true');
+});
+
+test('preexisting camera error is not mistaken for a fresh first attempt',async()=>{
+  const f=fixture({qa:false});
+  f.context.FaceCameraReadiness=cameraReadiness;
+  f.element('aCamBtn').dataset.cameraStage='error';
+  f.element('aCamBtn').dataset.cameraFailureCode='startup-failed';
+  let calls=0;
+  f.context.navigator.mediaDevices.getUserMedia=async()=>{calls++;throw Error('should not run');};
+  await f.run('startCamera()');
+  assert.equal(calls,0);
+  assert.equal(f.element('aCamBtn').dataset.cameraFailureCode,'startup-failed');
+  assert.equal(f.element('aCamBtn').dataset.cameraRetryBlocked,'true');
+  assert.equal(f.element('aCamBtn').disabled,true);
+});
