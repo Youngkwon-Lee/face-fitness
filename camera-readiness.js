@@ -43,14 +43,47 @@
     const name = typeof error?.name === 'string' ? error.name : '';
     let code = Object.prototype.hasOwnProperty.call(SAFE_ERROR_CODES, name)
       ? SAFE_ERROR_CODES[name] : 'startup-failed';
-    // These exact messages originate from our own camera-readiness helper.
-    if (safeStep === 'video-metadata' && name === 'Error') {
-      code = error.message === 'Camera video metadata timeout'
-        ? 'metadata-timeout' : 'metadata-error';
+    // Categorize unrecognized metadata exceptions without leaking messages.
+    // Only these two exact strings come from waitForMetadata.
+    if (safeStep === 'video-metadata') {
+      if (name === 'Error') {
+        code = error.message === 'Camera video metadata timeout'
+          ? 'metadata-timeout'
+          : error.message === 'Camera video metadata error'
+            ? 'metadata-error' : 'metadata-unclassified';
+      } else if (name === 'TypeError') {
+        code = 'metadata-type-error';
+      } else if (name === 'InvalidStateError') {
+        code = 'metadata-invalid-state';
+      } else if (code === 'startup-failed') {
+        code = 'metadata-unclassified';
+      }
     } else if (safeStep === 'facemesh-init' && name === 'Error') {
       code = 'model-init-failed';
     }
     return Object.freeze({code, step:safeStep});
+  }
+  // Only categorical stream state; never read or expose labels, IDs or frames.
+  function inspectCameraState(video, stream) {
+    let trackState = stream ? 'unknown' : 'none';
+    if (stream && typeof stream.getVideoTracks === 'function') {
+      try {
+        const tracks = stream.getVideoTracks();
+        if (Array.isArray(tracks)) {
+          trackState = tracks.length === 0 ? 'none'
+            : tracks.some(t => t && t.readyState === 'live') ? 'live'
+            : tracks.every(t => t && t.readyState === 'ended') ? 'ended' : 'unknown';
+        }
+      } catch (_) { trackState = 'unknown'; }
+    }
+    const readyState = video && Number.isInteger(video.readyState) &&
+      video.readyState >= 0 && video.readyState <= 4
+      ? String(video.readyState) : 'unknown';
+    return Object.freeze({
+      stream: stream ? 'acquired' : 'none',
+      track: trackState,
+      videoReadyState: readyState
+    });
   }
   function safeStatusFromError(error) {
     switch (error && error.name) {
@@ -62,5 +95,5 @@
       default: return '카메라 준비에 실패했습니다. 권한과 연결을 확인한 후 다시 시도해 주세요.';
     }
   }
-  return { waitForMetadata, safeStatusFromError, classifyStartError };
+  return { waitForMetadata, safeStatusFromError, classifyStartError, inspectCameraState };
 });
