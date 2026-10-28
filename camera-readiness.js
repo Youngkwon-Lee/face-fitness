@@ -9,7 +9,11 @@
       return Promise.reject(new Error('Invalid video element'));
     }
     if (video.readyState >= 1) return Promise.resolve();
-    const clock = timers || { start: setTimeout, stop: clearTimeout };
+    // Keep browser timer calls on their global receiver, not the clock object.
+    const clock = timers || {
+      start: (callback, delay) => setTimeout(callback, delay),
+      stop: timer => clearTimeout(timer)
+    };
     return new Promise((resolve, reject) => {
       let timer;
       const cleanup = () => {
