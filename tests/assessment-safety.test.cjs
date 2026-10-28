@@ -1,0 +1,25 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const safety=require('../assessment-safety.js');const {readyBL,scalarSample}=require('./assessment-harness.cjs');
+function samples(n=20,span=7000){return Array.from({length:n},(_,i)=>({...scalarSample,_sampleAt:1000+i*span/(n-1)}));}
+const task={id:'baseline',duration:12};
+test('immutable module exports and explicitly engineering-only 20-sample floor',()=>{assert.ok(Object.isFrozen(safety));assert.ok(Object.isFrozen(safety.FRAME_KEYS));assert.equal(safety.MIN_SAMPLES,20);});
+test('complete fresh finite sample window passes',()=>assert.equal(safety.validateSamples(task,samples(),8000).ok,true));
+for(const n of [0,1,19])test(`insufficient sample count ${n} fails`,()=>assert.equal(safety.validateSamples(task,samples(n),8000).ok,false));
+for(const key of safety.FRAME_KEYS)test(`nonfinite frame field ${key} fails`,()=>{const buf=samples();buf[10][key]=NaN;assert.equal(safety.validateSamples(task,buf,8000).ok,false);});
+for(const value of [undefined,null,'0.3',Infinity])test(`invalid EAR type ${String(value)} fails`,()=>{const buf=samples();buf[2].earL=value;assert.equal(safety.validateSamples(task,buf,8000).ok,false);});
+for(const key of ['earL','earR','mouthW','glabellarD'])test(`degenerate ${key}=0 fails`,()=>{const buf=samples();buf[0][key]=0;assert.equal(safety.validateSamples(task,buf,8000).ok,false);});
+for(const value of [-1,101])test(`symmetry outside range ${value} fails`,()=>{const buf=samples();buf[0].symScore=value;assert.equal(safety.validateSamples(task,buf,8000).ok,false);});
+test('duplicate frame time fails',()=>{const b=samples();b[5]._sampleAt=b[4]._sampleAt;assert.equal(safety.validateSamples(task,b,8000).code,'duplicate_or_reversed_time');});
+test('reversed frame time fails',()=>{const b=samples();b[5]._sampleAt=b[4]._sampleAt-1;assert.equal(safety.validateSamples(task,b,8000).ok,false);});
+test('future sample time fails',()=>assert.equal(safety.validateSamples(task,samples(),7999).ok,false));
+test('stale sample tail fails',()=>assert.equal(safety.validateSamples(task,samples(),9001).code,'stale_samples'));
+test('short temporal coverage fails despite sufficient count',()=>assert.equal(safety.validateSamples(task,samples(100,500),1500).ok,false));
+test('old samples from prior task fail even with fresh tail',()=>assert.equal(safety.validateSamples({id:'smile',duration:8},samples(30,20000),21000).code,'insufficient_time_coverage'));
+for(const t of [{id:'unknown',duration:12},{id:'baseline',duration:0},{id:'baseline',duration:NaN}])test(`invalid task ${t.id}/${t.duration} fails`,()=>assert.equal(safety.validateSamples(t,samples(),8000).ok,false));
+test('baseline accepts finite calibrated aggregate',()=>assert.equal(safety.baselineReady(readyBL,true),true));
+for(const key of ['n',...safety.BASE_KEYS])test(`invalid baseline ${key} fails`,()=>assert.equal(safety.baselineReady({...readyBL,[key]:NaN},true),false));
+test('baseline missing flag or minimum frames fails',()=>{assert.equal(safety.baselineReady(readyBL,false),false);assert.equal(safety.baselineReady({...readyBL,n:44},true),false);});
+test('complete requires every validated result, no default score fallback',()=>{const result=Object.fromEntries(safety.RESULT_KEYS.map(k=>[k,0]));Object.assign(result,{earL:0.3,earR:0.3,sym:90,n:20});const results=Object.fromEntries(safety.TEST_IDS.map(id=>[id,{...result}]));const valid=new Set(safety.TEST_IDS);assert.equal(safety.complete(results,valid,readyBL,true),true);for(const id of safety.TEST_IDS){const partial={...results,[id]:null};assert.equal(safety.complete(partial,valid,readyBL,true),false);}valid.delete('baseline');assert.equal(safety.complete(results,valid,readyBL,true),false);});
+test('multi-second capture dropout fails despite fresh tail and sufficient endpoint span',()=>{const b=samples();for(let i=10;i<b.length;i++)b[i]._sampleAt+=2000;assert.equal(safety.validateSamples(task,b,10000).code,'interrupted_capture');});
+test('closed-eye zero EAR is valid only for eyeClose, not baseline',()=>{const b=samples();b.forEach(s=>{s.earL=0;s.earR=0});assert.equal(safety.validateSamples({id:'eyeClose',duration:7},b,8000).ok,true);assert.equal(safety.validateSamples(task,b,8000).ok,false);});
+test('baseline signature changes on any recaptured baseline field',()=>{for(const key of safety.BASE_KEYS)assert.notEqual(safety.baselineSignature(readyBL),safety.baselineSignature({...readyBL,[key]:readyBL[key]+0.1}));});

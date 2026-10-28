@@ -1,0 +1,37 @@
+name: Face Fitness integration synthetic regressions
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'assessment-safety.js'
+      - 'camera-readiness.js'
+      - 'app-improvements.js'
+      - 'exercise-cloud.js'
+      - 'movement-coach.js'
+      - 'tests/**'
+      - 'exercise-cloud.test.mjs'
+      - 'movement-coach.test.mjs'
+      - '.github/workflows/face-fitness-integration-synthetic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify JavaScript syntax
+        run: |
+          node --check assessment-safety.js
+          node --check camera-readiness.js
+          node --check app-improvements.js
+          node --check exercise-cloud.js
+          node --check movement-coach.js
+      - name: Synthetic regression suite (no camera or persistence)
+        run: node --test tests/*.test.cjs tests/*.test.mjs movement-coach.test.mjs exercise-cloud.test.mjs
