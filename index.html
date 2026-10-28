@@ -1745,6 +1745,10 @@ function showScreen(id) {
 // INIT
 // ═══════════════════════════════════════════════════════════
 window.onload = () => {
+  const cameraButton = document.getElementById('aCamBtn');
+  if (!cameraButton.dataset.cameraStage) cameraButton.dataset.cameraStage = 'idle';
+  cameraButton.dataset.cameraAttemptCount = '0';
+  cameraButton.dataset.cameraRetryBlocked = 'false';
   const status = document.getElementById('assessmentSafetyStatus');
   if (assessmentIOBlocked()) {
     status.hidden = false;
@@ -1761,15 +1765,41 @@ window.onload = () => {
 // ═══════════════════════════════════════════════════════════
 // CAMERA
 // ═══════════════════════════════════════════════════════════
+// Diagnostic Preview: one camera-start attempt per page load, no silent retry.
+let cameraStartAttempts = 0;
+function recordSafeCameraState(button, video, stream, readiness) {
+  try {
+    const state = readiness.inspectCameraState(video, stream);
+    button.dataset.cameraStreamState = state.stream;
+    button.dataset.cameraTrackState = state.track;
+    button.dataset.cameraVideoReadyState = state.videoReadyState;
+  } catch (_) {
+    // Diagnostics must never interrupt or expose raw media errors.
+    button.dataset.cameraStreamState = stream ? 'acquired' : 'none';
+    button.dataset.cameraTrackState = 'unknown';
+    button.dataset.cameraVideoReadyState = 'unknown';
+  }
+}
 async function startCamera() {
   if (assessmentIOBlocked()) return;
+  const camBtn = document.getElementById('aCamBtn');
+  // A pre-existing error is not a fresh start. Require a new page and consent.
+  if (cameraStartAttempts > 0 ||
+      (camBtn.dataset.cameraStage && camBtn.dataset.cameraStage !== 'idle')) {
+    camBtn.dataset.cameraRetryBlocked = 'true';
+    if (camBtn.dataset.cameraStage !== 'ready') camBtn.disabled = true;
+    return;
+  }
   const readiness = window.FaceCameraReadiness;
   if (!readiness || typeof readiness.waitForMetadata !== 'function' ||
-      typeof readiness.classifyStartError !== 'function') {
+      typeof readiness.classifyStartError !== 'function' ||
+      typeof readiness.inspectCameraState !== 'function') {
     // Fail closed before requesting camera media when the helper is unavailable.
-    const button = document.getElementById('aCamBtn');
+    const button = camBtn;
     button.disabled = true;
     button.dataset.cameraStage = 'error';
+    button.dataset.cameraAttemptCount = '0';
+    button.dataset.cameraRetryBlocked = 'true';
     button.dataset.cameraFailureCode = 'readiness-module-missing';
     button.dataset.cameraFailureStep = 'get-user-media';
     const hint = document.getElementById('camStartHint');
@@ -1777,9 +1807,14 @@ async function startCamera() {
     hint.style.display = '';
     return;
   }
-  document.getElementById('aCamBtn').disabled = true;
-  document.getElementById('aCamBtn').textContent = '로딩 중...';
-  const camBtn = document.getElementById('aCamBtn');
+  cameraStartAttempts = 1;
+  camBtn.dataset.cameraAttemptCount = '1';
+  camBtn.dataset.cameraRetryBlocked = 'false';
+  camBtn.dataset.cameraStreamState = 'none';
+  camBtn.dataset.cameraTrackState = 'none';
+  camBtn.dataset.cameraVideoReadyState = 'unknown';
+  camBtn.disabled = true;
+  camBtn.textContent = '로딩 중...';
   camBtn.dataset.cameraStage = 'permission-pending';
   camBtn.dataset.cameraFailureCode = '';
   camBtn.dataset.cameraFailureStep = '';
@@ -1800,9 +1835,14 @@ async function startCamera() {
     camStream = stream;
     video.srcObject = stream;
     video2.srcObject = stream;
+    recordSafeCameraState(camBtn, video, camStream, readiness);
+    // Snapshot before waiting: a subsequently ended stream is distinguishable.
+    camBtn.dataset.cameraTrackAtMetadata = camBtn.dataset.cameraTrackState;
+    camBtn.dataset.cameraVideoReadyAtMetadata = camBtn.dataset.cameraVideoReadyState;
     cameraStartStep = 'video-metadata';
     camBtn.dataset.cameraStage = 'waiting-metadata';
     await readiness.waitForMetadata(video);
+    recordSafeCameraState(camBtn, video, camStream, readiness);
     cameraStartStep = 'video-playback';
     camBtn.dataset.cameraStage = 'starting-playback';
     await video.play();
@@ -1858,6 +1898,7 @@ async function startCamera() {
   } catch(e) {
     clearTimeout(permissionHintTimer);
     const cameraFailure = readiness.classifyStartError(e, cameraStartStep);
+    recordSafeCameraState(camBtn, document.getElementById('video'), camStream, readiness);
     camBtn.dataset.cameraFailureCode = cameraFailure.code;
     camBtn.dataset.cameraFailureStep = cameraFailure.step;
     cameraActive = false;
@@ -1868,12 +1909,13 @@ async function startCamera() {
     document.getElementById('video').srcObject = null;
     document.getElementById('video2').srcObject = null;
     camBtn.dataset.cameraStage = 'error';
-    camBtn.textContent = '카메라 다시 시도';
+    camBtn.dataset.cameraRetryBlocked = 'true';
+    camBtn.textContent = '카메라 오류 · 새로고침 후 재시작';
     document.getElementById('camStartHint').textContent =
       readiness.safeStatusFromError(e) +
       ' (진단: ' + cameraFailure.step + ' / ' + cameraFailure.code + ')';
     document.getElementById('camStartHint').style.display = '';
-    document.getElementById('aCamBtn').disabled = false;
+    document.getElementById('aCamBtn').disabled = true;
   }
 }
 
@@ -1986,8 +2028,9 @@ async function frameLoop() {
       camStream = null;
       video.srcObject = null; document.getElementById('video2').srcObject = null;
       const button = document.getElementById('aCamBtn');
-      button.disabled = false;
-      button.textContent = '추적 중단 · 카메라 다시 시작';
+      button.disabled = true;
+      button.textContent = '추적 중단 · 새로고침 후 재시작';
+      button.dataset.cameraRetryBlocked = 'true';
       button.dataset.cameraStage = 'tracking-lost';
       button.dataset.faceTracked = 'false';
       button.dataset.baselineReady = 'false';
