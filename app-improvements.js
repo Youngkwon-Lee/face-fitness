@@ -69,6 +69,13 @@
 
   // PR #5 owns FaceMesh.onResults to enforce callback freshness and 1:1 checks.
   // Do not replace it for coach telemetry. Observe only a verified new sequence.
+  window.addEventListener('face-framing-unavailable',()=>{
+    resultAt=null;
+    const video=document.getElementById('video');
+    coachState=coach?.update({time:performance.now(),resultTime:null,cameraActive,
+      landmarks:null,aspect:video.videoWidth&&video.videoHeight?video.videoWidth/video.videoHeight:1,
+      exercise:current(),phase:exState});
+  });
   const oldFrameLoop = frameLoop;
   window.frameLoop = async function () {
     const priorResultSequence = faceResultSequence;
@@ -80,7 +87,7 @@
       const video = document.getElementById('video');
       coachState = coach?.update({
         time: performance.now(), resultTime: resultAt, cameraActive,
-        landmarks: lastFaceResults?.multiFaceLandmarks?.[0] || null,
+        landmarks: typeof facePoseFresh === 'function' && facePoseFresh() ? (lastFaceResults?.multiFaceLandmarks?.[0] || null) : null,
         aspect: video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 1,
         exercise: current(), phase: exState
       });

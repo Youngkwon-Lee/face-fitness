@@ -204,6 +204,9 @@ header{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   pointer-events:none;z-index:3;opacity:0;transition:opacity 0.4s ease;
 }
+.video-wrap.active-cam .camera-active-guide {display:none !important;}
+.pose-guide {position:absolute;left:12px;right:12px;top:14px;z-index:8;padding:10px 14px;border-radius:12px;background:rgba(8,9,18,.88);border:1px solid rgba(251,191,36,.55);color:var(--text);font-size:.8rem;text-align:center;pointer-events:none;}
+.pose-guide[hidden] {display:none !important;}
 .camera-active-guide.visible {
   opacity:0.22; /* Translucent face scanning template over video feed */
 }
@@ -560,6 +563,7 @@ header{
       <div class="video-wrap" id="aVideoWrap">
         <video id="video" autoplay playsinline muted></video>
         <canvas id="overlay"></canvas>
+        <div id="poseGuide" class="pose-guide" role="status" aria-live="polite" hidden></div>
         <div class="camera-offline-guide" id="offlineGuide"></div>
         <div class="camera-active-guide" id="activeGuide" style="display:none;">
           <img src="images/ff-neutral.png" class="camera-active-guide-img" id="activeGuideImg" alt="" draggable="false">
@@ -577,13 +581,14 @@ header{
           <div class="fb-item"><div class="fb-dot" id="fbMigang"></div><span id="fbMigangTxt">미간</span></div>
           <div class="fb-item"><div class="fb-dot" id="fbBrow"></div><span id="fbBrowTxt">눈썹</span></div>
           <div class="fb-item"><div class="fb-dot" id="fbCorner"></div><span id="fbCornerTxt">입꼬리</span></div>
-          <div class="fb-item"><div class="fb-dot" id="fbFront"></div><span id="fbFrontTxt">이마 보상</span></div>
+          <div class="fb-item"><div class="fb-dot" id="fbFront"></div><span id="fbFrontTxt">이마 움직임</span></div>
         </div>
       </div>
 
       <!-- Controls -->
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <button class="btn btn-primary" id="aCamBtn" onclick="startCamera()">카메라 시작</button>
+        <button class="btn btn-secondary" id="aReframeBtn" onclick="resetFaceFraming()" disabled>정면 기준 다시 맞춤</button>
         <button class="btn btn-grad" id="aStartBtn" onclick="startStaticPhase()" disabled>Phase 1 정적 평가</button>
         <button class="btn btn-secondary" id="aSkipBtn" onclick="skipTest()" disabled style="display:none">평가 중단</button>
         <span id="aPhaseTag" style="font-size:.65rem;color:var(--dim);display:none;"></span>
@@ -783,6 +788,7 @@ header{
       <div class="video-wrap">
         <video id="video2" autoplay playsinline muted style="display:none;"></video>
         <canvas id="overlay2"></canvas>
+        <div id="poseGuide2" class="pose-guide" role="status" aria-live="polite" hidden></div>
         <div class="camera-offline-guide" id="offlineGuide2"></div>
         <div class="camera-active-guide" id="activeGuide2" style="display:none;">
           <img src="images/ff-neutral.png" class="camera-active-guide-img" id="activeGuideImg2" alt="" draggable="false">
@@ -1038,6 +1044,7 @@ header{
 </div>
 
 <script src="./assessment-safety.js"></script>
+<script src="./face-frame-geometry.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -1695,6 +1702,10 @@ const BL = {n:0, leftCornerY:0, rightCornerY:0, leftBrowY:0, rightBrowY:0,
              earL:1, earR:1, jawH:0, mouthW:0, glabellarD:0, foreheadY:0,
              llsDistL:0, llsDistR:0, mentalY:0, cheekLY:0, cheekRY:0};
 let blDone = false;
+let facePoseReference = null, facePoseReady = false, facePoseAt = null, facePoseCode='waiting';
+let facePoseWatchdog = null;
+const FACE_POSE_MAX_AGE_MS = 700;
+let seqStartTimer = null, seqGeneration = 0;
 const BL_FRAMES = 45; // ~1.5s
 
 // Assessment state
@@ -1788,6 +1799,18 @@ async function startCamera() {
       (camBtn.dataset.cameraStage && camBtn.dataset.cameraStage !== 'idle')) {
     camBtn.dataset.cameraRetryBlocked = 'true';
     if (camBtn.dataset.cameraStage !== 'ready') camBtn.disabled = true;
+    return;
+  }
+  const geometry = window.FaceFrameGeometry;
+  if (!geometry || typeof geometry.project !== 'function' || typeof geometry.above !== 'function') {
+    const button = document.getElementById('aCamBtn');
+    button.disabled = true;
+    button.dataset.cameraStage = 'error';
+    button.dataset.cameraFailureCode = 'geometry-module-missing';
+    button.dataset.cameraFailureStep = 'get-user-media';
+    const hint = document.getElementById('camStartHint');
+    hint.textContent = '얼굴 구도 측정 코드를 불러오지 못했습니다. 새로고침 후 다시 시작하세요.';
+    hint.style.display = '';
     return;
   }
   const readiness = window.FaceCameraReadiness;
@@ -1887,10 +1910,12 @@ async function startCamera() {
     camBtn.dataset.cameraStage = 'initializing-model';
     await loadFM();
     cameraActive = true;
+    startFacePoseWatchdog();
     camBtn.dataset.cameraStage = 'ready';
     document.getElementById('aCamBtn').textContent = '카메라 ON';
-    document.getElementById('aStartBtn').disabled = false;
-    document.getElementById('pStartBtn').disabled = false;
+    document.getElementById('aStartBtn').disabled = true;
+    document.getElementById('pStartBtn').disabled = true;
+    document.getElementById('aReframeBtn').disabled = false;
     document.getElementById('pBadge').textContent = EXERCISES[exIdx].name;
     document.getElementById('aFeedback').style.display = '';
     document.getElementById('pFeedback').style.display = '';
@@ -2035,6 +2060,7 @@ async function frameLoop() {
       button.dataset.faceTracked = 'false';
       button.dataset.baselineReady = 'false';
       blockAssessment('새 프레임 결과 확인 실패');
+      setFacePoseUnavailable('tracking_lost');
       return;
     }
     const facePresent = !!lastFaceResults?.multiFaceLandmarks?.[0];
@@ -2044,6 +2070,8 @@ async function frameLoop() {
       const lm = lastFaceResults.multiFaceLandmarks[0];
       drawFaceOnBoth(lm);
       analyzeFrame(lm, faceResultAt);
+    } else {
+      setFacePoseUnavailable('face_missing');
     }
     button.dataset.baselineReady = String(!!blDone);
   }
@@ -2518,8 +2546,93 @@ function drawFaceOnCanvas(canvasId, lm) {
 function fD(lm,a,b){const dx=lm[a].x-lm[b].x,dy=lm[a].y-lm[b].y;return Math.sqrt(dx*dx+dy*dy);}
 
 const metrics = {};
+
+// In-memory framing only: no landmark/reference persistence or cloud fields.
+function facePoseFresh(now=Date.now()) {
+  return cameraActive && facePoseReady && Number.isFinite(facePoseAt) && now>=facePoseAt && now-facePoseAt<=FACE_POSE_MAX_AGE_MS;
+}
+function cancelPendingSequence() {
+  seqGeneration++;
+  if(seqStartTimer!==null){clearTimeout(seqStartTimer);seqStartTimer=null;}
+}
+function startFacePoseWatchdog() {
+  if(facePoseWatchdog!==null)clearInterval(facePoseWatchdog);
+  facePoseWatchdog=setInterval(()=>{
+    if(!cameraActive){clearInterval(facePoseWatchdog);facePoseWatchdog=null;return;}
+    if(facePoseReady&&!facePoseFresh())setFacePoseUnavailable('stale_tracking');
+  },200);
+}
+function facePoseMessage(code) {
+  if (code === 'stale_tracking') return '추적 응답이 오래됐습니다 · 측정을 중지했습니다. 회복되지 않으면 새로고침하세요';
+  if (code === 'face_missing') return '얼굴을 정면에 맞춰 주세요 · 측정값을 표시하지 않습니다';
+  if (code === 'module_unavailable') return '구도 측정 코드를 불러오지 못했습니다 · 새로고침해 주세요';
+  return '카메라 높이·거리·기울기를 기준 구도에 맞춰 주세요 · 구도를 바꿨다면 정면 기준 다시 맞춤';
+}
+function renderFacePoseState(ready, code='ready') {
+  const button=document.getElementById('aCamBtn');
+  if(button){button.dataset.poseQuality=ready?'ready':'align';button.dataset.poseReason=code;}
+  for(const id of ['poseGuide','poseGuide2']){
+    const el=document.getElementById(id);if(!el)continue;
+    el.hidden=ready;
+    if(!ready&&el.textContent!==facePoseMessage(code))el.textContent=facePoseMessage(code);
+  }
+  const assessBusy=['static','dynamic','static-done'].includes(assessPhase);
+  const exerciseBusy=['countdown','running','rest'].includes(exState);
+  const start=document.getElementById('aStartBtn');
+  if(start)start.disabled=!ready||!cameraActive||!blDone||assessBusy;
+  const program=document.getElementById('pStartBtn');
+  if(program)program.disabled=!ready||!cameraActive||!blDone||exState!=='idle';
+  const reframe=document.getElementById('aReframeBtn');
+  if(reframe)reframe.disabled=!cameraActive||['static','dynamic'].includes(assessPhase)||exerciseBusy;
+}
+function setFacePoseUnavailable(code) {
+  const changed=facePoseReady||facePoseCode!==code;
+  facePoseCode=code;facePoseReady=false;
+  cancelPendingSequence();seqMode=false;
+  if(['static','dynamic','static-done'].includes(assessPhase))blockAssessment('구도/추적 변경 · 정면을 맞춘 뒤 다시 시작');
+  if(['countdown','running','rest'].includes(exState)){
+    seqMode=false;stopExercise();exMeasureBuf.length=0;
+  }
+  for(const key of Object.keys(metrics))delete metrics[key];
+  compFlash=0;
+  for(const [id,text] of [['fbMigang','미간'],['fbBrow','눈썹'],['fbCorner','입꼬리'],['fbFront','이마 움직임']]){
+    const dot=document.getElementById(id),label=document.getElementById(id+'Txt');
+    if(dot)dot.className='fb-dot neutral';if(label)label.textContent=text+' · 측정 대기';
+  }
+  document.querySelectorAll('#muscleMonitor .mm-pct, #muscleMonitor .mm-asym').forEach(el=>el.textContent='—');
+  document.querySelectorAll('#muscleMonitor .mm-fill').forEach(el=>el.style.width='0%');
+  const duchenne=document.getElementById('mm_duchenne');if(duchenne)duchenne.style.display='none';
+  renderFacePoseState(false,code);
+  if(changed&&typeof window.dispatchEvent==='function'&&typeof Event==='function')window.dispatchEvent(new Event('face-framing-unavailable'));
+  return false;
+}
+function resetFaceFraming() {
+  if(assessmentIOBlocked()||!cameraActive||['static','dynamic'].includes(assessPhase)||['countdown','running','rest'].includes(exState))return false;
+  cancelPendingSequence();seqMode=false;
+  cancelAssessTimers();clearAssessmentData();
+  for(const key of Object.keys(BL))BL[key]=0;
+  blDone=false;facePoseReference=null;facePoseReady=false;facePoseAt=null;resetMusclePeaks();
+  assessPhase='idle';assessIdx2=-1;
+  document.getElementById('staticResultCard').style.display='none';
+  document.getElementById('assessOverlay').classList.remove('visible');
+  document.getElementById('aStartBtn').textContent='Phase 1 정적 평가';
+  document.getElementById('aBadge').textContent='정면을 보고 중립 표정을 유지하세요 · 기준 구도 다시 측정 중';
+  setFacePoseUnavailable('reframing');
+  return true;
+}
+
 function analyzeFrame(lm, sampleAt) {
-  if (assessmentIOBlocked() || !Number.isFinite(sampleAt) || sampleAt > Date.now() || Date.now() - sampleAt > 1000) return;
+  if(assessmentIOBlocked())return;
+  if(!Number.isFinite(sampleAt)||sampleAt>Date.now()||Date.now()-sampleAt>FACE_POSE_MAX_AGE_MS)return setFacePoseUnavailable('stale_tracking');
+  const geometry=window.FaceFrameGeometry;
+  if(!geometry||typeof geometry.project!=='function')return setFacePoseUnavailable('module_unavailable');
+  const video=document.getElementById('video');
+  if(!blDone&&BL.n===0)facePoseReference=null;
+  const aligned=geometry.project(lm,facePoseReference,{width:video?.videoWidth||640,height:video?.videoHeight||480});
+  if(!aligned.ok)return setFacePoseUnavailable(aligned.code);
+  facePoseReference=aligned.reference;
+  lm=aligned.landmarks;
+  facePoseReady=true;facePoseAt=sampleAt;facePoseCode='ready';
   // EAR
   metrics.earL = (fD(lm,160,144)+fD(lm,158,153))/(2*fD(lm,33,133)+1e-5);
   metrics.earR = (fD(lm,387,373)+fD(lm,385,380))/(2*fD(lm,263,362)+1e-5);
@@ -2608,6 +2721,8 @@ function analyzeFrame(lm, sampleAt) {
     if (assessActive) assessBuf.push({...metrics, _sampleAt: sampleAt});
     if (exState === 'running') exMeasureBuf.push({...metrics});
   }
+  renderFacePoseState(true);
+  return true;
 }
 
 function updateLiveUI() {
@@ -2615,14 +2730,14 @@ function updateLiveUI() {
   const setDot = (dotId,txtId,val,thresh,label) => {
     const d=document.getElementById(dotId), t=document.getElementById(txtId);
     if (!d) return;
-    const fire = Math.abs(val)>thresh;
+    const fire = !!window.FaceFrameGeometry?.above(val,thresh);
     d.className='fb-dot '+(fire?'bad':'good');
     t.textContent=label+(fire?' ⚠':'');
   };
   setDot('fbMigang','fbMigangTxt',metrics.corrugator||0,0.003,'미간');
   setDot('fbBrow','fbBrowTxt',metrics.relBrowL||0,0.003,'눈썹');
-  setDot('fbCorner','fbCornerTxt',metrics.relSmileL||0,-0.002,'입꼬리');
-  setDot('fbFront','fbFrontTxt',metrics.frontalBrow||0,0.003,'이마 보상');
+  setDot('fbCorner','fbCornerTxt',metrics.relSmileL||0,0.002,'입꼬리');
+  setDot('fbFront','fbFrontTxt',metrics.frontalBrow||0,0.003,'이마 움직임');
 
   updateMuscleMonitor();
 }
@@ -2910,6 +3025,7 @@ function blockAssessment(message) {
 }
 
 function startStaticPhase() {
+  if(!facePoseFresh())return blockAssessment('정면 구도 및 최신 얼굴 측정 필요');
   if (!assessmentSafetyAvailable() || !cameraActive || !AssessmentSafety.baselineReady(BL, blDone)) return blockAssessment('유효한 기준값 필요');
   cancelAssessTimers();
   clearAssessmentData();
@@ -2932,6 +3048,7 @@ function startStaticPhase() {
 function startDynamicPhase() {
   const reserveMs = ASSESS_TESTS.slice(1).reduce((sum, test) => sum + test.duration + 3.8, 0) * 1000;
   if (!cameraActive || assessPhase !== 'static-done' || !assessmentStaticReady(reserveMs)) return blockAssessment('최근 Phase 1 완료 및 동일한 유효 기준값 필요');
+  if(!facePoseFresh())return blockAssessment('정면 구도 및 최신 얼굴 측정 필요');
   cancelAssessTimers();
   assessIdx2 = 1;
   assessPhase = 'dynamic';
@@ -3642,7 +3759,7 @@ function selectEx(idx) {
   updateActiveGuideImage('program', ex.id);
   const ms = MUSCLE_STATUS[ex.id];
   renderExList();
-  document.getElementById('pStartBtn').disabled = !cameraActive || exState!=='idle';
+  document.getElementById('pStartBtn').disabled = !cameraActive || !facePoseReady || exState!=='idle';
 
   const svgMarkup = faceSVG(ex.id);
   const muscleInfo = ms ? `
@@ -3687,7 +3804,7 @@ function selectEx(idx) {
 }
 
 function startExercise() {
-  if (!cameraActive || exState!=='idle') return;
+  if (!cameraActive || !facePoseFresh() || exState!=='idle') return;
   if (!blDone) { alert('기준값 측정 중입니다. 잠시 기다리세요.'); return; }
   const ex = EXERCISES[exIdx];
   exMeasureBuf.length = 0;
@@ -3736,6 +3853,7 @@ function startExercise() {
 }
 
 function beginExSet() {
+  if(!facePoseFresh()){setFacePoseUnavailable('stale_tracking');return;}
   const ex = EXERCISES[exIdx];
   exState = 'running';
   exStartTime = Date.now();
@@ -3856,6 +3974,7 @@ function onExSetDone() {
 }
 
 function finishExercise() {
+  if(!facePoseFresh()){setFacePoseUnavailable('stale_tracking');return;}
   const ex = EXERCISES[exIdx];
   clearInterval(exTimer);
   document.getElementById('pStopBtn').disabled = true;
@@ -3947,12 +4066,13 @@ function hideLiveForm() {
 }
 
 function stopExercise() {
+  cancelPendingSequence();seqMode=false;
   clearInterval(exTimer);
   exState = 'idle';
   hideLiveForm();
   const scanOverlay2 = document.getElementById('scanOverlay2');
   if (scanOverlay2) scanOverlay2.style.display = 'none';
-  document.getElementById('pStartBtn').disabled = false;
+  document.getElementById('pStartBtn').disabled = !cameraActive || !facePoseReady || !blDone;
   document.getElementById('pStopBtn').disabled = true;
   document.getElementById('pBadge').textContent = '중지됨';
   document.getElementById('pTimer').textContent = '0:00';
@@ -3963,6 +4083,8 @@ function stopExercise() {
 // SEQUENTIAL
 // ═══════════════════════════════════════════════════════════
 function startFullProgram() {
+  if(!facePoseFresh())return;
+  cancelPendingSequence();
   seqMode = true; seqIdx = 0;
   Object.keys(exScores).forEach(k=>delete exScores[k]);
   closeOverlay();
@@ -3974,12 +4096,19 @@ function startFullProgram() {
 }
 
 function seqAdvanceInner() {
+  if(!seqMode)return;
+  cancelPendingSequence();
+  const generation=seqGeneration;
   const order = window._seqOrder || EXERCISES;
   if (seqIdx >= order.length) { showFullSummary(); return; }
   selectEx(EXERCISES.indexOf(order[seqIdx]));
   closeOverlay();
   document.getElementById('pBadge').textContent = `${seqIdx+1}/${order.length}: ${order[seqIdx].name} 준비 중...`;
-  if (cameraActive) setTimeout(() => { if(exState==='idle'&&blDone) startExercise(); }, 3500);
+  if(cameraActive&&facePoseFresh())seqStartTimer=setTimeout(()=>{
+    if(generation!==seqGeneration)return;
+    seqStartTimer=null;
+    if(seqMode&&exState==='idle'&&blDone&&facePoseFresh())startExercise();
+  },3500);
 }
 
 function seqNext() { seqIdx++; seqAdvanceInner(); }

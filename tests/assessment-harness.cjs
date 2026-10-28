@@ -1,6 +1,7 @@
 // Full host inline script in a Node VM. Fake DOM/timers/SDK/storage only.
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const policy=require('../assessment-safety.js');
+const geometry=require('../face-frame-geometry.js');
 const html=fs.readFileSync(process.env.FACE_ASSESSMENT_HOST_SOURCE || path.join(__dirname,'../index.html'),'utf8');
 const inline=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('const SUPABASE_URL'));
 const readyBL={n:45,leftCornerY:0.5,rightCornerY:0.5,leftBrowY:0.4,rightBrowY:0.4,earL:0.3,earR:0.3,jawH:0,mouthW:0.2,glabellarD:0.1,foreheadY:0.2};
@@ -14,7 +15,7 @@ function fixture({qa=true,missingPolicy=false,policyOverride=undefined,samples=t
  const document={getElementById:id=>elements.get(id)||null,addEventListener(){},querySelectorAll:selector=>selector==='.assess-card'?[...elements.values()].filter(e=>e.id.startsWith('ac_')):[],querySelector:()=>null,createElement(){audit.images++;throw Error('DENIED media element creation');}};
  const clockDate=class extends Date{constructor(...args){super(...(args.length?args:[946684800000+now]));}static now(){return now;}};
  const add=(fn,delay,repeat)=>{const id=nextId++;timers.set(id,{fn,due:now+delay,repeat:repeat?delay:0});return id;};
- const context=vm.createContext({document,Date:clockDate,URLSearchParams,FaceAssessmentSafety:missingPolicy?undefined:(policyOverride===undefined?policy:policyOverride),location:{search:qa?'?assessmentQA=1':''},addEventListener(){},console:{log(){},warn(){}},
+ const context=vm.createContext({document,Date:clockDate,URLSearchParams,FaceFrameGeometry:geometry,FaceAssessmentSafety:missingPolicy?undefined:(policyOverride===undefined?policy:policyOverride),location:{search:qa?'?assessmentQA=1':''},addEventListener(){},console:{log(){},warn(){}},
  navigator:{mediaDevices:{getUserMedia(){audit.media++;throw Error('DENIED camera');}}},FaceMesh:function(){audit.media++;throw Error('DENIED model');},supabase:{createClient(){audit.client++;throw Error('DENIED SDK');}},fetch(){audit.network++;throw Error('DENIED network');},
  localStorage:{getItem(k){audit.storageReads++;return storage.get(k)||null},setItem(k,v){audit.storageWrites++;storage.set(k,v)}},
  setTimeout:(fn,d)=>add(fn,d,false),clearTimeout:id=>timers.delete(id),setInterval:(fn,d)=>add(fn,d,true),clearInterval:id=>timers.delete(id),requestAnimationFrame(){throw Error('DENIED animation/media loop');},alert(){}});
@@ -22,8 +23,8 @@ function fixture({qa=true,missingPolicy=false,policyOverride=undefined,samples=t
  vm.runInContext(inline,context,{timeout:1500});
  if(silence) vm.runInContext('speak=()=>{};playTick=()=>{};playGo=()=>{};playDone=()=>{};playNextTest=()=>{};',context);
  const run=code=>vm.runInContext(code,context,{timeout:1000});
- function setReady(){context.__bl=readyBL;run('Object.assign(BL,__bl);blDone=true;cameraActive=true;');}
- function step(){const next=[...timers].sort((a,b)=>a[1].due-b[1].due||a[0]-b[0])[0];if(!next)return false;const[id,t]=next;now=Math.max(now,t.due);if(t.repeat)t.due+=t.repeat;else timers.delete(id);if(sampling&&run('assessActive')){context.__sample={...scalarSample,_sampleAt:now};run('assessBuf.push(__sample)');}t.fn();return true;}
+ function setReady(){context.__bl=readyBL;run('Object.assign(BL,__bl);blDone=true;cameraActive=true;facePoseReady=true;facePoseAt=Date.now();');}
+ function step(){const next=[...timers].sort((a,b)=>a[1].due-b[1].due||a[0]-b[0])[0];if(!next)return false;const[id,t]=next;now=Math.max(now,t.due);if(t.repeat)t.due+=t.repeat;else timers.delete(id);if(sampling&&run('cameraActive'))run('facePoseReady=true;facePoseAt=Date.now()');if(sampling&&run('assessActive')){context.__sample={...scalarSample,_sampleAt:now};run('assessBuf.push(__sample)');}t.fn();return true;}
  function drain(){let n=0;while(step())if(++n>30000)throw Error('Timer runaway');}
  function staticDone(){setReady();run('startStaticPhase()');drain();}
  function armIO({forceComplete=false}={}) {
