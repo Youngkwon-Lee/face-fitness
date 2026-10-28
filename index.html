@@ -1763,10 +1763,27 @@ window.onload = () => {
 // ═══════════════════════════════════════════════════════════
 async function startCamera() {
   if (assessmentIOBlocked()) return;
+  const readiness = window.FaceCameraReadiness;
+  if (!readiness || typeof readiness.waitForMetadata !== 'function' ||
+      typeof readiness.classifyStartError !== 'function') {
+    // Fail closed before requesting camera media when the helper is unavailable.
+    const button = document.getElementById('aCamBtn');
+    button.disabled = true;
+    button.dataset.cameraStage = 'error';
+    button.dataset.cameraFailureCode = 'readiness-module-missing';
+    button.dataset.cameraFailureStep = 'get-user-media';
+    const hint = document.getElementById('camStartHint');
+    hint.textContent = '카메라 준비 코드를 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도하세요.';
+    hint.style.display = '';
+    return;
+  }
   document.getElementById('aCamBtn').disabled = true;
   document.getElementById('aCamBtn').textContent = '로딩 중...';
   const camBtn = document.getElementById('aCamBtn');
   camBtn.dataset.cameraStage = 'permission-pending';
+  camBtn.dataset.cameraFailureCode = '';
+  camBtn.dataset.cameraFailureStep = '';
+  let cameraStartStep = 'get-user-media';
   camBtn.dataset.faceTracked = 'false';
   const permissionHintTimer = setTimeout(() => {
     if (camBtn.dataset.cameraStage === 'permission-pending') {
@@ -1783,13 +1800,19 @@ async function startCamera() {
     camStream = stream;
     video.srcObject = stream;
     video2.srcObject = stream;
-    await window.FaceCameraReadiness.waitForMetadata(video);
+    cameraStartStep = 'video-metadata';
+    camBtn.dataset.cameraStage = 'waiting-metadata';
+    await readiness.waitForMetadata(video);
+    cameraStartStep = 'video-playback';
+    camBtn.dataset.cameraStage = 'starting-playback';
     await video.play();
     // Secondary preview may be hidden or blocked from autoplay on WebKit.
     // It is not required for primary face landmark tracking to start.
     void video2.play().catch(() => {});
     video2.style.display = '';
-    
+    cameraStartStep = 'prepare-ui';
+    camBtn.dataset.cameraStage = 'preparing-ui';
+
     // Hide offline guide placeholders and trigger fade-in streaming animations
     const og1 = document.getElementById('offlineGuide');
     if (og1) og1.style.opacity = '0';
@@ -1820,6 +1843,8 @@ async function startCamera() {
     window.addEventListener('resize', () => {
       if (document.getElementById('screen-history')?.classList.contains('active')) renderProgressGraph();
     });
+    cameraStartStep = 'facemesh-init';
+    camBtn.dataset.cameraStage = 'initializing-model';
     await loadFM();
     cameraActive = true;
     camBtn.dataset.cameraStage = 'ready';
@@ -1832,6 +1857,9 @@ async function startCamera() {
     requestAnimationFrame(frameLoop);
   } catch(e) {
     clearTimeout(permissionHintTimer);
+    const cameraFailure = readiness.classifyStartError(e, cameraStartStep);
+    camBtn.dataset.cameraFailureCode = cameraFailure.code;
+    camBtn.dataset.cameraFailureStep = cameraFailure.step;
     cameraActive = false;
     if (camStream) {
       camStream.getTracks().forEach(track => track.stop());
@@ -1842,7 +1870,8 @@ async function startCamera() {
     camBtn.dataset.cameraStage = 'error';
     camBtn.textContent = '카메라 다시 시도';
     document.getElementById('camStartHint').textContent =
-      window.FaceCameraReadiness.safeStatusFromError(e);
+      readiness.safeStatusFromError(e) +
+      ' (진단: ' + cameraFailure.step + ' / ' + cameraFailure.code + ')';
     document.getElementById('camStartHint').style.display = '';
     document.getElementById('aCamBtn').disabled = false;
   }
@@ -1906,19 +1935,32 @@ function resizeCanvases() {
 
 async function loadFM() {
   if (assessmentIOBlocked()) return;
-  if (fmLoaded || fmLoading) return;
+  if (fmLoaded) return;
+  if (fmLoading) throw new Error('FaceMesh already initializing');
   fmLoading = true;
-  faceMesh = new FaceMesh({locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
-  faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5, minTrackingConfidence:0.5});
-  const model = faceMesh, epoch = ++faceTrackingEpoch;
-  faceMesh.onResults(r => {
-    if (epoch !== faceTrackingEpoch || model !== faceMesh) return;
-    lastFaceResults = r;
-    faceResultAt = Date.now();
-    faceResultSequence++;
-  });
-  await faceMesh.initialize();
-  fmLoaded = true; fmLoading = false;
+  try {
+    faceMesh = new FaceMesh({locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+    faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5, minTrackingConfidence:0.5});
+    const model = faceMesh, epoch = ++faceTrackingEpoch;
+    faceMesh.onResults(r => {
+      if (epoch !== faceTrackingEpoch || model !== faceMesh) return;
+      lastFaceResults = r;
+      faceResultAt = Date.now();
+      faceResultSequence++;
+    });
+    await faceMesh.initialize();
+    fmLoaded = true;
+  } catch (error) {
+    faceTrackingEpoch++;
+    faceMesh = null;
+    fmLoaded = false;
+    lastFaceResults = null;
+    faceResultAt = null;
+    throw error;
+  } finally {
+    // A failed initialization must not poison the next camera retry.
+    fmLoading = false;
+  }
 }
 
 let lastVideoTime = -1;
