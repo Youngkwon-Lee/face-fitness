@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>FACE FITNESS</title>
+<script src="./interview-demo.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -62,6 +63,23 @@ header{
   color:var(--accent);
   box-shadow:0 0 12px rgba(244,114,182,0.15);
 }
+.nav-btn{white-space:nowrap;}
+@media(max-width:480px){
+  header{padding:10px 14px;gap:10px;}
+  .logo{font-size:1rem;letter-spacing:2px;}
+  .header-nav{gap:6px;}
+  .nav-btn{padding:7px 10px;letter-spacing:0;}
+}
+
+/* INTERVIEW DEMO (?demo=1) */
+#interviewDemoBanner{
+  padding:10px 16px;text-align:center;font-size:.78rem;line-height:1.5;
+  color:var(--text);background:rgba(129,140,248,.12);border-bottom:1px solid rgba(129,140,248,.35);
+}
+#interviewDemoBanner strong{color:var(--accent2);}
+body.interview-demo #authBtn,
+body.interview-demo #userChip,
+body.interview-demo #historyNavBtn{display:none !important;}
 
 /* SCREEN */
 .screen{display:none;padding:24px;max-width:1300px;margin:0 auto;}
@@ -514,6 +532,7 @@ header{
 </head>
 <body>
 <div id="assessmentSafetyStatus" role="status" hidden style="padding:12px;border:2px solid #fbbf24;text-align:center;"></div>
+<div id="interviewDemoBanner" role="note" hidden><strong>인터뷰 데모 · 연구용 시제품</strong><br/>영상과 결과는 이 기기에도 서버에도 저장되지 않으며, 의료적 평가가 아닙니다.</div>
 
 <header>
   <div>
@@ -522,7 +541,7 @@ header{
   <nav class="header-nav">
     <button class="nav-btn active" onclick="showScreen('assess')">평가</button>
     <button class="nav-btn" onclick="showScreen('program')">운동</button>
-    <button class="nav-btn" onclick="showScreen('history')">기록</button>
+    <button id="historyNavBtn" class="nav-btn" onclick="showScreen('history')">기록</button>
     <button id="voiceBtn" class="nav-btn" onclick="toggleVoice()" title="음성 끄기" style="font-size:.9rem;padding:5px 10px;">🔊</button>
     <button id="authBtn" class="nav-btn" onclick="openAuthModal()" style="border-color:rgba(129,140,248,.4);color:var(--accent2);">로그인</button>
     <div id="userChip" class="user-chip" style="display:none;" onclick="openUserMenu()">
@@ -1049,6 +1068,8 @@ function assessmentSafetyAvailable() {
   return !!AssessmentSafety && ['baselineReady','validateSamples','validResult','complete','baselineSignature'].every(key => typeof AssessmentSafety[key] === 'function') && Number.isFinite(AssessmentSafety.MAX_BASELINE_AGE_MS);
 }
 function assessmentIOBlocked() { return !assessmentSafetyAvailable() || ASSESSMENT_QA; }
+// Interview demo (?demo=1): no account, no cloud reads/writes, storage kept in memory only.
+const INTERVIEW_DEMO = window.FACE_INTERVIEW_DEMO === true;
 // ═══════════════════════════════════════════════════════════
 // SUPABASE AUTH + CLOUD PERSISTENCE
 // Core tables (physio_app schema):
@@ -1067,6 +1088,7 @@ let _personId      = null; // cached persons.id for current auth user
 let _orgId         = null; // cached organization_id (personal solo org) for current auth user
 
 function initSupabase() {
+  if (INTERVIEW_DEMO) return;
   if (assessmentIOBlocked()) return;
   try {
     if (!window.supabase) { console.warn('[Supabase] SDK not loaded'); return; }
@@ -1750,6 +1772,14 @@ window.onload = () => {
   cameraButton.dataset.cameraAttemptCount = '0';
   cameraButton.dataset.cameraRetryBlocked = 'false';
   const status = document.getElementById('assessmentSafetyStatus');
+  if (INTERVIEW_DEMO) {
+    document.body.classList.add('interview-demo');
+    const banner = document.getElementById('interviewDemoBanner');
+    banner.hidden = false;
+    if (window.FACE_INTERVIEW_DEMO_STORAGE_ISOLATED !== true) {
+      banner.insertAdjacentText('beforeend', ' (이 브라우저에서는 기기 내 임시 저장을 막지 못했습니다)');
+    }
+  }
   if (assessmentIOBlocked()) {
     status.hidden = false;
     status.textContent = ASSESSMENT_QA ? 'QA ONLY · 촬영·스냅샷·로그인·기록 조회/저장 차단 · 합성 fixture 전용, 임상 평가 아님' : '안전성 모듈 로드 실패 · 촬영 및 저장 차단';
