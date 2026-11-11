@@ -122,3 +122,10 @@ test('multiple MediaPipe callbacks in one send fail closed',async()=>{
   assert.equal(f.run('assessPhase'),'blocked');
   assert.equal(f.audit.storageWrites,0);
 });
+test('server history sync reads exercise records only, never the missing assessment table',async()=>{
+  const f=integrated({qa:false});
+  f.context.__tables=[];
+  f.run(`supabaseClient={from(t){__tables.push(t);const q={select(){return q},eq(){return q},order(){return q},in(){return q},limit(){return Promise.resolve({data:[],error:null})}};return q}};currentUser={id:'synthetic-owner'};bootstrapPersonalContext=async()=>({personId:'synthetic-person',orgId:null})`);
+  await f.run('syncCloudHistory()');
+  assert.deepEqual([...f.context.__tables],['mobile_exercise_sessions']);
+});

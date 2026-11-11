@@ -1079,11 +1079,12 @@ function assessmentIOBlocked() { return !assessmentSafetyAvailable() || ASSESSME
 const INTERVIEW_DEMO = window.FACE_INTERVIEW_DEMO === true;
 // ═══════════════════════════════════════════════════════════
 // SUPABASE AUTH + CLOUD PERSISTENCE
-// Core tables (physio_app schema):
-//   facial_assessment_sessions  — assessment records (persons FK)
-//   mobile_exercise_sessions    — exercise records (source_app='face_fitness')
-// Legacy tables (deprecated, fallback only):
-//   ff_assess_sessions, ff_exercise_sessions
+// Exercise records: mobile_exercise_sessions (source_app='face_fitness'), via
+// exercise-cloud.js. Assessments are NOT saved to the server: the
+// facial_assessment_sessions table this app used to target was never created in
+// the physio_app schema (its migration never reached main; absent from the
+// 2026-11-09 production DB snapshot), so every insert failed. Assessment results
+// stay on this device until physio_app owns a facial assessment contract.
 // ═══════════════════════════════════════════════════════════
 const SUPABASE_URL      = 'https://iwtyzcwiovuvmsodtusx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3dHl6Y3dpb3Z1dm1zb2R0dXN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNzQ2OTQsImV4cCI6MjA4NjY1MDY5NH0.auSLm1YvFE3FPMAMfa2w2Ac11zX3a85GWlk7t-UY_Dc';
@@ -1229,183 +1230,19 @@ async function bootstrapPersonalContext() {
 }
 
 async function cloudSaveAssess(payload) {
-  if (assessmentIOBlocked() || assessPhase !== 'done' || !assessmentComplete() || !assessmentScoresReady() || assessmentPayloadGeneration.get(payload) !== assessGeneration) return;
-  if (!supabaseClient || !currentUser) return;
-  const generation = assessGeneration, owner = currentUser.id;
+  if (assessmentIOBlocked()) return { status: 'failed', code: 'qa_blocked' };
   const badge = document.getElementById('cloudBadge');
-  if (badge) { badge.textContent = '⏳ 저장 중'; badge.className = 'cloud-badge syncing'; }
-  try {
-    const { personId, orgId } = await bootstrapPersonalContext();
-    if (generation !== assessGeneration || currentUser?.id !== owner || !assessmentComplete() || !assessmentScoresReady() || assessPhase !== 'done') {
-      if (badge) { badge.textContent = '서버 저장 중단 · 평가/계정 변경'; badge.className = 'cloud-badge local'; }
-      return;
-    }
-    const mf    = payload.measurement_features || {};
-    const zones = payload.zones || {};
-    const earL  = payload.earL || 0, earR = payload.earR || 0;
-    const earDiffPct = (earL > 0 && earR > 0)
-      ? Math.round(Math.abs(earL - earR) / Math.max(earL, earR) * 1000) / 10
-      : null;
-    const synk = mf.synkinesis_flags || {};
-
-    if (personId) {
-      const { error } = await supabaseClient.from('facial_assessment_sessions').insert({
-        person_id:                  personId,
-        organization_id:            orgId || null,
-        source:                     'face_fitness_app',
-        symmetry_score:             payload.symScore,
-        zone_upper:                 zones.upper  ?? null,
-        zone_mid:                   zones.mid    ?? null,
-        zone_lower:                 zones.lower  ?? null,
-        zone_neck:                  zones.neck   ?? null,
-        ear_left:                   earL || null,
-        ear_right:                  earR || null,
-        ear_diff_pct:               earDiffPct,
-        synkinesis_eye_brow:        synk.eye_brow          ?? null,
-        synkinesis_smile_platysma:  synk.smile_platysma    ?? null,
-        synkinesis_brow_corrugator: synk.brow_corrugator   ?? null,
-        measurement_features:       payload.measurement_features || null,
-        semantic_domains:           mf.semantic_domains || [],
-        status:                     'completed',
-      });
-      if (error) throw error;
-    } else {
-      // Fallback: legacy table (no persons FK required)
-      const { error } = await supabaseClient.from('ff_assess_sessions').insert({
-        user_id: currentUser.id, zones: payload.zones,
-        avg_score: payload.avgScore, sym_score: payload.symScore,
-        ear_l: earL, ear_r: earR,
-        corr_firing: payload.corrFiring, plat_firing: payload.platFiring,
-      });
-      if (error) throw error;
-    }
-    if (badge) { badge.textContent = '☁ 클라우드'; badge.className = 'cloud-badge synced'; }
-  } catch(e) {
-    console.warn('[Cloud] assess save failed:', e.message);
-    if (badge) { badge.textContent = '⚠ 저장 실패'; badge.className = 'cloud-badge local'; }
-  }
+  if (badge) { badge.textContent = '기기에만 저장 · 평가는 서버에 저장하지 않음'; badge.className = 'cloud-badge local'; }
+  return { status: 'local_only', code: 'assessment_cloud_unsupported' };
 }
 
-async function cloudSaveExercise(payload) {
-  if (assessmentIOBlocked()) return;
-  if (!supabaseClient || !currentUser) return;
-  try {
-    const { personId } = await bootstrapPersonalContext();
+// Exercise persistence lives in app-improvements.js / exercise-cloud.js, which
+// override this. Without that sidecar there is no server IO.
+async function cloudSaveExercise() { return { status: 'local_only', code: 'sidecar_missing' }; }
 
-    if (personId) {
-      // Look up exercises.id by code (face_ prefix)
-      let exerciseId = null;
-      const { data: ex } = await supabaseClient
-        .from('exercises').select('id')
-        .eq('exercise_code', 'face_' + payload.exId)
-        .maybeSingle();
-      if (ex) exerciseId = ex.id;
-
-      await supabaseClient.from('mobile_exercise_sessions').insert({
-        subject_person_id: personId,
-        exercise_id:       exerciseId,
-        source_app:        'face_fitness',
-        pose_accuracy:     payload.score / 100,
-        best_accuracy:     payload.score / 100,
-        completed_sets:    1,
-        target_sets:       1,
-        completed_reps:    0,
-        target_reps:       0,
-        status:            'completed',
-        feedback:          [{ zone: payload.exZone, type: payload.exType, score: payload.score }],
-      });
-    } else {
-      // Fallback: legacy table
-      await supabaseClient.from('ff_exercise_sessions').insert({
-        user_id: currentUser.id, ex_id: payload.exId,
-        ex_name: payload.exName, ex_zone: payload.exZone,
-        ex_type: payload.exType, score: payload.score,
-      });
-    }
-  } catch(e) { console.warn('[Cloud] exercise save failed:', e.message); }
-}
-
-async function syncCloudHistory() {
-  if (assessmentIOBlocked()) return;
-  if (!supabaseClient || !currentUser) return;
-  const badge = document.getElementById('cloudBadge');
-  if (badge) { badge.textContent = '⏳ 동기화'; badge.className = 'cloud-badge syncing'; }
-  try {
-    const { personId } = await bootstrapPersonalContext();
-    let cloudAssess = [], cloudEx = [];
-
-    if (personId) {
-      // Read from core tables
-      const [ar, er] = await Promise.all([
-        supabaseClient.from('facial_assessment_sessions')
-          .select('id,assessed_at,zone_upper,zone_mid,zone_lower,zone_neck,symmetry_score,ear_left,ear_right,synkinesis_eye_brow,synkinesis_smile_platysma,synkinesis_brow_corrugator,measurement_features')
-          .eq('person_id', personId).eq('source', 'face_fitness_app')
-          .order('assessed_at', {ascending:false}).limit(30),
-        supabaseClient.from('mobile_exercise_sessions')
-          .select('id,completed_at,exercise_id,pose_accuracy,feedback')
-          .eq('subject_person_id', personId).eq('source_app', 'face_fitness')
-          .order('completed_at', {ascending:false}).limit(100),
-      ]);
-      cloudAssess = (ar.data||[]).map(r => ({
-        date: r.assessed_at,
-        zones: { upper: r.zone_upper, mid: r.zone_mid, lower: r.zone_lower, neck: r.zone_neck },
-        avgScore: Math.round([(r.zone_upper||0),(r.zone_mid||0),(r.zone_lower||0),(r.zone_neck||0)].reduce((a,b)=>a+b,0)/4),
-        symScore: r.symmetry_score,
-        earL: r.ear_left, earR: r.ear_right,
-        corrFiring: !!(r.synkinesis_brow_corrugator),
-        platFiring: !!(r.synkinesis_smile_platysma),
-        measurement_features: r.measurement_features,
-        _cloud: true,
-      }));
-      cloudEx = (er.data||[]).map(r => {
-        const fb = Array.isArray(r.feedback) && r.feedback[0] ? r.feedback[0] : {};
-        return {
-          date: r.completed_at, exId: fb.exId || null,
-          exName: fb.exName || null, exZone: fb.zone || null,
-          exType: fb.type || null, score: Math.round((r.pose_accuracy||0)*100), _cloud: true,
-        };
-      });
-    } else {
-      // Fallback: legacy tables
-      const [ar, er] = await Promise.all([
-        supabaseClient.from('ff_assess_sessions').select('*').eq('user_id', currentUser.id).order('created_at', {ascending:false}).limit(30),
-        supabaseClient.from('ff_exercise_sessions').select('*').eq('user_id', currentUser.id).order('created_at', {ascending:false}).limit(100),
-      ]);
-      if (ar.error) throw ar.error;
-      if (er.error) throw er.error;
-      cloudAssess = (ar.data||[]).map(r => ({
-        date: r.created_at, zones: r.zones,
-        avgScore: r.avg_score, symScore: r.sym_score,
-        earL: r.ear_l, earR: r.ear_r,
-        corrFiring: r.corr_firing, platFiring: r.plat_firing, _cloud: true,
-      }));
-      cloudEx = (er.data||[]).map(r => ({
-        date: r.created_at, exId: r.ex_id, exName: r.ex_name,
-        exZone: r.ex_zone, exType: r.ex_type, score: r.score, _cloud: true,
-      }));
-    }
-
-    const hist = JSON.parse(localStorage.getItem(HIST_KEY)||'{"assess":[],"exercise":[]}');
-
-    // Merge: no duplicate dates
-    const existD = new Set(hist.assess.map(r=>r.date));
-    cloudAssess.forEach(r => { if (!existD.has(r.date)) hist.assess.push(r); });
-    hist.assess.sort((a,b)=>new Date(b.date)-new Date(a.date));
-    hist.assess = hist.assess.slice(0,30);
-
-    const existEx = new Set(hist.exercise.map(r=>r.date+'|'+r.exId));
-    cloudEx.forEach(r => { if (!existEx.has(r.date+'|'+r.exId)) hist.exercise.push(r); });
-    hist.exercise.sort((a,b)=>new Date(b.date)-new Date(a.date));
-    hist.exercise = hist.exercise.slice(0,100);
-
-    localStorage.setItem(HIST_KEY, JSON.stringify(hist));
-    if (badge) { badge.textContent = '☁ 동기화 완료'; badge.className = 'cloud-badge synced'; }
-    if (document.getElementById('screen-history')?.classList.contains('active')) renderHistory();
-  } catch(e) {
-    console.warn('[Cloud] sync failed:', e.message);
-    if (badge) { badge.textContent = '⚠ 동기화 실패'; badge.className = 'cloud-badge local'; }
-  }
-}
+// Server history sync (exercise only) lives in app-improvements.js, which
+// overrides this. Without that sidecar there is no server IO.
+async function syncCloudHistory() {}
 
 // ═══════════════════════════════════════════════════════════
 // EXERCISE DATABASE
