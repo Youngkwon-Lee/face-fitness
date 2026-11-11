@@ -6,6 +6,7 @@ on:
       - 'assessment-safety.js'
       - 'camera-readiness.js'
       - 'face-frame-geometry.js'
+      - 'face-measurement.js'
       - 'app-improvements.js'
       - 'exercise-cloud.js'
       - 'movement-coach.js'
@@ -33,6 +34,7 @@ jobs:
           node --check assessment-safety.js
           node --check camera-readiness.js
           node --check face-frame-geometry.js
+          node --check face-measurement.js
           node --check app-improvements.js
           node --check exercise-cloud.js
           node --check movement-coach.js

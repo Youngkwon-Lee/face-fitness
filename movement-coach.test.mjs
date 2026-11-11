@@ -53,17 +53,17 @@ for (const [name, motion] of [
 test('eyebrow movement is separate from lower and upper eyelid movement', () => {
   const lm = face(); lm[66].y -= 0.01; lm[105].y -= 0.01;
   const d = coach.changes(coach.geometry(lm), coach.geometry(face()));
-  assert.ok(d.browL > 0); near(d.browR, 0); near(d.lowerL, 0); near(d.upperL, 0);
+  assert.ok(d.browR > 0); near(d.browL, 0); near(d.lowerR, 0); near(d.upperR, 0);
 });
 test('lower eyelid rise does not become upper eyelid descent', () => {
   const lm = face(); lm[144].y -= 0.006; lm[153].y -= 0.006;
   const d = coach.changes(coach.geometry(lm), coach.geometry(face()));
-  assert.ok(d.lowerL > 0); near(d.upperL, 0); near(d.browL, 0);
+  assert.ok(d.lowerR > 0); near(d.upperR, 0); near(d.browR, 0);
 });
 test('upper eyelid descent is independently represented', () => {
   const lm = face(); lm[160].y += 0.006; lm[158].y += 0.006;
   const d = coach.changes(coach.geometry(lm), coach.geometry(face()));
-  assert.ok(d.upperL > 0); near(d.lowerL, 0);
+  assert.ok(d.upperR > 0); near(d.lowerR, 0);
 });
 test('neutral calibration must be deliberate', () => {
   const tracker = coach.createTracker();

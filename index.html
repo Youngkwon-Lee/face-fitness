@@ -648,27 +648,28 @@ body.interview-demo #historyNavBtn{display:none !important;}
         </button>
       </div>
 
-      <!-- Muscle Activation Monitor -->
+      <!-- Relative movement monitor: not EMG -->
       <div class="card" id="aMetricsCard">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <div class="card-title" style="margin:0;">근육 활성화 모니터</div>
+          <div class="card-title" style="margin:0;">얼굴 움직임 모니터</div>
           <button onclick="resetMusclePeaks()" style="background:none;border:1px solid var(--border);color:var(--dim);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:.6rem;letter-spacing:.5px;">RESET</button>
         </div>
+        <p style="font-size:.68rem;color:var(--dim);line-height:1.6;margin-bottom:10px;">L = 내 왼쪽 · R = 내 오른쪽 · 영상은 거울 보기입니다.<br>고개를 정면에 고정하세요. 각도 변화가 섞일 수 있어 기준에서 벗어나면 수치를 비웁니다.<br>얼굴 움직임 지표이며 근활성도·근력·의료적 정확도 점수가 아닙니다.</p>
         <div id="muscleMonitor">
           <!-- ZMaj (광대근) — bilateral via mouth-corner lift (AU12) -->
           <div class="mm-muscle">
             <div class="mm-mhead">
               <span class="mm-mname">광대근 <span class="mm-msub">Zygomaticus Major</span></span>
-              <span id="mm_duchenne" style="display:none;align-items:center;gap:3px;font-size:.6rem;font-weight:700;color:#fbbf24;background:#fbbf2420;border:1px solid #fbbf2460;border-radius:10px;padding:1px 7px;">✨ Duchenne</span>
+              <span id="mm_duchenne" style="display:none;align-items:center;gap:3px;font-size:.6rem;font-weight:700;color:#fbbf24;background:#fbbf2420;border:1px solid #fbbf2460;border-radius:10px;padding:1px 7px;">입꼬리·볼 동시 움직임</span>
               <span class="mm-asym" id="mm_smA">—</span>
             </div>
             <div class="mm-brow">
-              <span class="mm-side">L</span>
+              <span class="mm-side" title="본인의 해부학적 왼쪽">L</span>
               <div class="mm-track"><div class="mm-fill" id="mm_smL" style="width:0%"></div></div>
               <span class="mm-pct" id="mm_smL_pct">—</span>
             </div>
             <div class="mm-brow">
-              <span class="mm-side">R</span>
+              <span class="mm-side" title="본인의 해부학적 오른쪽">R</span>
               <div class="mm-track"><div class="mm-fill" id="mm_smR" style="width:0%"></div></div>
               <span class="mm-pct" id="mm_smR_pct">—</span>
             </div>
@@ -680,12 +681,12 @@ body.interview-demo #historyNavBtn{display:none !important;}
               <span class="mm-asym" id="mm_brA">—</span>
             </div>
             <div class="mm-brow">
-              <span class="mm-side">L</span>
+              <span class="mm-side" title="본인의 해부학적 왼쪽">L</span>
               <div class="mm-track"><div class="mm-fill" id="mm_brL" style="width:0%"></div></div>
               <span class="mm-pct" id="mm_brL_pct">—</span>
             </div>
             <div class="mm-brow">
-              <span class="mm-side">R</span>
+              <span class="mm-side" title="본인의 해부학적 오른쪽">R</span>
               <div class="mm-track"><div class="mm-fill" id="mm_brR" style="width:0%"></div></div>
               <span class="mm-pct" id="mm_brR_pct">—</span>
             </div>
@@ -693,16 +694,16 @@ body.interview-demo #historyNavBtn{display:none !important;}
           <!-- Orbicularis Oculi (안륜근) — bilateral via EAR (AU6/43) -->
           <div class="mm-muscle">
             <div class="mm-mhead">
-              <span class="mm-mname">안륜근 <span class="mm-msub">Orbicularis Oculi (EAR)</span></span>
+              <span class="mm-mname">눈감김 <span class="mm-msub">중립 대비 EAR 감소율</span></span>
               <span class="mm-asym" id="mm_eyA">—</span>
             </div>
             <div class="mm-brow">
-              <span class="mm-side">L</span>
+              <span class="mm-side" title="본인의 해부학적 왼쪽">L</span>
               <div class="mm-track"><div class="mm-fill" id="mm_eyL" style="width:0%"></div></div>
               <span class="mm-pct" id="mm_eyL_pct">—</span>
             </div>
             <div class="mm-brow">
-              <span class="mm-side">R</span>
+              <span class="mm-side" title="본인의 해부학적 오른쪽">R</span>
               <div class="mm-track"><div class="mm-fill" id="mm_eyR" style="width:0%"></div></div>
               <span class="mm-pct" id="mm_eyR_pct">—</span>
             </div>
@@ -714,12 +715,12 @@ body.interview-demo #historyNavBtn{display:none !important;}
               <span class="mm-asym" id="mm_llsA">—</span>
             </div>
             <div class="mm-brow">
-              <span class="mm-side">L</span>
+              <span class="mm-side" title="본인의 해부학적 왼쪽">L</span>
               <div class="mm-track"><div class="mm-fill" id="mm_llsL" style="width:0%"></div></div>
               <span class="mm-pct" id="mm_llsL_pct">—</span>
             </div>
             <div class="mm-brow">
-              <span class="mm-side">R</span>
+              <span class="mm-side" title="본인의 해부학적 오른쪽">R</span>
               <div class="mm-track"><div class="mm-fill" id="mm_llsR" style="width:0%"></div></div>
               <span class="mm-pct" id="mm_llsR_pct">—</span>
             </div>
@@ -765,6 +766,12 @@ body.interview-demo #historyNavBtn{display:none !important;}
             </div>
           </div>
         </div>
+        <details style="font-size:.68rem;color:var(--dim);line-height:1.7;margin-top:10px;">
+          <summary>반복 측정용 원시 변화량 · 임상 검증 전</summary>
+          <p>양수는 위로 이동, 음수는 아래로 이동입니다. 눈썹·입꼬리는 기준 프레임의 양쪽 바깥 눈꼬리 거리 대비 비율이며 세션 최대값과 무관합니다. 눈감김은 중립 EAR 대비 감소율입니다.</p>
+          <pre id="measurementValidationReadout" style="white-space:pre-wrap;font:inherit;">얼굴 추적과 중립 기준이 준비되면 표시합니다.</pre>
+          <p>중립 10초 → 왼쪽/오른쪽 윙크 각 5회 → 눈썹 올리기·미소 각 5회. 동작은 3초, 이완은 3초 유지하고 실제로 움직인 쪽과 비교하세요. 이 값은 메모리에서만 표시하며 별도 저장·전송하지 않습니다.</p>
+        </details>
         <!-- Symmetry score -->
         <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg);border-radius:6px;margin-top:8px;border:1px solid var(--border);">
           <span style="font-size:.7rem;color:var(--dim);">전체 좌우 대칭</span>
@@ -775,7 +782,7 @@ body.interview-demo #historyNavBtn{display:none !important;}
             <span style="font-size:1.1rem;font-weight:800;" id="mSym">—</span>
           </div>
         </div>
-        <div style="margin-top:5px;font-size:.57rem;color:var(--dim);line-height:1.4;">★ 세션 최대값 기준 정규화 · 비대칭 △: 건강인 정상범위 ZMaj ±16.7% / Frontalis ±10.9% · ✨Duchenne = AU12+AU6 동시 활성화 = 진짜 미소 · DAO = 구 Platysma 오측정 수정</div>
+        <div style="margin-top:5px;font-size:.57rem;color:var(--dim);line-height:1.4;">눈감김 %: 중립 대비 EAR 감소율 (0% = 중립, 100% = EAR 0). 나머지 막대 %: 세션 최대값·고정 하한 기준의 상대 움직임. △는 두 표시값의 차이(%p)이며 정상범위나 진단 기준이 아닙니다.</div>
       </div>
     </div>
   </div>
@@ -883,30 +890,30 @@ body.interview-demo #historyNavBtn{display:none !important;}
               <span class="mm-mname">광대근 <span class="mm-msub">ZMaj</span></span>
               <span class="mm-asym" id="pmm_smA">—</span>
             </div>
-            <div class="mm-brow"><span class="mm-side">L</span><div class="mm-track"><div class="mm-fill" id="pmm_smL" style="width:0%"></div></div><span class="mm-pct" id="pmm_smL_pct">—</span></div>
-            <div class="mm-brow"><span class="mm-side">R</span><div class="mm-track"><div class="mm-fill" id="pmm_smR" style="width:0%"></div></div><span class="mm-pct" id="pmm_smR_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" title="본인의 해부학적 왼쪽">L</span><div class="mm-track"><div class="mm-fill" id="pmm_smL" style="width:0%"></div></div><span class="mm-pct" id="pmm_smL_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" title="본인의 해부학적 오른쪽">R</span><div class="mm-track"><div class="mm-fill" id="pmm_smR" style="width:0%"></div></div><span class="mm-pct" id="pmm_smR_pct">—</span></div>
           </div>
           <div class="mm-muscle">
             <div class="mm-mhead">
               <span class="mm-mname">전두근 <span class="mm-msub">Frontalis</span></span>
               <span class="mm-asym" id="pmm_brA">—</span>
             </div>
-            <div class="mm-brow"><span class="mm-side">L</span><div class="mm-track"><div class="mm-fill" id="pmm_brL" style="width:0%"></div></div><span class="mm-pct" id="pmm_brL_pct">—</span></div>
-            <div class="mm-brow"><span class="mm-side">R</span><div class="mm-track"><div class="mm-fill" id="pmm_brR" style="width:0%"></div></div><span class="mm-pct" id="pmm_brR_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" title="본인의 해부학적 왼쪽">L</span><div class="mm-track"><div class="mm-fill" id="pmm_brL" style="width:0%"></div></div><span class="mm-pct" id="pmm_brL_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" title="본인의 해부학적 오른쪽">R</span><div class="mm-track"><div class="mm-fill" id="pmm_brR" style="width:0%"></div></div><span class="mm-pct" id="pmm_brR_pct">—</span></div>
           </div>
           <div class="mm-muscle" style="margin-bottom:4px;">
             <div class="mm-mhead">
               <span class="mm-mname">안륜근 <span class="mm-msub">OrbOculi</span></span>
               <span class="mm-asym" id="pmm_eyA">—</span>
             </div>
-            <div class="mm-brow"><span class="mm-side">L</span><div class="mm-track"><div class="mm-fill" id="pmm_eyL" style="width:0%"></div></div><span class="mm-pct" id="pmm_eyL_pct">—</span></div>
-            <div class="mm-brow"><span class="mm-side">R</span><div class="mm-track"><div class="mm-fill" id="pmm_eyR" style="width:0%"></div></div><span class="mm-pct" id="pmm_eyR_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" title="본인의 해부학적 왼쪽">L</span><div class="mm-track"><div class="mm-fill" id="pmm_eyL" style="width:0%"></div></div><span class="mm-pct" id="pmm_eyL_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" title="본인의 해부학적 오른쪽">R</span><div class="mm-track"><div class="mm-fill" id="pmm_eyR" style="width:0%"></div></div><span class="mm-pct" id="pmm_eyR_pct">—</span></div>
           </div>
           <hr class="mm-divider">
           <div class="mm-muscle" style="margin-bottom:4px;">
             <div class="mm-mhead"><span class="mm-mname">입술올림근 <span class="mm-msub">LLS</span></span><span class="mm-asym" id="pmm_llsA">—</span></div>
-            <div class="mm-brow"><span class="mm-side">L</span><div class="mm-track"><div class="mm-fill" id="pmm_llsL" style="width:0%"></div></div><span class="mm-pct" id="pmm_llsL_pct">—</span></div>
-            <div class="mm-brow"><span class="mm-side">R</span><div class="mm-track"><div class="mm-fill" id="pmm_llsR" style="width:0%"></div></div><span class="mm-pct" id="pmm_llsR_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" title="본인의 해부학적 왼쪽">L</span><div class="mm-track"><div class="mm-fill" id="pmm_llsL" style="width:0%"></div></div><span class="mm-pct" id="pmm_llsL_pct">—</span></div>
+            <div class="mm-brow"><span class="mm-side" title="본인의 해부학적 오른쪽">R</span><div class="mm-track"><div class="mm-fill" id="pmm_llsR" style="width:0%"></div></div><span class="mm-pct" id="pmm_llsR_pct">—</span></div>
           </div>
           <hr class="mm-divider">
           <div class="mm-muscle" style="margin-bottom:4px;">
@@ -1064,6 +1071,7 @@ body.interview-demo #historyNavBtn{display:none !important;}
 
 <script src="./assessment-safety.js"></script>
 <script src="./face-frame-geometry.js"></script>
+<script src="./face-measurement.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
@@ -1270,14 +1278,10 @@ async function cloudSaveAssess(payload) {
       });
       if (error) throw error;
     } else {
-      // Fallback: legacy table (no persons FK required)
-      const { error } = await supabaseClient.from('ff_assess_sessions').insert({
-        user_id: currentUser.id, zones: payload.zones,
-        avg_score: payload.avgScore, sym_score: payload.symScore,
-        ear_l: earL, ear_r: earR,
-        corr_firing: payload.corrFiring, plat_firing: payload.platFiring,
-      });
-      if (error) throw error;
+      // The legacy table has no evidenced version field. Do not silently mix
+      // new anatomical sides with its unversioned, reversed historical fields.
+      if (badge) { badge.textContent = '기기 저장됨 · 서버 측정버전 지원 필요'; badge.className = 'cloud-badge local'; }
+      return;
     }
     if (badge) { badge.textContent = '☁ 클라우드'; badge.className = 'cloud-badge synced'; }
   } catch(e) {
@@ -1720,7 +1724,7 @@ function toggleVoice() {
 }
 
 // ── BASELINE ───────────────────────────────────────────────
-const BL = {n:0, leftCornerY:0, rightCornerY:0, leftBrowY:0, rightBrowY:0,
+const BL = {n:0, eyeDistance:0, leftCornerY:0, rightCornerY:0, leftBrowY:0, rightBrowY:0,
              earL:1, earR:1, jawH:0, mouthW:0, glabellarD:0, foreheadY:0,
              llsDistL:0, llsDistR:0, mentalY:0, cheekLY:0, cheekRY:0};
 let blDone = false;
@@ -1829,6 +1833,14 @@ async function startCamera() {
       (camBtn.dataset.cameraStage && camBtn.dataset.cameraStage !== 'idle')) {
     camBtn.dataset.cameraRetryBlocked = 'true';
     if (camBtn.dataset.cameraStage !== 'ready') camBtn.disabled = true;
+    return;
+  }
+  if (!window.FaceMovementMeasurement?.extract || !window.FaceMovementMeasurement?.closure) {
+    camBtn.disabled = true;
+    camBtn.dataset.cameraStage = 'error';
+    camBtn.dataset.cameraFailureCode = 'measurement-module-missing';
+    camBtn.dataset.cameraFailureStep = 'get-user-media';
+    document.getElementById('camStartHint').textContent = '움직임 측정 코드를 불러오지 못했습니다. 새로고침 후 다시 시작하세요.';
     return;
   }
   const geometry = window.FaceFrameGeometry;
@@ -2111,10 +2123,10 @@ async function frameLoop() {
 // ═══════════════════════════════════════════════════════════
 // DRAWING
 // ═══════════════════════════════════════════════════════════
-const FM_L_EYE=[[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[133,173],[173,157],[157,158],[158,159],[159,160],[160,161],[161,246],[246,33]];
-const FM_R_EYE=[[263,249],[249,390],[390,373],[373,374],[374,380],[380,381],[381,382],[382,362],[362,398],[398,384],[384,385],[385,386],[386,387],[387,388],[388,466],[466,263]];
-const FM_L_BROW=[[46,53],[53,52],[52,65],[65,55],[55,70],[70,63],[63,105],[105,66],[66,107]];
-const FM_R_BROW=[[276,283],[283,282],[282,295],[295,285],[285,300],[300,293],[293,334],[334,296],[296,336]];
+const FM_R_EYE=[[33,7],[7,163],[163,144],[144,145],[145,153],[153,154],[154,155],[155,133],[133,173],[173,157],[157,158],[158,159],[159,160],[160,161],[161,246],[246,33]];
+const FM_L_EYE=[[263,249],[249,390],[390,373],[373,374],[374,380],[380,381],[381,382],[382,362],[362,398],[398,384],[384,385],[385,386],[386,387],[387,388],[388,466],[466,263]];
+const FM_R_BROW=[[46,53],[53,52],[52,65],[65,55],[55,70],[70,63],[63,105],[105,66],[66,107]];
+const FM_L_BROW=[[276,283],[283,282],[282,295],[295,285],[285,300],[300,293],[293,334],[334,296],[296,336]];
 const FM_LIPS=[[61,146],[146,91],[91,181],[181,84],[84,17],[17,314],[314,405],[405,321],[321,375],[375,291],[61,76],[76,77],[77,90],[90,180],[180,85],[85,16],[16,315],[315,404],[404,320],[320,307],[307,291],[13,82],[82,81],[81,80],[80,191],[191,78],[78,62],[62,76],[13,312],[312,311],[311,310],[310,415],[415,308],[308,324],[324,318],[318,402],[402,317],[317,14]];
 const FM_NOSE=[[168,6],[6,197],[197,195],[195,5],[5,4],[4,1],[1,19],[19,94],[94,2],[2,164],[164,0],[0,11],[11,12]];
 
@@ -2196,7 +2208,7 @@ function isTargetActivating(ex) {
   switch (ex.phase) {
     case 'browRaise': return (metrics.relBrowL||0) > 0.10 || (metrics.relBrowR||0) > 0.10;
     case 'smile':     return (metrics.relSmileL||0) > 0.08 || (metrics.relSmileR||0) > 0.08;
-    case 'eyeSquint': return (metrics.earL||0) < 0.30 && (metrics.earL||0) > 0.01;
+    case 'eyeSquint': return Math.max(window.FaceMovementMeasurement.closure(metrics.earL,BL.earL)||0,window.FaceMovementMeasurement.closure(metrics.earR,BL.earR)||0) > 0.1;
     case 'snarl':     return (metrics.llsL||0) > 0.003 || (metrics.llsR||0) > 0.003;
     case 'puff':      return (metrics.mouthW||0) > (BL.mouthW||0) * 1.06;
     case 'vowel':     return (metrics.mouthH||0) > (BL.jawH||0) * 1.4;
@@ -2336,12 +2348,13 @@ function updateLiveForm() {
   const recent = exMeasureBuf.slice(-12);
   const avg = k => recent.reduce((a,b) => a + (b[k]||0), 0) / recent.length;
 
-  const activation = Math.min(100, avg(
-    ex.measure === 'smileRise'   ? 'relSmileL' :
-    ex.measure === 'eyeAperture' ? 'earL' :
-    ex.measure === 'browRise'    ? 'relBrowL' :
-    'relBrowL'
-  ) * 1600);
+  // Bilateral observations: changing anatomical labels must not switch which
+  // side alone drives this legacy, unvalidated form display.
+  const activation = ex.measure === 'eyeAperture'
+    ? 50 * ((window.FaceMovementMeasurement.closure(avg('earL'), BL.earL) || 0) + (window.FaceMovementMeasurement.closure(avg('earR'), BL.earR) || 0))
+    : Math.min(100, Math.max(0, ex.measure === 'smileRise'
+      ? (avg('relSmileL') + avg('relSmileR')) / 2
+      : (avg('relBrowL') + avg('relBrowR')) / 2) * 1600);
   let penalty = 0;
   ex.compensators.forEach(c => {
     if (c.key === 'corrugator') penalty += avg('corrugator') * 450;
@@ -2499,14 +2512,14 @@ function drawFaceOnCanvas(canvasId, lm) {
 
   // ── Activation glow (cheek sides) ────────────────────────
   if (activationGlow.L > 0.05) {
-    const cx=lx(117), cy=ly(117);
+    const cx=lx(346), cy=ly(346);
     const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,W*0.12);
     grad.addColorStop(0, `rgba(244,114,182,${(activationGlow.L*0.4).toFixed(2)})`);
     grad.addColorStop(1, 'rgba(244,114,182,0)');
     ctx.save(); ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(cx,cy,W*0.12,0,Math.PI*2); ctx.fill(); ctx.restore();
   }
   if (activationGlow.R > 0.05) {
-    const cx=lx(346), cy=ly(346);
+    const cx=lx(117), cy=ly(117);
     const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,W*0.12);
     grad.addColorStop(0, `rgba(244,114,182,${(activationGlow.R*0.4).toFixed(2)})`);
     grad.addColorStop(1, 'rgba(244,114,182,0)');
@@ -2515,7 +2528,7 @@ function drawFaceOnCanvas(canvasId, lm) {
 
   // ── Movement vector arrows (mouth corners) ───────────────
   if (blDone && isRunning) {
-    const cx1=lx(61), cy1=ly(61), cx2=lx(291), cy2=ly(291);
+    const cx1=lx(291), cy1=ly(291), cx2=lx(61), cy2=ly(61);
     [[cx1,cy1,BL.leftCornerY*H,'#f472b6'],[cx2,cy2,BL.rightCornerY*H,'#f472b6']].forEach(([cx,cy,bcy,col])=>{
       const vy = bcy - cy;
       if (Math.abs(vy) > 3) {
@@ -2533,7 +2546,7 @@ function drawFaceOnCanvas(canvasId, lm) {
     });
     // Brow vectors during upper zone
     if (activeZone==='upper') {
-      [[lx(66),ly(66),BL.leftBrowY*H,'#fbbf24'],[lx(296),ly(296),BL.rightBrowY*H,'#fbbf24']].forEach(([bx,by,bby,col])=>{
+      [[lx(296),ly(296),BL.leftBrowY*H,'#fbbf24'],[lx(66),ly(66),BL.rightBrowY*H,'#fbbf24']].forEach(([bx,by,bby,col])=>{
         const vy = bby - by;
         if (Math.abs(vy) > 2) {
           ctx.save(); ctx.strokeStyle=col+'bb'; ctx.lineWidth=2; ctx.shadowBlur=6; ctx.shadowColor=col;
@@ -2595,6 +2608,8 @@ function startFacePoseWatchdog() {
 function facePoseMessage(code) {
   if (code === 'stale_tracking') return '추적 응답이 오래됐습니다 · 측정을 중지했습니다. 회복되지 않으면 새로고침하세요';
   if (code === 'face_missing') return '얼굴을 정면에 맞춰 주세요 · 측정값을 표시하지 않습니다';
+  if (code === 'pose_depth_missing') return '자세 변화 확인에 필요한 깊이값이 없습니다 · 측정값을 표시하지 않습니다';
+  if (['yaw_drift','pitch_drift','depth_drift','pitch_depth_drift'].includes(code)) return '고개 각도가 기준 자세와 달라 측정을 멈췄습니다 · 표정을 풀고 기준 정면으로 돌아오세요';
   if (code === 'module_unavailable') return '구도 측정 코드를 불러오지 못했습니다 · 새로고침해 주세요';
   return '카메라 높이·거리·기울기를 기준 구도에 맞춰 주세요 · 구도를 바꿨다면 정면 기준 다시 맞춤';
 }
@@ -2629,9 +2644,20 @@ function setFacePoseUnavailable(code) {
     const dot=document.getElementById(id),label=document.getElementById(id+'Txt');
     if(dot)dot.className='fb-dot neutral';if(label)label.textContent=text+' · 측정 대기';
   }
-  document.querySelectorAll('#muscleMonitor .mm-pct, #muscleMonitor .mm-asym').forEach(el=>el.textContent='—');
-  document.querySelectorAll('#muscleMonitor .mm-fill').forEach(el=>el.style.width='0%');
+  // Clear assessment AND workout monitors, including the hidden screen.
+  for (const prefix of ['mm_','pmm_']) {
+    for (const key of ['smL','smR','brL','brR','eyL','eyR','corr','daoL','daoR','llsL','llsR','ment']) {
+      const label=document.getElementById(prefix+key+'_pct'),bar=document.getElementById(prefix+key);
+      if(label)label.textContent='—';if(bar)bar.style.width='0%';
+    }
+    for (const key of ['smA','brA','eyA','daoA','llsA']) {
+      const label=document.getElementById(prefix+key);if(label)label.textContent='—';
+    }
+  }
+  const sym=document.getElementById('mSym'),symBar=document.getElementById('mm_sym_bar');
+  if(sym)sym.textContent='—';if(symBar)symBar.style.width='0%';
   const duchenne=document.getElementById('mm_duchenne');if(duchenne)duchenne.style.display='none';
+  const validation=document.getElementById('measurementValidationReadout');if(validation)validation.textContent='얼굴 추적과 중립 기준이 준비되면 표시합니다.';
   renderFacePoseState(false,code);
   if(changed&&typeof window.dispatchEvent==='function'&&typeof Event==='function')window.dispatchEvent(new Event('face-framing-unavailable'));
   return false;
@@ -2658,39 +2684,19 @@ function analyzeFrame(lm, sampleAt) {
   if(!geometry||typeof geometry.project!=='function')return setFacePoseUnavailable('module_unavailable');
   const video=document.getElementById('video');
   if(!blDone&&BL.n===0)facePoseReference=null;
-  const aligned=geometry.project(lm,facePoseReference,{width:video?.videoWidth||640,height:video?.videoHeight||480});
+  const aligned=geometry.project(lm,facePoseReference,{width:video?.videoWidth||640,height:video?.videoHeight||480,requirePoseDepth:true});
   if(!aligned.ok)return setFacePoseUnavailable(aligned.code);
   facePoseReference=aligned.reference;
   lm=aligned.landmarks;
   facePoseReady=true;facePoseAt=sampleAt;facePoseCode='ready';
-  // EAR
-  metrics.earL = (fD(lm,160,144)+fD(lm,158,153))/(2*fD(lm,33,133)+1e-5);
-  metrics.earR = (fD(lm,387,373)+fD(lm,385,380))/(2*fD(lm,263,362)+1e-5);
-  // Brow heights
-  metrics.browLY = (lm[66].y+lm[105].y)/2;
-  metrics.browRY = (lm[296].y+lm[334].y)/2;
-  // Corner
-  metrics.cornerLY = lm[61].y;
-  metrics.cornerRY = lm[291].y;
-  // Mouth
-  metrics.mouthH = fD(lm,13,14);
-  metrics.mouthW = fD(lm,61,291);
-  // Glabellar (corrugator proxy)
-  metrics.glabellarD = fD(lm,107,336);
-  // Forehead (frontalis/procerus proxy)
-  metrics.foreheadY = (lm[10].y+lm[151].y)/2;
-  // Chin (mentalis)
-  metrics.chinY = lm[152].y;
-  // LLS (Levator Labii Superioris) — alar-to-upper-lip distance
-  metrics.llsDistL = fD(lm, 94, 37);
-  metrics.llsDistR = fD(lm, 328, 267);
-  // AU6 cheek raiser (Duchenne smile proxy)
-  metrics.cheekLY = lm[116].y;
-  metrics.cheekRY = lm[345].y;
+  const observed = window.FaceMovementMeasurement?.extract(lm, facePoseReference.aspect);
+  if (!observed) return setFacePoseUnavailable('measurement_unavailable');
+  Object.assign(metrics, observed);
 
   // Baseline accumulation
   if (!blDone && BL.n < BL_FRAMES) {
     const f = BL.n;
+    BL.eyeDistance  = (BL.eyeDistance*f + metrics.interEyeDistance) / (f+1);
     BL.leftCornerY  = (BL.leftCornerY*f  + metrics.cornerLY)  / (f+1);
     BL.rightCornerY = (BL.rightCornerY*f + metrics.cornerRY)  / (f+1);
     BL.leftBrowY    = (BL.leftBrowY*f    + metrics.browLY)    / (f+1);
@@ -2765,8 +2771,8 @@ function updateLiveUI() {
     t.textContent=label+(fire?' ⚠':'');
   };
   setDot('fbMigang','fbMigangTxt',metrics.corrugator||0,0.003,'미간');
-  setDot('fbBrow','fbBrowTxt',metrics.relBrowL||0,0.003,'눈썹');
-  setDot('fbCorner','fbCornerTxt',metrics.relSmileL||0,0.002,'입꼬리');
+  setDot('fbBrow','fbBrowTxt',Math.max(metrics.relBrowL||0,metrics.relBrowR||0),0.003,'눈썹');
+  setDot('fbCorner','fbCornerTxt',Math.max(metrics.relSmileL||0,metrics.relSmileR||0),0.002,'입꼬리');
   setDot('fbFront','fbFrontTxt',metrics.frontalBrow||0,0.003,'이마 움직임');
 
   updateMuscleMonitor();
@@ -2774,10 +2780,10 @@ function updateLiveUI() {
 
 // ═══════════════════════════════════════════════════════════
 // MUSCLE ACTIVATION MONITOR — bilateral comparison
-// Proxy mapping (FACS-validated movement-based):
+// Engineering movement proxies, NOT validated muscle activation or FACS scores:
 //   ZMaj      ← relSmileL/R (mouth corner elevation, AU12)
 //   Frontalis ← relBrowL/R (brow elevation, AU1/2)
-//   OrbOculi  ← earL/R relative to baseline (eye aperture, AU6/43)
+//   Eye close ← baseline-relative EAR reduction (not orbicularis EMG)
 //   Corrugator← corrugator (glabellar narrowing, AU4)
 //   DAO       ← daoL/R (mouth corner depression, AU15) — replaces Platysma
 //   LLS       ← llsL/R (alar-to-lip shortening = upper lip rise, AU10)
@@ -2792,8 +2798,8 @@ function updateMuscleMonitor() {
   const smR  = Math.max(0, metrics.relSmileR  || 0);
   const brL  = Math.max(0, metrics.relBrowL   || 0);
   const brR  = Math.max(0, metrics.relBrowR   || 0);
-  const eyL  = Math.max(0, (metrics.earL||0) - (BL.earL||0));
-  const eyR  = Math.max(0, (metrics.earR||0) - (BL.earR||0));
+  const eyL = window.FaceMovementMeasurement.closure(metrics.earL, BL.earL);
+  const eyR = window.FaceMovementMeasurement.closure(metrics.earR, BL.earR);
   const corr = Math.max(0, metrics.corrugator || 0);
   const daoL = Math.max(0, metrics.daoL       || 0);
   const daoR = Math.max(0, metrics.daoR       || 0);
@@ -2808,8 +2814,6 @@ function updateMuscleMonitor() {
   musclePeaks.smR  = Math.max(musclePeaks.smR,  smR);
   musclePeaks.brL  = Math.max(musclePeaks.brL,  brL);
   musclePeaks.brR  = Math.max(musclePeaks.brR,  brR);
-  musclePeaks.eyL  = Math.max(musclePeaks.eyL,  eyL);
-  musclePeaks.eyR  = Math.max(musclePeaks.eyR,  eyR);
   musclePeaks.corr = Math.max(musclePeaks.corr, corr);
   musclePeaks.daoL = Math.max(musclePeaks.daoL, daoL);
   musclePeaks.daoR = Math.max(musclePeaks.daoR, daoR);
@@ -2825,7 +2829,6 @@ function updateMuscleMonitor() {
   // Shared bilateral peaks (larger of L/R) so both bars share the same scale
   const smPk  = Math.max(musclePeaks.smL,  musclePeaks.smR,  FS.sm);
   const brPk  = Math.max(musclePeaks.brL,  musclePeaks.brR,  FS.br);
-  const eyPk  = Math.max(musclePeaks.eyL,  musclePeaks.eyR,  FS.ey);
   const daoPk = Math.max(musclePeaks.daoL, musclePeaks.daoR, FS.dao);
   const llsPk = Math.max(musclePeaks.llsL, musclePeaks.llsR, FS.lls);
   const au6Pk = Math.max(musclePeaks.au6L, musclePeaks.au6R, FS.au6);
@@ -2834,7 +2837,8 @@ function updateMuscleMonitor() {
   const pct = (v, pk) => { const r = Math.min(100, Math.round(v / pk * 100)); return r < 5 ? 0 : r; };
   const pSmL = pct(smL, smPk), pSmR = pct(smR, smPk);
   const pBrL = pct(brL, brPk), pBrR = pct(brR, brPk);
-  const pEyL = pct(eyL, eyPk), pEyR = pct(eyR, eyPk);
+  const pEyL = eyL === null ? null : Math.round(eyL * 100);
+  const pEyR = eyR === null ? null : Math.round(eyR * 100);
   const pCorr = pct(corr, Math.max(musclePeaks.corr, FS.corr));
   const pDaoL = pct(daoL, daoPk), pDaoR = pct(daoR, daoPk);
   const pLlsL = pct(llsL, llsPk), pLlsR = pct(llsR, llsPk);
@@ -2842,14 +2846,14 @@ function updateMuscleMonitor() {
   const pAu6L = pct(au6L, au6Pk), pAu6R = pct(au6R, au6Pk);
 
   // Asymmetry = absolute percentage-point difference
-  // Threshold calibrated to healthy population norms (ZMaj ±16.7%, Frontalis ±10.9%)
+  // Display colour thresholds are engineering choices, not clinical bounds.
   const asSm  = Math.abs(pSmL - pSmR);
   const asBr  = Math.abs(pBrL - pBrR);
-  const asEy  = Math.abs(pEyL - pEyR);
+  const asEy  = pEyL === null || pEyR === null ? null : Math.abs(pEyL - pEyR);
   const asDao = Math.abs(pDaoL - pDaoR);
   const asLls = Math.abs(pLlsL - pLlsR);
 
-  // Duchenne smile: genuine smile = AU12 (ZMaj) + AU6 (cheek) co-activation
+  // Co-occurring image movement does not establish a genuine smile.
   const duchenneL = pSmL > 30 && pAu6L > 20;
   const duchenneR = pSmR > 30 && pAu6R > 20;
   const duchenne  = duchenneL || duchenneR;
@@ -2871,7 +2875,7 @@ function updateMuscleMonitor() {
   const setAsym = (id, v) => {
     const e = document.getElementById(id);
     if (!e) return;
-    e.textContent = '△ ' + v + '%';
+    e.textContent = v === null ? '—' : '△ ' + v + '%';
     const col = asymCol(v);
     e.style.color = col;
     e.style.background = col + '20';
@@ -2887,8 +2891,8 @@ function updateMuscleMonitor() {
     setBar(p+'brR', pBrR, actCol(pBrR)); setTxt(p+'brR_pct', pBrR+'%');
     setAsym(p+'brA', asBr);
 
-    setBar(p+'eyL', pEyL, actCol(pEyL)); setTxt(p+'eyL_pct', pEyL+'%');
-    setBar(p+'eyR', pEyR, actCol(pEyR)); setTxt(p+'eyR_pct', pEyR+'%');
+    setBar(p+'eyL', pEyL ?? 0, actCol(pEyL)); setTxt(p+'eyL_pct', pEyL === null ? '—' : pEyL+'%');
+    setBar(p+'eyR', pEyR ?? 0, actCol(pEyR)); setTxt(p+'eyR_pct', pEyR === null ? '—' : pEyR+'%');
     setAsym(p+'eyA', asEy);
 
     setBar(p+'corr', pCorr, compCol(pCorr)); setTxt(p+'corr_pct', pCorr+'%');
@@ -2904,7 +2908,16 @@ function updateMuscleMonitor() {
     setBar(p+'ment', pMent, compCol(pMent)); setTxt(p+'ment_pct', pMent+'%');
   }
 
-  // Duchenne badge (assess screen only — ZMaj row)
+  const validation = document.getElementById('measurementValidationReadout');
+  const signals = window.FaceMovementMeasurement.validationSignals(metrics, BL);
+  if (validation) {
+    const signed = value => { const rounded = Math.round(value * 10000) / 100; return (rounded >= 0 ? '+' : '') + rounded.toFixed(2) + '%'; };
+    validation.textContent = signals
+      ? '눈썹 변위: L ' + signed(signals.browL) + ' / R ' + signed(signals.browR) + '\n입꼬리 변위: L ' + signed(signals.smileL) + ' / R ' + signed(signals.smileR) + '\n눈감김: L ' + Math.round(signals.closureL * 100) + '% / R ' + Math.round(signals.closureR * 100) + '%'
+      : '얼굴 추적과 중립 기준이 준비되면 표시합니다.';
+  }
+
+  // Co-movement badge, not an authenticity or muscle-activation judgement.
   const dbEl = document.getElementById('mm_duchenne');
   if (dbEl) {
     dbEl.style.display = duchenne ? 'inline-flex' : 'none';
@@ -4033,7 +4046,9 @@ function computeExScore(ex) {
   const buf = exMeasureBuf;
   if (!buf.length) return 50;
   const avg = key => buf.reduce((a,b)=>(a+(b[key]||0)),0)/buf.length;
-  const activation = Math.min(100, Math.max(0, avg(ex.measure==='smileRise'?'relSmileL':'relBrowL') * 1500 + 50));
+  // Preserve the old experimental scalar score, which used IMAGE-left (now
+  // correctly named anatomical R). This patch does not validate/redefine FFI.
+  const activation = Math.min(100, Math.max(0, avg(ex.measure==='smileRise'?'relSmileR':'relBrowR') * 1500 + 50));
   const symmetry   = avg('symScore');
   // Compensator penalty
   let compPenalty = 0;
@@ -4232,7 +4247,8 @@ function buildMeasurementFeatures() {
   if (browAsym  > 0.005) domains.push('cn_vii_temporal:asymmetry');
 
   return {
-    schema_version: 1,
+    schema_version: 2,
+    measurement_definition: {...window.FaceMovementMeasurement.definition},
     resting_state: bl ? {
       symmetry_score: symScore,
       ear_left:       Math.round((earL)*1000)/1000,
@@ -4342,7 +4358,7 @@ function renderProgressGraph() {
   const card = document.getElementById('progressCard');
   if (!card) return;
 
-  const all = [...hist.assess].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const all = hist.assess.filter(window.FaceMovementMeasurement.isCurrent).sort((a, b) => new Date(a.date) - new Date(b.date));
   if (all.length < 2) {
     card.style.display = all.length === 1 ? '' : 'none';
     const ins = document.getElementById('progressInsight');
@@ -4565,7 +4581,7 @@ function renderHistory() {
   if (!hist.assess.length) { aEl.innerHTML = '<div style="color:var(--dim);font-size:.82rem;padding:8px 0;">평가 기록 없음</div>'; }
   else {
     // Sparkline — sym scores newest-last order
-    const symScores = hist.assess.map(r => r.symScore ?? 0);
+    const symScores = hist.assess.filter(window.FaceMovementMeasurement.isCurrent).map(r => r.symScore ?? 0);
     const symMax    = Math.max(...symScores, 1);
     const sparkBars = symScores.map((s,i) => {
       const h = Math.round(s / symMax * 100);
@@ -4576,7 +4592,7 @@ function renderHistory() {
 
     aEl.innerHTML = `
       <div style="margin-bottom:10px;padding:8px 10px;background:rgba(129,140,248,.05);border-radius:8px;border:1px solid rgba(129,140,248,.1);">
-        <div style="font-size:.6rem;color:var(--dim);letter-spacing:1px;margin-bottom:4px;">대칭도 추이 (${symScores.length}회)</div>
+        <div style="font-size:.6rem;color:var(--dim);letter-spacing:1px;margin-bottom:4px;">현재 측정방식의 실험값 추이 (${symScores.length}회) · 이전 기록과 연결하지 않음</div>
         <div class="sym-sparkline">${sparkBars}</div>
       </div>
       <div class="hist-list">${hist.assess.slice().reverse().map(r => {
@@ -4606,6 +4622,7 @@ function renderHistory() {
           <div class="hist-date-row">
             <span class="hist-date">${dateStr}</span>
             ${symBadge}${cloudDot}
+            <span style="font-size:.6rem;color:var(--dim);">${window.FaceMovementMeasurement.isCurrent(r) ? '본인 좌우 기준 v2.1 · 실험값' : '이전/미확인 측정방식 · 현재 버전과 비교 불가'}</span>
           </div>
           <div class="hist-bars">${bars}</div>
         </div>
@@ -4617,10 +4634,11 @@ function renderHistory() {
   // ── Before / After comparison ─────────────────────────────
   const compareCard = document.getElementById('compareCard');
   const compareEl   = document.getElementById('histCompare');
-  if (hist.assess.length >= 2 && compareCard) {
+  const comparableAssess = hist.assess.filter(window.FaceMovementMeasurement.isCurrent).sort((a,b) => new Date(b.date)-new Date(a.date));
+  if (comparableAssess.length >= 2 && compareCard) {
     compareCard.style.display = '';
-    const first  = hist.assess[hist.assess.length - 1]; // oldest
-    const latest = hist.assess[0];                      // newest
+    const first  = comparableAssess[comparableAssess.length - 1]; // oldest v2
+    const latest = comparableAssess[0]; // newest v2; never compare legacy sides
     const zoneLabels = {upper:'상부 (눈/이마)', mid:'중부 (볼/팔자)', lower:'하부 (입꼬리)', neck:'목/턱'};
     const fDate = new Date(first.date);
     const lDate = new Date(latest.date);

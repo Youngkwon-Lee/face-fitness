@@ -15,6 +15,7 @@
     if (!Number.isFinite(aspect) || aspect < 0.2 || aspect > 5) return null;
     const lm = {};
     for (const i of REQUIRED) lm[i] = { x: landmarks[i].x * aspect, y: landmarks[i].y };
+    // These two anchors are IMAGE-left/right, not anatomical L/R.
     const eyeL = average(lm[33], lm[133]);
     const eyeR = average(lm[263], lm[362]);
     const scale = distance(eyeL, eyeR);
@@ -29,10 +30,10 @@
     const upperR = vertical(average(lm[387], lm[385]), eyeR);
     const widthL = distance(lm[33], lm[133]), widthR = distance(lm[263], lm[362]);
     return {
-      browL: -vertical(average(lm[66], lm[105]), eyeL),
-      browR: -vertical(average(lm[296], lm[334]), eyeR),
-      lowerL, lowerR, upperL, upperR,
-      gapL: lowerL - upperL, gapR: lowerR - upperR,
+      browL: -vertical(average(lm[296], lm[334]), eyeR),
+      browR: -vertical(average(lm[66], lm[105]), eyeL),
+      lowerL:lowerR, lowerR:lowerL, upperL:upperR, upperR:upperL,
+      gapL: lowerR - upperR, gapR: lowerL - upperL,
       glabella: distance(lm[107], lm[336]) / scale,
       scale, roll: Math.atan2(uy, ux) * 180 / Math.PI,
       asymmetry: Math.max(widthL, widthR) / Math.max(0.0001, Math.min(widthL, widthR)),
@@ -139,12 +140,12 @@
   function movementLabels(exercise, delta) {
     const signed = value => (value >= 0 ? '+' : '') + (value * 100).toFixed(1) + '%';
     if (exercise?.phase === 'browRaise') return {
-      target: '눈썹 높이 변화 · 화면 왼쪽 ' + signed(delta.browR) + ' / 오른쪽 ' + signed(delta.browL),
+      target: '눈썹 높이 변화 · 내 왼쪽 L ' + signed(delta.browL) + ' / 내 오른쪽 R ' + signed(delta.browR),
       companion: '미간 간격 변화 · 중립 대비 ' + signed(-delta.glabella)
     };
     return {
-      target: '아래 눈꺼풀 변위 · 화면 왼쪽 ' + signed(delta.lowerR) + ' / 오른쪽 ' + signed(delta.lowerL),
-      companion: '눈썹 높이 변화 · 화면 왼쪽 ' + signed(delta.browR) + ' / 오른쪽 ' + signed(delta.browL)
+      target: '아래 눈꺼풀 변위 · 내 왼쪽 L ' + signed(delta.lowerL) + ' / 내 오른쪽 R ' + signed(delta.lowerR),
+      companion: '눈썹 높이 변화 · 내 왼쪽 L ' + signed(delta.browL) + ' / 내 오른쪽 R ' + signed(delta.browR)
     };
   }
 
@@ -195,7 +196,7 @@
 <path d="M128 183 Q150 192 172 183" fill="none" stroke="var(--dim)" stroke-width="2.5" stroke-linecap="round"/>
 <path d="M81 160 Q92 154 103 158 M197 158 Q208 154 219 160" fill="none" stroke="var(--mc-amber)" stroke-width="2" opacity=".15" stroke-linecap="round"/>
 <path data-mc="glabella" d="M143 81 Q150 76 157 81" fill="none" stroke="var(--mc-amber)" stroke-width="2" opacity="0"/>
-</g></svg><div class="mc-caption">점선: 중립 기준 · 색 선: 현재 위치<br>거울 보기 기준 · 변화가 잘 보이도록 확대한 도식</div></div>
+</g></svg><div class="mc-caption">점선: 중립 기준 · 색 선: 현재 위치<br>거울 보기 · 화면 왼쪽은 내 왼쪽 L, 오른쪽은 내 오른쪽 R · 확대한 도식</div></div>
 <div class="mc-copy"><div class="mc-item"><div class="mc-label">목표로 살펴볼 움직임</div><div class="mc-value" data-mc="target">눈·눈썹 운동을 선택하세요</div><div class="mc-number" data-mc="lowerNumber">측정값 없음</div></div><div class="mc-item"><div class="mc-label">함께 움직이는지 확인</div><div class="mc-value" data-mc="companion">눈썹의 기준선과 현재 위치를 비교합니다</div><div class="mc-number" data-mc="browNumber">측정값 없음</div></div><div class="mc-cue" data-mc="cue" role="status" aria-live="polite">카메라를 켠 다음 중립 기준을 설정해 주세요.</div></div></div>
 <div class="mc-actions"><button type="button" class="btn btn-secondary" data-mc="calibrate">중립 기준 설정 · 1.5초</button><button type="button" class="btn btn-secondary" data-mc="demo">도식 체험</button></div>
 <details class="mc-help"><summary>무엇을 볼 수 있고, 무엇은 모를까요?</summary><div>눈썹·눈꺼풀의 상대 위치와 미간 간격을 봅니다. 이마 주름, 근육 수축률, 힘은 직접 측정하지 않습니다. 화면 안 이동·크기·기울기는 2차원 기준으로 정규화하지만 3차원 고개 회전을 완전히 보정하지는 못합니다. 중립 기준과 관찰값은 메모리에서만 쓰며 이 코치는 이미지·좌표를 저장하거나 전송하지 않습니다.</div></details>
@@ -205,10 +206,10 @@
     const statusText = { camera_off: '카메라를 시작하세요', tracking_lost: '얼굴을 다시 맞춰 주세요', pose_check: '정면·거리·기울기를 확인하세요', needs_baseline: '중립 기준이 필요해요', calibrating: '중립 표정 유지', calibration_retry: '움직임을 멈추고 다시 기준 측정', observing: '상대 움직임 관찰 중' };
     function draw(delta) {
       const d = delta || { browL: 0, browR: 0, lowerL: 0, lowerR: 0, upperL: 0, upperR: 0, glabella: 0 };
-      // Mirror presentation, explicitly not anatomical left/right labels.
-      get('browLeft').style.transform = 'translateY(' + clamp(-d.browR * 240, -19, 15) + 'px)';
-      get('browRight').style.transform = 'translateY(' + clamp(-d.browL * 240, -19, 15) + 'px)';
-      for (const [side, key, x1, xm, x2] of [['Left', 'R', 80, 104, 127], ['Right', 'L', 173, 196, 220]]) {
+      // Mirrored presentation: anatomical L is screen-left, R screen-right.
+      get('browLeft').style.transform = 'translateY(' + clamp(-d.browL * 240, -19, 15) + 'px)';
+      get('browRight').style.transform = 'translateY(' + clamp(-d.browR * 240, -19, 15) + 'px)';
+      for (const [side, key, x1, xm, x2] of [['Left', 'L', 80, 104, 127], ['Right', 'R', 173, 196, 220]]) {
         const upper = 102 + clamp(d['upper' + key] * 250, -9, 18);
         const lower = 139 - clamp(d['lower' + key] * 250, -9, 18);
         const u = Math.min(upper, lower - 2);
