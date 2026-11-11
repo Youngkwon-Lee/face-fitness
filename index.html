@@ -654,7 +654,7 @@ body.interview-demo #historyNavBtn{display:none !important;}
           <div class="card-title" style="margin:0;">얼굴 움직임 모니터</div>
           <button onclick="resetMusclePeaks()" style="background:none;border:1px solid var(--border);color:var(--dim);padding:2px 8px;border-radius:4px;cursor:pointer;font-size:.6rem;letter-spacing:.5px;">RESET</button>
         </div>
-        <p style="font-size:.68rem;color:var(--dim);line-height:1.6;margin-bottom:10px;">L = 내 왼쪽 · R = 내 오른쪽 · 영상은 거울 보기입니다.<br>얼굴 움직임 지표이며 근활성도·근력·의료적 정확도 점수가 아닙니다.</p>
+        <p style="font-size:.68rem;color:var(--dim);line-height:1.6;margin-bottom:10px;">L = 내 왼쪽 · R = 내 오른쪽 · 영상은 거울 보기입니다.<br>고개를 정면에 고정하세요. 각도 변화가 섞일 수 있어 기준에서 벗어나면 수치를 비웁니다.<br>얼굴 움직임 지표이며 근활성도·근력·의료적 정확도 점수가 아닙니다.</p>
         <div id="muscleMonitor">
           <!-- ZMaj (광대근) — bilateral via mouth-corner lift (AU12) -->
           <div class="mm-muscle">
@@ -2608,6 +2608,8 @@ function startFacePoseWatchdog() {
 function facePoseMessage(code) {
   if (code === 'stale_tracking') return '추적 응답이 오래됐습니다 · 측정을 중지했습니다. 회복되지 않으면 새로고침하세요';
   if (code === 'face_missing') return '얼굴을 정면에 맞춰 주세요 · 측정값을 표시하지 않습니다';
+  if (code === 'pose_depth_missing') return '자세 변화 확인에 필요한 깊이값이 없습니다 · 측정값을 표시하지 않습니다';
+  if (['yaw_drift','pitch_drift','depth_drift','pitch_depth_drift'].includes(code)) return '고개 각도가 기준 자세와 달라 측정을 멈췄습니다 · 표정을 풀고 기준 정면으로 돌아오세요';
   if (code === 'module_unavailable') return '구도 측정 코드를 불러오지 못했습니다 · 새로고침해 주세요';
   return '카메라 높이·거리·기울기를 기준 구도에 맞춰 주세요 · 구도를 바꿨다면 정면 기준 다시 맞춤';
 }
@@ -2682,7 +2684,7 @@ function analyzeFrame(lm, sampleAt) {
   if(!geometry||typeof geometry.project!=='function')return setFacePoseUnavailable('module_unavailable');
   const video=document.getElementById('video');
   if(!blDone&&BL.n===0)facePoseReference=null;
-  const aligned=geometry.project(lm,facePoseReference,{width:video?.videoWidth||640,height:video?.videoHeight||480});
+  const aligned=geometry.project(lm,facePoseReference,{width:video?.videoWidth||640,height:video?.videoHeight||480,requirePoseDepth:true});
   if(!aligned.ok)return setFacePoseUnavailable(aligned.code);
   facePoseReference=aligned.reference;
   lm=aligned.landmarks;
@@ -4620,7 +4622,7 @@ function renderHistory() {
           <div class="hist-date-row">
             <span class="hist-date">${dateStr}</span>
             ${symBadge}${cloudDot}
-            <span style="font-size:.6rem;color:var(--dim);">${window.FaceMovementMeasurement.isCurrent(r) ? '본인 좌우 기준 v2 · 실험값' : '이전/미확인 측정방식 · v2와 비교 불가'}</span>
+            <span style="font-size:.6rem;color:var(--dim);">${window.FaceMovementMeasurement.isCurrent(r) ? '본인 좌우 기준 v2.1 · 실험값' : '이전/미확인 측정방식 · 현재 버전과 비교 불가'}</span>
           </div>
           <div class="hist-bars">${bars}</div>
         </div>

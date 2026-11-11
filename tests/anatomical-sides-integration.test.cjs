@@ -76,3 +76,17 @@ test('source declares mirror/anatomical convention and does not make monitor val
  assert.match(html,/근활성도·근력·의료적 정확도 점수가 아닙니다/);
  assert.doesNotMatch(html,/진짜 미소|건강인 정상범위/);
 });
+
+test('angle proxy drift clears both live monitors instead of updating expression values',()=>{
+ const f=calibrated();frame(f,moved('L','brow'));
+ const points=mesh();points[1].x+=.3*.07;
+ assert.equal(frame(f,points),false);assert.equal(f.run('facePoseCode'),'yaw_drift');
+ assert.equal(f.run('Object.keys(metrics).length'),0);
+ for(const prefix of ['mm_','pmm_'])assert.equal(f.element(prefix+'brL_pct').textContent,'—');
+ assert.equal(f.element('aStartBtn').disabled,true);
+ assert.equal(f.audit.storageWrites,0);assert.equal(f.audit.network,0);
+});
+test('missing live depth prevents a baseline instead of allowing angle-unchecked measurement',()=>{
+ const f=fixture({qa:false});f.run('cameraActive=true');const points=mesh();delete points[1].z;
+ assert.equal(frame(f,points),false);assert.equal(f.run('facePoseCode'),'pose_depth_missing');assert.equal(f.run('BL.n'),0);
+});

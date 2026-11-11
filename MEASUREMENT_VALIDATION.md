@@ -2,16 +2,26 @@
 
 ## What changed
 
-Measurement definition: `anatomical-movement-v2`. L/R always means the subject's own anatomical left/right. The preview is mirrored for familiarity; CSS never flips inference input. The canonical topology is [MediaPipe FaceMesh connections](https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/python/solutions/face_mesh_connections.py): left eye 263/362 and eyebrow 296/334; right eye 33/133 and eyebrow 66/105. Mouth corners 291/61, cheek 345/116 and upper-lip distances 328–267/94–37 follow those respective sides.
+Measurement definition: `anatomical-movement-v2.1-pose-hold`. L/R always means the subject's own anatomical left/right. The preview is mirrored for familiarity; CSS never flips inference input. The canonical topology is [MediaPipe FaceMesh connections](https://github.com/google-ai-edge/mediapipe/blob/master/mediapipe/python/solutions/face_mesh_connections.py): left eye 263/362 and eyebrow 296/334; right eye 33/133 and eyebrow 66/105. Mouth corners 291/61, cheek 345/116 and upper-lip distances 328–267/94–37 follow those respective sides.
 
 The eye monitor displays `clamp((neutral EAR - current EAR) / neutral EAR, 0, 1) * 100`. Neutral/opening is zero, decreasing eye aperture increases the value. This is NOT an orbicularis EMG measurement. A zero, missing or invalid baseline is unavailable, not a measured zero. Remaining bars retain session-peak/fixed-floor scaling and must not be used to compare people or days.
 
 The assessment screen now has **반복 측정용 원시 변화량**. Signed brow/corner displacement is divided by the baseline, aspect-correct outer-eye distance (33 to 263), independent of session peaks. Positive means up. EAR keeps the existing normalized-image-coordinate definition, not a newly calibrated clinical measure. The readout adds no persistence or network traffic. Use `?demo=1` for no-persistence QA; normal assessment mode retains its existing image/history behavior.
 
+## Head-angle safety hold (v2.1)
+
+A live exploratory check of the first candidate exposed angle-to-expression mixing: the user reported that head orientation changed the movement display, and some changing-pose samples remained eligible. That candidate is NOT accepted for accuracy or production. No personal images, landmarks or measured participant values are included in this repository.
+
+The projection is still **2D similarity alignment, not full 3D pose correction**. Instead of claiming to correct yaw/pitch, the updated candidate conservatively rejects a relative nose-position change over 0.04 outer-eye distances, outer-eye depth-difference change over 0.08, or nose-to-eye depth change over 0.02. These are unvalidated engineering proxy limits, **not degrees or clinical bounds**. The first reference remains user-established and does not verify absolute frontality. Smaller rotations, inference bias and expression-induced changes may still affect readings or cause rejection; these require real-face testing.
+
+The live host now requires outer-eye and nose depth values rather than silently skipping depth checks. Missing depth, relative angle drift or stale tracking clears values on both monitors and blocks measurement. The generic geometry helper can still perform explicitly depth-optional 2D projection for non-live use. A relative nose-depth proxy adds pitch rejection even when 2D nose position barely changes. Reference schema 2 is in-memory only.
+
+Current candidate definition is distinct from the initial v2 candidate, so the history reader does not connect different definitions. This change does not rewrite old records, estimate absolute head angles, certify facial movements or establish a clinical accuracy percentage. The updated candidate remains Draft pending real-device retesting. The synthetic suite has 435 passing tests, including six-degree *invented 3D rotations*, missing-depth and both-monitor clearing checks; this does not establish a six-degree real-world cutoff.
+
 ## Storage compatibility
 
 - New local and modern cloud assessments have `measurement_features.schema_version = 2` plus `measurement_definition` including version, anatomical convention, units and `clinical_validated: false`.
-- Existing records are **not rewritten or automatically swapped**. They are displayed as old/unconfirmed definitions. Trends and before/after comparisons include v2 records only.
+- Existing records are **not rewritten or automatically swapped**. They are displayed as old/unconfirmed definitions. Trends and before/after comparisons include current-definition records only.
 - The legacy `ff_assess_sessions` table has no evidenced version column. New assessments stay saved locally if this fallback would be required; the badge explains that server measurement-version support is needed. No database migration is performed.
 - Existing experimental scalar workout scores are NOT validated or redefined here. The historical score used image-left, previously mislabeled L; anatomical R preserves that physical calculation. Coach-supported exercises already suppress the legacy quality score. Live form display elsewhere now observes both sides. Do not interpret workout scores as accuracy or mix them with normalized displacement.
 
@@ -25,7 +35,7 @@ node --test tests/*.test.cjs tests/*.test.mjs movement-coach.test.mjs exercise-c
 
 Independently labelled fixtures exercise left/right brow, mouth corner, cheek and eyelid movement; both monitor instances; coach semantics; eye closure at 0/25/50/75/100%; image translation/scale/roll and five repeated trials; missing/invalid inputs; stale readout clearing; metadata; old/new comparison isolation; and blocking unversioned legacy cloud writes. Synthetic model output is not real-camera accuracy evidence.
 
-## Real-device protocol, not yet performed for v2
+## Real-device protocol, full validation not yet performed
 
 ### Setup
 

@@ -202,8 +202,8 @@ test('outer-eye depth asymmetry drift rejects in eye-distance units', () => {
   rejected(points, 'depth_drift');
 });
 
-test('eye-local nose drift remains stable under accepted roll and scale', () => {
-  const points = fixture(); points[1].x += .10 * .3; points[1].y += .10 * .3 * ASPECT;
+test('small eye-local nose drift remains stable under accepted roll and scale', () => {
+  const points = fixture(); points[1].x += .02 * .3; points[1].y += .02 * .3 * ASPECT;
   const result = project(transform(points, { scale: 1.1, degrees: 12 }), baseline());
   assert.equal(result.ok, true); pointsNear(result.landmarks, points);
 });
@@ -283,4 +283,38 @@ test('a tilted original reference retains its original roll and image coordinate
   const current = transform(fixture(), { degrees: 6, scale: 1.1, tx: .03, ty: -.01 });
   const result = project(current, reference);
   assert.equal(result.ok, true); pointsNear(result.landmarks, original);
+});
+
+// Regression for the live report: moderate out-of-plane pose change used to
+// pass the broad .16/.35 nose/depth limits while expression readouts moved.
+// These are synthetic proxies, not a replay of personal landmark data.
+test('moderate horizontal nose drift no longer appears measurement-ready',()=>{
+ const points=fixture();points[1].x+=.3*.07;
+ rejected(points,'yaw_drift');
+});
+test('moderate outer-eye depth change no longer appears measurement-ready',()=>{
+ const points=fixture();points[263].z+=.3*.10;
+ rejected(points,'depth_drift');
+});
+test('nose depth change catches pitch even with unchanged 2D nose position',()=>{
+ const points=fixture();points[1].z+=.3*.03;
+ rejected(points,'pitch_depth_drift');
+});
+test('live measurement policy requires pose depth instead of silently skipping its guard',()=>{
+ const dims={...DIMS,requirePoseDepth:true};
+ for(const index of [1,33,263]){const points=fixture();delete points[index].z;rejected(points,'pose_depth_missing',baseline(),dims);}
+ const first=project(fixture(false));assert.equal(first.ok,true,'generic 2D projection remains available');
+ assert.equal(project(fixture(),first.reference,dims).code,'pose_depth_missing','missing reference depth is not silently adopted');
+});
+function rigid3d(points,yaw=0,pitch=0){
+ const cy=Math.cos(yaw),sy=Math.sin(yaw),cx=Math.cos(pitch),sx=Math.sin(pitch);
+ return points.map(p=>{const x=(p.x-.5)*ASPECT,y=p.y-.38,z=(p.z+.02)*ASPECT;
+ const x1=cy*x+sy*z,z1=-sy*x+cy*z;
+ return {...p,x:.5+x1/ASPECT,y:.38+cx*y-sx*z1,z:-.02+(sx*y+cx*z1)/ASPECT};});
+}
+test('six-degree synthetic 3D yaw is rejected, not treated as 2D-corrected expression',()=>{
+ assert.equal(project(rigid3d(fixture(),6*Math.PI/180,0),baseline()).ok,false);
+});
+test('six-degree synthetic 3D pitch is rejected by nose-depth hold',()=>{
+ assert.equal(project(rigid3d(fixture(),0,6*Math.PI/180),baseline()).code,'pitch_depth_drift');
 });

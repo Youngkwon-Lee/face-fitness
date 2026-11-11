@@ -8,7 +8,7 @@
   root.FaceMovementMeasurement=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
-  const VERSION='anatomical-movement-v2';
+  const VERSION='anatomical-movement-v2.1-pose-hold';
   const SIDES=Object.freeze({
     L:Object.freeze({eye:Object.freeze([263,362]),upper:Object.freeze([387,385]),lower:Object.freeze([373,380]),brow:Object.freeze([296,334]),corner:291,alar:328,lip:267,cheek:345}),
     R:Object.freeze({eye:Object.freeze([33,133]),upper:Object.freeze([160,158]),lower:Object.freeze([144,153]),brow:Object.freeze([66,105]),corner:61,alar:94,lip:37,cheek:116})
@@ -49,7 +49,7 @@
     }
     return Object.values(out).every(finite)?out:null;
   }
-  const definition=Object.freeze({version:VERSION,side_convention:'subject_anatomical',eye_closure:'clamped_baseline_EAR_reduction',validation_displacement_unit:'inter_outer_eye_distance',clinical_validated:false});
+  const definition=Object.freeze({version:VERSION,side_convention:'subject_anatomical',pose_policy:'strict_relative_pose_hold_v1',eye_closure:'clamped_baseline_EAR_reduction',validation_displacement_unit:'inter_outer_eye_distance',clinical_validated:false});
   function isCurrent(record){return record?.measurement_features?.measurement_definition?.version===VERSION;}
   return Object.freeze({VERSION,SIDES,extract,closure,normalized,validationSignals,definition,isCurrent});
 });
