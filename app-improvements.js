@@ -266,11 +266,9 @@
     try {
       const { personId } = await bootstrapPersonalContext();
       if (!personId || currentUser?.id !== owner) throw new Error('Context changed');
-      const [ar, er] = await Promise.all([
-        supabaseClient.from('facial_assessment_sessions').select('id,assessed_at,zone_upper,zone_mid,zone_lower,zone_neck,symmetry_score,ear_left,ear_right,synkinesis_eye_brow,synkinesis_smile_platysma,synkinesis_brow_corrugator,measurement_features').eq('person_id',personId).eq('source','face_fitness_app').order('assessed_at',{ascending:false}).limit(30),
-        supabaseClient.from('mobile_exercise_sessions').select('id,completed_at,exercise_id,pose_accuracy,feedback').eq('subject_person_id',personId).eq('source_app','face_fitness').order('completed_at',{ascending:false}).limit(100)
-      ]);
-      if (ar.error || er.error) throw new Error('Server read failed');
+      // Exercise history only: assessments are device-local (see cloudSaveAssess).
+      const er = await supabaseClient.from('mobile_exercise_sessions').select('id,completed_at,exercise_id,pose_accuracy,feedback').eq('subject_person_id',personId).eq('source_app','face_fitness').order('completed_at',{ascending:false}).limit(100);
+      if (er.error) throw new Error('Server read failed');
       const unknownIds = [...new Set((er.data || []).filter(r => !r.feedback?.[0]?.exId && r.exercise_id).map(r => r.exercise_id))];
       const exerciseMap = new Map();
       if (unknownIds.length) {
@@ -278,12 +276,7 @@
         if (lookup.error) throw new Error('Exercise identity read failed');
         for (const row of lookup.data || []) exerciseMap.set(row.id,row.exercise_code);
       }
-      const cloudAssess = (ar.data || []).map(r => ({
-        date:r.assessed_at, zones:{upper:r.zone_upper,mid:r.zone_mid,lower:r.zone_lower,neck:r.zone_neck},
-        avgScore:Math.round([r.zone_upper||0,r.zone_mid||0,r.zone_lower||0,r.zone_neck||0].reduce((a,b)=>a+b,0)/4),
-        symScore:r.symmetry_score,earL:r.ear_left,earR:r.ear_right,corrFiring:!!r.synkinesis_brow_corrugator,platFiring:!!r.synkinesis_smile_platysma,
-        measurement_features:r.measurement_features,_cloud:true,_serverId:r.id,_cloudTable:'facial_assessment_sessions',_cloudOwner:owner
-      }));
+      const cloudAssess = [];
       const cloudEx = (er.data || []).map(r => {
         const fb=Array.isArray(r.feedback)&&r.feedback[0]?r.feedback[0]:{};
         const code=exerciseMap.get(r.exercise_id);
