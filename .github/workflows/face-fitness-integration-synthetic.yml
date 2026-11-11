@@ -9,6 +9,7 @@ on:
       - 'app-improvements.js'
       - 'exercise-cloud.js'
       - 'movement-coach.js'
+      - 'interview-demo.js'
       - 'tests/**'
       - 'exercise-cloud.test.mjs'
       - 'movement-coach.test.mjs'
@@ -35,5 +36,6 @@ jobs:
           node --check app-improvements.js
           node --check exercise-cloud.js
           node --check movement-coach.js
+          node --check interview-demo.js
       - name: Synthetic regression suite (no camera or persistence)
         run: node --test tests/*.test.cjs tests/*.test.mjs movement-coach.test.mjs exercise-cloud.test.mjs
