@@ -16,13 +16,13 @@ The projection is still **2D similarity alignment, not full 3D pose correction**
 
 The live host now requires outer-eye and nose depth values rather than silently skipping depth checks. Missing depth, relative angle drift or stale tracking clears values on both monitors and blocks measurement. The generic geometry helper can still perform explicitly depth-optional 2D projection for non-live use. A relative nose-depth proxy adds pitch rejection even when 2D nose position barely changes. Reference schema 2 is in-memory only.
 
-Current candidate definition is distinct from the initial v2 candidate, so the history reader does not connect different definitions. This change does not rewrite old records, estimate absolute head angles, certify facial movements or establish a clinical accuracy percentage. The updated candidate remains Draft pending real-device retesting. The synthetic suite has 435 passing tests, including six-degree *invented 3D rotations*, missing-depth and both-monitor clearing checks; this does not establish a six-degree real-world cutoff.
+Current candidate definition is distinct from the initial v2 candidate, so the history reader does not connect different definitions. This change does not rewrite old records, estimate absolute head angles, certify facial movements or establish a clinical accuracy percentage. The updated candidate remains Draft pending real-device retesting. The pre-merge synthetic suite had 435 passing tests, including six-degree *invented 3D rotations*, missing-depth and both-monitor clearing checks; this does not establish a six-degree real-world cutoff.
 
 ## Storage compatibility
 
-- New local and modern cloud assessments have `measurement_features.schema_version = 2` plus `measurement_definition` including version, anatomical convention, units and `clinical_validated: false`.
+- New device-local assessments have `measurement_features.schema_version = 2` plus `measurement_definition` including version, anatomical convention, units and `clinical_validated: false`.
 - Existing records are **not rewritten or automatically swapped**. They are displayed as old/unconfirmed definitions. Trends and before/after comparisons include current-definition records only.
-- The legacy `ff_assess_sessions` table has no evidenced version column. New assessments stay saved locally if this fallback would be required; the badge explains that server measurement-version support is needed. No database migration is performed.
+- Latest main (PR #12, `df54f75`) disables assessment server persistence entirely: the previously targeted table does not exist. This merge preserves that local-only policy, performs no assessment cloud/context/RPC call and does not restore a legacy fallback. Exercise history sync remains exercise-only. No database migration is performed.
 - Existing experimental scalar workout scores are NOT validated or redefined here. The historical score used image-left, previously mislabeled L; anatomical R preserves that physical calculation. Coach-supported exercises already suppress the legacy quality score. Live form display elsewhere now observes both sides. Do not interpret workout scores as accuracy or mix them with normalized displacement.
 
 ## Automated checks (synthetic only)
@@ -33,7 +33,7 @@ Run from the repository root:
 node --test tests/*.test.cjs tests/*.test.mjs movement-coach.test.mjs exercise-cloud.test.mjs
 ```
 
-Independently labelled fixtures exercise left/right brow, mouth corner, cheek and eyelid movement; both monitor instances; coach semantics; eye closure at 0/25/50/75/100%; image translation/scale/roll and five repeated trials; missing/invalid inputs; stale readout clearing; metadata; old/new comparison isolation; and blocking unversioned legacy cloud writes. Synthetic model output is not real-camera accuracy evidence.
+Independently labelled fixtures exercise left/right brow, mouth corner, cheek and eyelid movement; both monitor instances; coach semantics; eye closure at 0/25/50/75/100%; image translation/scale/roll and five repeated trials; missing/invalid inputs; stale readout clearing; metadata; old/new comparison isolation; and preserving main's device-local assessment policy with zero assessment cloud/context calls. Synthetic model output is not real-camera accuracy evidence.
 
 ## Real-device protocol, full validation not yet performed
 
@@ -64,3 +64,7 @@ For each trial record: task, intended anatomical side, observer-confirmed actual
 - To claim muscle activation, force, clinical asymmetry or diagnosis requires a separate validity study with appropriate reference measurements (for example carefully designed sEMG with cross-talk limitations). No such claim or result follows from these tests. A pilot with a few volunteers checks workflow; it is not a clinical validation sample-size justification.
 
 No human/device acceptance thresholds or clinical accuracy percentages are established in this change. A real-device run and independent annotations remain required before marking that validation complete.
+
+## Latest main integration
+
+Merged main `df54f75` (PR #12) into this candidate without restoring any assessment server write, context/RPC request or legacy-table fallback. The complete merged synthetic suite passes 436 tests; an independent read-only focused review passes 116 tests with no blockers. These checks do not clear the real-face head-angle hold. The candidate remains Draft until the updated live behavior is retested.

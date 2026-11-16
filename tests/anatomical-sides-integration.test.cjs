@@ -58,13 +58,15 @@ test('measurement definition is written only to new payloads, not retrofitted to
  assert.equal(legacy.earL,.2);assert.equal(legacy.measurement_features,undefined);
  assert.equal(f.audit.storageWrites,0);
 });
-for(const modern of [false,true])test('cloud '+(modern?'preserves v2 definition':'does not mix v2 into unversioned legacy table'),async()=>{
+for(const modern of [false,true])test('v2 assessment remains local without cloud/context IO, person mapping '+modern,async()=>{
  const f=fixture({qa:false});f.context.__rows=[];
  f.run("assessPhase='done';assessmentComplete=()=>true;assessmentScoresReady=()=>true;currentUser={id:'fixture-owner'};bootstrapPersonalContext=async()=>({personId:"+(modern?"'fixture-person'":"null")+",orgId:null});supabaseClient={from(table){return{insert(row){__rows.push({table,row});return Promise.resolve({error:null})}}}};globalThis.__payload={earL:.2,earR:.3,zones:{},measurement_features:buildMeasurementFeatures()};assessmentPayloadGeneration.set(__payload,assessGeneration);");
- await f.run('cloudSaveAssess(__payload)');
- assert.equal(f.context.__rows.length,modern?1:0);
- if(modern){assert.equal(f.context.__rows[0].table,'facial_assessment_sessions');assert.equal(f.context.__rows[0].row.measurement_features.measurement_definition.version,model.VERSION);}
- else assert.match(f.element('cloudBadge').textContent,/측정버전 지원 필요/);
+ f.run("bootstrapPersonalContext=()=>{throw Error('Unexpected context call')};");
+ const result=await f.run('cloudSaveAssess(__payload)');
+ assert.equal(result.status,'local_only');assert.equal(result.code,'assessment_cloud_unsupported');
+ assert.equal(f.context.__rows.length,0);
+ assert.equal(f.run('__payload.measurement_features.measurement_definition.version'),model.VERSION);
+ assert.match(f.element('cloudBadge').textContent,/기기에만 저장/);
 });
 test('existing experimental scalar score retains original physical side; no silent historical redefinition',()=>{
  const f=fixture({qa:false});f.run("exMeasureBuf.push({relSmileL:0,relSmileR:.01,symScore:90});");
@@ -89,4 +91,14 @@ test('angle proxy drift clears both live monitors instead of updating expression
 test('missing live depth prevents a baseline instead of allowing angle-unchecked measurement',()=>{
  const f=fixture({qa:false});f.run('cameraActive=true');const points=mesh();delete points[1].z;
  assert.equal(frame(f,points),false);assert.equal(f.run('facePoseCode'),'pose_depth_missing');assert.equal(f.run('BL.n'),0);
+});
+
+// Full normal-mode persistence regression across main's local-only cloud fix.
+test('completed assessment retains the new definition in device history with zero cloud IO',()=>{
+ const f=fixture({qa:false});f.staticDone();f.run('startDynamicPhase()');f.drain();
+ const history=JSON.parse(f.storage.get('ff_history'));
+ assert.equal(history.assess.length,1);
+ assert.equal(history.assess[0].measurement_features.measurement_definition.version,model.VERSION);
+ assert.equal(history.assess[0].measurement_features.schema_version,2);
+ assert.equal(f.audit.network,0);assert.equal(f.audit.client,0);
 });
