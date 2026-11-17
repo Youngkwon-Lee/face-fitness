@@ -2,7 +2,22 @@
 
 ## Accepted scope and ownership
 
-2026-11-17: SwiftUI facial movement practice and device-local history, with no unvalidated assessment, diagnosis, normal ranges, muscle activation/strength/accuracy scores or prescriptions. The user authorized physical iPhone testing, distribution signing and upload. After testing the first mirror-only build, the user requested audible guidance, a face mesh and movement counting. Build 2 adds those features with explicitly estimated counts. App Review submission and public release are not authorized by this upload request.
+2026-11-17: SwiftUI facial movement practice and device-local history, with no unvalidated assessment, diagnosis, normal ranges, muscle activation/strength/accuracy scores or prescriptions. The user authorized physical iPhone testing, distribution signing and upload. After testing the first mirror-only build, the user requested audible guidance, a face mesh and movement counting. After confirming the build 3 mesh, the user explicitly authorized App Review submission, free pricing, South Korea availability and manual release after approval. Public release has not occurred.
+
+## Current App Review status
+
+- Submitted 1.0.0 (3) on 2026-11-17 at 23:56:43 KST. Submission ID: d832a2d8-1d5e-427d-9bcf-09d40448d73a.
+- Aside displayed the one-item submission confirmation, then the exact review detail page showed 1.0.0 (3), 심사 대기 중 and the submission ID. Official App Store Connect API readback at 23:57:49 KST independently confirmed version and submission state WAITING_FOR_REVIEW, selected build 3 / VALID, and releaseType MANUAL.
+- [Review status](https://appstoreconnect.apple.com/apps/6835675533/distribution/reviewsubmissions/details/d832a2d8-1d5e-427d-9bcf-09d40448d73a). Submission is not approval. Approval will not automatically publish the app.
+- Actual review contact supplied by the user was saved and verified after reloading; no login is required. Contact phone is deliberately excluded from this repository and deliverable evidence.
+- App Privacy: Data Not Collected, published after inspecting the native source and Apple's collection definition. Face processing stays transiently on device; local workout history is not transmitted.
+- Age questionnaire: health/wellness topics present, no medical/treatment information or other rated content. Computed global rating 9+; South Korea 전체. No age override or Made for Kids selection.
+- Content rights: no third-party content. First-party bundled illustrations/custom icon; no content service or user-generated content.
+- Price: free (South Korea ₩0.00). Availability: South Korea only (1 available / 174 unavailable), no preorder or automatic addition of future territories. Public App Store distribution; Apple Silicon Mac and Vision Pro availability disabled and saved.
+- Existing screenshots, privacy/support URLs and the selected build are unchanged. Review notes disclose the estimated-count limits, optional camera, local-only data and physical mesh confirmation. No legal agreement, paid service, app release or unrelated app was changed.
+- Redacted server evidence: outputs/facefitness-native/evidence/asc-review-submitted-build3.json in this chat's workspace. Broader device checks listed below remain unverified; no new build or full test run was needed for submission metadata.
+
+## Implementation ownership
 
 - Repository: Youngkwon-Lee/face-fitness. Main verified at df54f7530eccd562395c3535bf63032b1a83d016 at the final upload/push boundary.
 - Branch: codex/native-ios-20261117; Draft PR https://github.com/Youngkwon-Lee/face-fitness/pull/13.
@@ -69,4 +84,4 @@ The reconnect and mesh follow-up are now resolved below. Do not repeat successfu
 - App Store export succeeded. Strict distribution signature, exact bundle/team/version/profile, get-task-allow=false, no provisioned-device list, matching archive/export binary UUID 53FF6E16-2766-3C34-A259-CCF4B8C1A6E8 and IPA SHA256 dbd57c977cb75ca9b9e48cfcfdc74a1edca7892cd11e213c039bb69390cc9e86 were verified. Apple validation and upload passed. Delivery/build ID 86a7cf2f-789f-4ee6-8edc-98dcb6115bde, upload time 2026-11-17 23:16:18 KST. API and altool read back 1.0.0(3), processing/import VALID and usesNonExemptEncryption=false.
 - The 1.0.0 submission draft now selects build 3, read back as PREPARE_FOR_SUBMISSION / MANUAL. Build 2 remains historical and must not be selected for review. Scope-appropriate verification is the Release archive and actual-device mesh/background check. Previous core/simulator evidence remains evidence for unchanged contracts; no new build-3 full-suite run or clinical counting validation is claimed.
 
-Build 3 policy/support URLs were rechecked anonymously with HTTP 200 and expected bodies. App Review submission, public release, legal agreements and tester invitations remain untouched. Broader physical-device checks and required review/contact/privacy/age/price/availability fields above remain for the submission decision.
+Build 3 policy/support URLs were rechecked anonymously with HTTP 200 and expected bodies. This was the upload-stage status; the later authorized submission and completed metadata are recorded at the top of this note. Broader physical-device checks remain unverified. Public release, legal agreements and tester invitations remain untouched.
