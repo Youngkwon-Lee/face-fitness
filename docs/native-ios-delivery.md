@@ -6,7 +6,7 @@
 
 - Repository: Youngkwon-Lee/face-fitness. Main verified at df54f7530eccd562395c3535bf63032b1a83d016 at the final upload/push boundary.
 - Branch: codex/native-ios-20261117; Draft PR https://github.com/Youngkwon-Lee/face-fitness/pull/13.
-- Production app source: 03d676f51583b476cbce4d8495aefc89ef74b8f2. Subsequent changes are submission/evidence documentation and an XCTest-only voice preference/comment; native archive inputs are unchanged.
+- Current app implementation: f90c11ed28da598dc2d9841ada8fe15ef144dc47 (build 3 mesh-render lifecycle fix). Build 2 implementation was 03d676f51583b476cbce4d8495aefc89ef74b8f2; its core/history/speech/count logic is unchanged in build 3.
 - Native ownership: ios/, docs/app-store/, README and this note. Existing web files and the separate anatomical-sides PR #11/worktree were preserved.
 - Attended MacBook, pinned Xcode 27.2 / iOS 27.2 SDK; iOS/iPadOS 17+. No CI routing, DB, scheduler, Mission Control admission or other app mutation.
 - Reused scratch: this chat's work/facefitness-native. Deliverables/evidence: this chat's outputs/facefitness-native.
@@ -23,9 +23,9 @@ Workout time excludes pauses and between-step rest. Date, routine/movement names
 
 Inactive/background stops camera and speech and pauses practice; explicit restart is required. Permission-dialog handling retains only the first explicit camera request. Face processing policy is disclosed before enabling, in onboarding, the embedded policy and the public policy.
 
-## Verified candidate and tests
+## Build 2 baseline tests and distribution
 
-- Final candidate: 1.0.0 (2), kr.co.kinelo.facefitness, iPhone/iPad, SDK iphoneos27.2.
+- Baseline candidate: 1.0.0 (2), kr.co.kinelo.facefitness, iPhone/iPad, SDK iphoneos27.2. It had a subsequently confirmed mesh-display defect and is superseded by build 3 below.
 - Core: 13/13 passed on macOS at 2026-11-17 10:20:52 KST. Five cycle/noise/loss/stale/persistence cases plus eight clock/history cases. These synthetic tests do not establish real repetition accuracy.
 - Final iPhone 17 Pro Max simulator: 3/3 passed, 76.226 seconds. Background/large text, camera fallback and save/relaunch/readback/delete. Final result has no runtime warnings.
 - iPad Pro 13-inch (M5): camera fallback and save/relaunch/delete passed in the first final-candidate run. The background case initially failed because XCTest waited about 30 seconds for spoken-cue idleness before delivering Home, after the step had ended. It passed in a separate targeted run with the test-only voice preference disabled. No application pause assertion was weakened. Retain both the initial failure and targeted pass; do not describe the initial suite as a clean 3/3 pass.
@@ -38,11 +38,11 @@ The local recovery helper only read legacy PHONE_REMOTE credential/port names, w
 
 One supported supervisor reconnect and human unlock produced authenticated drivable/actionable status and successful app installation, launch, element reads and actions. Build 1 mirror reached actual capture-active state on iPhone 12 Pro / iOS 27.0.1; the user reported the image was acceptable and requested mesh, counts and sound. No camera-on screenshot or face recording was saved.
 
-Build 2 installation failed with CoreDevice 3002 / remote connection interrupted. Fresh status confirmed that the phone itself was absent (not_connected), not HTTP 401. One reconnect is waiting for USB/same-Wi-Fi presence; repeated reconnects were not sent. Human USB connection and unlock were requested. Do not claim build 2 is installed or its mesh, audible sound or counter is verified on hardware. After reconnection, read installed version/state before retrying installation, then test actual mesh alignment, audible cues, complete movement cycles, pause/lost-face behavior, background camera shutdown, save/relaunch and deletion of only task-created records.
+An initial build 2 install failed with CoreDevice 3002 / remote connection interrupted and the phone became absent, not HTTP 401. On the later status request, CoreDevice rediscovered the paired iPhone; one supported reconnect returned ready/drivable. Version readback showed a build-2 installation, which could have been the earlier partial revision, so the exact final development archive was installed successfully. The user confirmed audible voice and count changes, then reported that no mesh was visible. Build 3 fixes that rendering defect and its device result is below. No repeated reconnect was sent without a changed device-presence state.
 
 VoiceOver, permission revocation, a real incoming call/lock, long-session heat/battery and offline/network inspection remain unverified. The first mirror image check and simulator tests do not cover those gates.
 
-## App Store Connect readback
+## Build 2 App Store Connect baseline
 
 - Exact new app: Face Fitness: 얼굴 운동, Apple ID 6835675533, Korean, SKU facefitness-ios-001.
 - Registered explicit bundle resource 4S4Z8427W6; seed/team ZJZ9ZD3PCU. App creation warned that user-access settings could not save, but explicitly confirmed creation with all-user access; API readback confirmed the exact record. Creation was not retried. Other apps were untouched.
@@ -58,10 +58,15 @@ VoiceOver, permission revocation, a real incoming call/lock, long-session heat/b
 
 Retain the Draft branch/PR and final source, development archive, distribution IPA, signing/processing readbacks, test results and local-helper rollback backups. Do not delete unpublished work or the existing credentials/provisioning/daemon. Task-created simulator IDs are A77D1FC5-39DC-4289-9BFE-1EF2F8EB8FEB and 922A1697-E687-40F4-8B07-355DBF276ADF; shut down/delete only these after tests. Dispose of task-only build caches, superseded candidate copies and expired signed-upload reservations after preserving deliverables. Keep the existing phone supervisor lifecycle; release only this task's owner lease when yielding.
 
-Next dependent action is the pending human iPhone reconnect. Independent implementation/signing/upload and draft metadata preparation have been completed; do not repeat successful builds/uploads merely to check status.
+The reconnect and mesh follow-up are now resolved below. Do not repeat successful builds/uploads merely to check status. Remaining submission fields and broader device acceptance are separate from build upload.
 
-## Build 3 mesh follow-up — in progress
+## Build 3 mesh follow-up
 
-The iPhone was rediscovered and one supported reconnect reached ready/drivable. Installed the final build 2 development archive successfully (an earlier partial build-2 installation could not prove the final binary revision). User now confirms audible speech and repetition counting work, but reports no visible mesh. This is a known build-2 rendering defect; its VALID processing state is not evidence of a correct mesh.
+- User confirmed build 2 audible speech and repetition-count changes but no visible mesh. VALID processing did not establish correct rendering.
+- Source f90c11e configures an explicit Metal SceneKit scene with continuous rendering and attaches it before running face tracking, preserving the first face-anchor creation event. The preview mounts during requesting, while capture still waits for camera authorization. Counter, clock, history and speech algorithms are unchanged.
+- Release archive 1.0.0(3) succeeded with the pinned toolchain. Exact development archive installed successfully on the iPhone. Actual text readback reported face tracking active, and the user confirmed: “메쉬가 보이고 따라옴”. No camera-on screenshot or video was saved.
+- After Home and explicit app reactivation, native readback showed camera off, “거울 켜기” and guidance still ready. Capture did not automatically restart. This exercises the changed renderer teardown/start ordering on hardware.
+- App Store export succeeded. Strict distribution signature, exact bundle/team/version/profile, get-task-allow=false, no provisioned-device list, matching archive/export binary UUID 53FF6E16-2766-3C34-A259-CCF4B8C1A6E8 and IPA SHA256 dbd57c977cb75ca9b9e48cfcfdc74a1edca7892cd11e213c039bb69390cc9e86 were verified. Apple validation and upload passed. Delivery/build ID 86a7cf2f-789f-4ee6-8edc-98dcb6115bde, upload time 2026-11-17 23:16:18 KST. API and altool read back 1.0.0(3), processing/import VALID and usesNonExemptEncryption=false.
+- The 1.0.0 submission draft now selects build 3, read back as PREPARE_FOR_SUBMISSION / MANUAL. Build 2 remains historical and must not be selected for review. Scope-appropriate verification is the Release archive and actual-device mesh/background check. Previous core/simulator evidence remains evidence for unchanged contracts; no new build-3 full-suite run or clinical counting validation is claimed.
 
-The preview was attached only after ARSession began delivering frames. Build 3 configures an explicit Metal SceneKit scene with continuous rendering and attaches it before running the face-tracking session, preserving the first face-anchor creation event. The preview is mounted during the requesting state; capture still starts only after camera authorization. Camera-off/background privacy behavior and counter/speech algorithms are unchanged. Build 3 archive and physical mesh verification are in progress; no new App Review submission is authorized.
+Build 3 policy/support URLs were rechecked anonymously with HTTP 200 and expected bodies. App Review submission, public release, legal agreements and tester invitations remain untouched. Broader physical-device checks and required review/contact/privacy/age/price/availability fields above remain for the submission decision.

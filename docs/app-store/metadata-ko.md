@@ -1,6 +1,6 @@
 # App Store Connect 입력 초안 — 한국어
 
-후보 1.0.0 (2). App Store Connect 앱 6835675533에 이름·번들·SKU를 등록했고, 설명·부제·키워드·정책/지원 URL·건강 및 피트니스 카테고리와 iPhone/iPad 스크린샷을 저장했다. 배포 서명과 업로드 후 처리 상태 VALID 및 제출 초안의 빌드 연결을 확인했다. 심사 제출은 하지 않았다.
+현재 후보 1.0.0 (3). App Store Connect 앱 6835675533에 이름·번들·SKU를 등록했고, 설명·부제·키워드·정책/지원 URL·건강 및 피트니스 카테고리와 iPhone/iPad 스크린샷을 저장했다. 배포 서명과 업로드 후 처리 상태 VALID 및 제출 초안에 빌드 3이 연결된 것을 확인했다. 심사 제출은 하지 않았다.
 
 | 필드 | 내용 |
 |---|---|
@@ -42,7 +42,7 @@ Face Fitness는 얼굴 움직임 연습과 개인 운동 기록을 위한 앱입
 
 ## 공개 URL / 추가 입력
 
-빌드 2의 얼굴 추적 정책과 지원 문서를 아래 고정 커밋에 게시했다. 2026-11-17 비로그인 HTTP GET 200과 변경된 본문을 확인했다. 제출 시 이 빌드의 실제 정책과 일치하는 아래 URL을 사용한다.
+현재 빌드에도 동일하게 적용되는 얼굴 추적 정책과 지원 문서를 아래 고정 커밋에 게시했다. 2026-11-17 비로그인 HTTP GET 200과 변경된 본문을 확인했다. 제출 시 이 빌드의 실제 정책과 일치하는 아래 URL을 사용한다.
 
 - Privacy URL: `https://github.com/Youngkwon-Lee/face-fitness/blob/03d676f51583b476cbce4d8495aefc89ef74b8f2/docs/app-store/privacy-policy.md`
 - Support URL: `https://github.com/Youngkwon-Lee/face-fitness/blob/03d676f51583b476cbce4d8495aefc89ef74b8f2/docs/app-store/support.md`

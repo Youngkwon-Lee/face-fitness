@@ -3,7 +3,7 @@
 ## Candidate
 
 - Project: `ios/FaceFitness.xcodeproj`; scheme: `FaceFitness`.
-- Version: 1.0.0 (2); deployment: iOS/iPadOS 17+; universal iPhone/iPad.
+- Version: 1.0.0 (3); deployment: iOS/iPadOS 17+; universal iPhone/iPad.
 - Registered bundle ID: `kr.co.kinelo.facefitness`, team `ZJZ9ZD3PCU`; App Store Connect app ID `6835675533`.
 - SwiftUI, local Swift package, native ARKit face mesh/estimated cycle counts with AVFoundation mirror fallback; no WebView, remote SDK, MediaPipe, account, cloud DB, analytics or purchases.
 - Root web prototype is retained separately and excluded from every native target.
@@ -23,9 +23,9 @@ xcodebuild -project ios/FaceFitness.xcodeproj -scheme FaceFitness \
 
 Core tests additionally cover cycle hysteresis, dwell time, face loss/pause/stale/invalid samples and backward-compatible count persistence. These synthetic tests do not validate real repetition accuracy. Core clock tests cover paused/background-equivalent time, step boundaries, partial records, duplicate save retries, durable deletion and preservation of unreadable/future-version histories. UI tests cover actual screens, interruption, save/relaunch/delete and large text. Synthetic evidence does not establish camera behavior on an iPhone.
 
-## Real-device acceptance — still required
+## Additional real-device acceptance before App Review
 
-Use a consenting tester's device with the exact signed candidate. Do not store the tester's face/video as evidence.
+The exact build 3 archive was installed on iPhone 12 Pro / iOS 27.0.1. The tester confirmed that the mesh is visible and follows the face; voice/count changes were confirmed in build 2 and their algorithms are unchanged. Returning after Home showed the camera off without automatic restart. Remaining checks below are not all completed. Do not store the tester's face/video as evidence.
 
 - First install: onboarding precedes permissions; no camera/mic/library prompt at launch.
 - Camera allow/deny/revoke: mirror orientation correct in portrait and supported iPad rotations; denial leaves practice usable. Verify camera indicator turns off after off/exit/background/interruption and never automatically restarts.
@@ -66,3 +66,5 @@ xcodebuild -project ios/FaceFitness.xcodeproj -scheme FaceFitness \
 References checked 2026-11-17: [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/), [App Privacy Details](https://developer.apple.com/app-store/app-privacy-details/), [SDK upload requirements](https://developer.apple.com/news/upcoming-requirements/), [Required reason APIs](https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api).
 
 Current execution evidence and outstanding gates are maintained in `docs/native-ios-delivery.md`.
+
+Current upload: 1.0.0(3), processing VALID, linked to the manual-release submission draft. Build 2 had a confirmed mesh-display defect and is superseded. App Review submission/public release have not occurred.
