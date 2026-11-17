@@ -1,6 +1,6 @@
 # App Store Connect 입력 초안 — 한국어
 
-최종 후보 1.0.0 (2). 앱 이름 사용 가능 여부 및 개발자 표시명은 실제 계정에서 확인한다.
+후보 1.0.0 (2). App Store Connect 앱 6835675533에 이름·번들·SKU를 등록했고, 설명·부제·키워드·정책/지원 URL·건강 및 피트니스 카테고리와 iPhone/iPad 스크린샷을 저장했다. 배포 서명과 업로드 후 처리 상태 VALID 및 제출 초안의 빌드 연결을 확인했다. 심사 제출은 하지 않았다.
 
 | 필드 | 내용 |
 |---|---|
@@ -8,8 +8,8 @@
 | 부제 | 편안한 움직임과 나만의 운동 기록 |
 | 기본 언어 | 한국어 |
 | 기본 카테고리 | 건강 및 피트니스 |
-| 번들 ID 후보 | kr.co.kinelo.facefitness |
-| SKU 후보 | facefitness-ios-001 |
+| 번들 ID | kr.co.kinelo.facefitness |
+| SKU | facefitness-ios-001 |
 | 가격 제안 | 무료 · 광고·결제·구독 없음 |
 | 키워드 | 얼굴운동,표정,미소,눈썹,거울,루틴,타이머,운동기록,페이스피트니스 |
 | 개인정보 | 수집하는 데이터 없음 — 이 후보의 실제 네트워크/SDK 동작 확인 후 응답 |
@@ -42,9 +42,9 @@ Face Fitness는 얼굴 움직임 연습과 개인 운동 기록을 위한 앱입
 
 ## 공개 URL / 추가 입력
 
-빌드 2는 얼굴 추적 정책이 변경되었으므로 아래 빌드 1 URL을 그대로 제출하지 않는다. 변경된 문서를 커밋·게시한 후 그 고정 커밋의 URL로 교체하고 비로그인 본문을 재확인한다.
+빌드 2의 얼굴 추적 정책과 지원 문서를 아래 고정 커밋에 게시했다. 2026-11-17 비로그인 HTTP GET 200과 변경된 본문을 확인했다. 제출 시 이 빌드의 실제 정책과 일치하는 아래 URL을 사용한다.
 
-- Privacy URL: `https://github.com/Youngkwon-Lee/face-fitness/blob/43908faf76204a95ff3e1abaf463e101d4c60dfb/docs/app-store/privacy-policy.md`
-- Support URL: `https://github.com/Youngkwon-Lee/face-fitness/blob/43908faf76204a95ff3e1abaf463e101d4c60dfb/docs/app-store/support.md`
-- 개발자 연락처·저작권·판매자·출시 지역·가격·연령 등급 설문은 실제 계정 및 출시 의사와 맞춰 확인한다.
+- Privacy URL: `https://github.com/Youngkwon-Lee/face-fitness/blob/03d676f51583b476cbce4d8495aefc89ef74b8f2/docs/app-store/privacy-policy.md`
+- Support URL: `https://github.com/Youngkwon-Lee/face-fitness/blob/03d676f51583b476cbce4d8495aefc89ef74b8f2/docs/app-store/support.md`
+- 저작권은 2026 Youngkwon Lee로 저장했다. 검토 연락처·판매자·출시 지역·가격·연령 등급/개인정보 설문은 실제 계정과 출시 의사에 맞춰 확인한다. 출시 방식은 MANUAL이며 자동 공개하지 않는다.
 - 연령 설문은 앱의 실제 얼굴 운동/건강·웰니스 콘텐츠를 사실대로 응답한다. 진단·치료, UGC, 광고, 결제, 무제한 웹 탐색 기능은 이 앱에 없다. 설문 결과를 확인하기 전 특정 등급을 확정하지 않는다.

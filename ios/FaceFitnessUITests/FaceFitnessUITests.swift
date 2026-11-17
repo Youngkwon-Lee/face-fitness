@@ -57,7 +57,10 @@ final class FaceFitnessUITests: XCTestCase {
     @MainActor
     func testBackgroundPausesPracticeAndLargeTextRemainsUsable() async throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--ui-testing", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        // XCTest can wait for an entire spoken cue before delivering Home.
+        // Isolate immediate scene interruption from audio idleness; speech is
+        // exercised by the ordinary flow; audible behavior needs a device check.
+        app.launchArguments = ["--ui-testing", "-voiceCues", "NO", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launch()
         if app.buttons["welcome.continue"].waitForExistence(timeout: 3) {
             app.swipeUp()
