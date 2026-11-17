@@ -1071,6 +1071,7 @@ body.interview-demo #historyNavBtn{display:none !important;}
 
 <script src="./assessment-safety.js"></script>
 <script src="./face-frame-geometry.js"></script>
+<script src="./face-metric-geometry.js"></script>
 <script src="./face-measurement.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -1085,6 +1086,11 @@ function assessmentSafetyAvailable() {
 function assessmentIOBlocked() { return !assessmentSafetyAvailable() || ASSESSMENT_QA; }
 // Interview demo (?demo=1): no account, no cloud reads/writes, storage kept in memory only.
 const INTERVIEW_DEMO = window.FACE_INTERVIEW_DEMO === true;
+// Experimental, isolated head-local geometry path. Never activate by a bare
+// query flag in persistent/production mode; real-package QA is still required.
+const METRIC_GEOMETRY_QA = INTERVIEW_DEMO && new URLSearchParams(location.search).get('metricQA') === '1';
+function currentMeasurementDefinition(){return window.FaceMovementMeasurement.definitionFor(METRIC_GEOMETRY_QA);}
+function isCurrentMeasurement(record){return record?.measurement_features?.measurement_definition?.version===currentMeasurementDefinition().version;}
 // ═══════════════════════════════════════════════════════════
 // SUPABASE AUTH + CLOUD PERSISTENCE
 // Exercise records: mobile_exercise_sessions (source_app='face_fitness'), via
@@ -1570,6 +1576,7 @@ const BL = {n:0, eyeDistance:0, leftCornerY:0, rightCornerY:0, leftBrowY:0, righ
              llsDistL:0, llsDistR:0, mentalY:0, cheekLY:0, cheekRY:0};
 let blDone = false;
 let facePoseReference = null, facePoseReady = false, facePoseAt = null, facePoseCode='waiting';
+let analysisLandmarks=null;const metricPoseSamples=[];
 let facePoseWatchdog = null;
 const FACE_POSE_MAX_AGE_MS = 700;
 let seqStartTimer = null, seqGeneration = 0;
@@ -1630,6 +1637,7 @@ window.onload = () => {
   const status = document.getElementById('assessmentSafetyStatus');
   if (INTERVIEW_DEMO) {
     document.body.classList.add('interview-demo');
+    if(METRIC_GEOMETRY_QA)document.getElementById('interviewDemoBanner').insertAdjacentText('beforeend',' · 3D 움직임 검증 모드 · 미검증');
     const banner = document.getElementById('interviewDemoBanner');
     banner.hidden = false;
     if (window.FACE_INTERVIEW_DEMO_STORAGE_ISOLATED !== true) {
@@ -1683,6 +1691,10 @@ async function startCamera() {
     camBtn.dataset.cameraFailureStep = 'get-user-media';
     document.getElementById('camStartHint').textContent = '움직임 측정 코드를 불러오지 못했습니다. 새로고침 후 다시 시작하세요.';
     return;
+  }
+  if(METRIC_GEOMETRY_QA && !window.FaceMetricGeometry?.project){
+    camBtn.disabled=true;camBtn.dataset.cameraStage='error';camBtn.dataset.cameraFailureCode='metric-module-missing';
+    document.getElementById('camStartHint').textContent='3D 움직임 검증 코드를 불러오지 못했습니다. 새로고침하세요.';return;
   }
   const geometry = window.FaceFrameGeometry;
   if (!geometry || typeof geometry.project !== 'function' || typeof geometry.above !== 'function') {
@@ -1890,7 +1902,7 @@ async function loadFM() {
   fmLoading = true;
   try {
     faceMesh = new FaceMesh({locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
-    faceMesh.setOptions({maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:0.5, minTrackingConfidence:0.5});
+    faceMesh.setOptions({maxNumFaces:1, enableFaceGeometry:METRIC_GEOMETRY_QA, refineLandmarks:!METRIC_GEOMETRY_QA, minDetectionConfidence:0.5, minTrackingConfidence:0.5});
     const model = faceMesh, epoch = ++faceTrackingEpoch;
     faceMesh.onResults(r => {
       if (epoch !== faceTrackingEpoch || model !== faceMesh) return;
@@ -1952,7 +1964,7 @@ async function frameLoop() {
     if (facePresent) {
       const lm = lastFaceResults.multiFaceLandmarks[0];
       drawFaceOnBoth(lm);
-      analyzeFrame(lm, faceResultAt);
+      analyzeFrame(lm, faceResultAt, lastFaceResults.multiFaceLandmarks?.length===1 && lastFaceResults.multiFaceGeometry?.length===1 ? lastFaceResults.multiFaceGeometry[0] : null);
     } else {
       setFacePoseUnavailable('face_missing');
     }
@@ -2449,6 +2461,8 @@ function startFacePoseWatchdog() {
 function facePoseMessage(code) {
   if (code === 'stale_tracking') return '추적 응답이 오래됐습니다 · 측정을 중지했습니다. 회복되지 않으면 새로고침하세요';
   if (code === 'face_missing') return '얼굴을 정면에 맞춰 주세요 · 측정값을 표시하지 않습니다';
+  if(code==='metric_geometry_missing'||code==='invalid_metric_geometry')return '3D 얼굴 움직임 입력이 준비되지 않았습니다 · 측정값을 표시하지 않습니다';
+  if(code==='metric_pose_drift')return '기준에서 고개 방향이 크게 달라 측정을 멈췄습니다 · 정면으로 돌아오세요';
   if (code === 'pose_depth_missing') return '자세 변화 확인에 필요한 깊이값이 없습니다 · 측정값을 표시하지 않습니다';
   if (['yaw_drift','pitch_drift','depth_drift','pitch_depth_drift'].includes(code)) return '고개 각도가 기준 자세와 달라 측정을 멈췄습니다 · 표정을 풀고 기준 정면으로 돌아오세요';
   if (code === 'module_unavailable') return '구도 측정 코드를 불러오지 못했습니다 · 새로고침해 주세요';
@@ -2473,7 +2487,7 @@ function renderFacePoseState(ready, code='ready') {
 }
 function setFacePoseUnavailable(code) {
   const changed=facePoseReady||facePoseCode!==code;
-  facePoseCode=code;facePoseReady=false;
+  facePoseCode=code;facePoseReady=false;analysisLandmarks=null;
   cancelPendingSequence();seqMode=false;
   if(['static','dynamic','static-done'].includes(assessPhase))blockAssessment('구도/추적 변경 · 정면을 맞춘 뒤 다시 시작');
   if(['countdown','running','rest'].includes(exState)){
@@ -2508,7 +2522,7 @@ function resetFaceFraming() {
   cancelPendingSequence();seqMode=false;
   cancelAssessTimers();clearAssessmentData();
   for(const key of Object.keys(BL))BL[key]=0;
-  blDone=false;facePoseReference=null;facePoseReady=false;facePoseAt=null;resetMusclePeaks();
+  blDone=false;facePoseReference=null;facePoseReady=false;facePoseAt=null;analysisLandmarks=null;metricPoseSamples.length=0;resetMusclePeaks();
   assessPhase='idle';assessIdx2=-1;
   document.getElementById('staticResultCard').style.display='none';
   document.getElementById('assessOverlay').classList.remove('visible');
@@ -2518,17 +2532,21 @@ function resetFaceFraming() {
   return true;
 }
 
-function analyzeFrame(lm, sampleAt) {
+function analyzeFrame(lm, sampleAt, metricGeometry=null) {
   if(assessmentIOBlocked())return;
   if(!Number.isFinite(sampleAt)||sampleAt>Date.now()||Date.now()-sampleAt>FACE_POSE_MAX_AGE_MS)return setFacePoseUnavailable('stale_tracking');
   const geometry=window.FaceFrameGeometry;
   if(!geometry||typeof geometry.project!=='function')return setFacePoseUnavailable('module_unavailable');
   const video=document.getElementById('video');
   if(!blDone&&BL.n===0)facePoseReference=null;
-  const aligned=geometry.project(lm,facePoseReference,{width:video?.videoWidth||640,height:video?.videoHeight||480,requirePoseDepth:true});
+  const dimensions={width:video?.videoWidth||640,height:video?.videoHeight||480};
+  const aligned=METRIC_GEOMETRY_QA
+    ? window.FaceMetricGeometry?.project(lm,metricGeometry,facePoseReference,dimensions)
+    : geometry.project(lm,facePoseReference,{...dimensions,requirePoseDepth:true});
+  if(!aligned)return setFacePoseUnavailable('metric_geometry_missing');
   if(!aligned.ok)return setFacePoseUnavailable(aligned.code);
   facePoseReference=aligned.reference;
-  lm=aligned.landmarks;
+  lm=aligned.landmarks;analysisLandmarks=lm;
   facePoseReady=true;facePoseAt=sampleAt;facePoseCode='ready';
   const observed = window.FaceMovementMeasurement?.extract(lm, facePoseReference.aspect);
   if (!observed) return setFacePoseUnavailable('measurement_unavailable');
@@ -2537,6 +2555,7 @@ function analyzeFrame(lm, sampleAt) {
   // Baseline accumulation
   if (!blDone && BL.n < BL_FRAMES) {
     const f = BL.n;
+    if(METRIC_GEOMETRY_QA&&aligned.pose)metricPoseSamples.push(aligned.pose);
     BL.eyeDistance  = (BL.eyeDistance*f + metrics.interEyeDistance) / (f+1);
     BL.leftCornerY  = (BL.leftCornerY*f  + metrics.cornerLY)  / (f+1);
     BL.rightCornerY = (BL.rightCornerY*f + metrics.cornerRY)  / (f+1);
@@ -2554,7 +2573,10 @@ function analyzeFrame(lm, sampleAt) {
     BL.cheekLY      = (BL.cheekLY*f      + metrics.cheekLY)   / (f+1);
     BL.cheekRY      = (BL.cheekRY*f      + metrics.cheekRY)   / (f+1);
     BL.n++;
-    if (BL.n >= BL_FRAMES) { blDone = true; document.getElementById('aBadge').textContent = '✓ 기준 측정 완료 — 평가 시작 가능'; }
+    if (BL.n >= BL_FRAMES) {
+      if(METRIC_GEOMETRY_QA){facePoseReference=window.FaceMetricGeometry.withAveragePose(facePoseReference,metricPoseSamples);metricPoseSamples.length=0;}
+      blDone = true; document.getElementById('aBadge').textContent = METRIC_GEOMETRY_QA ? '3D 검증 기준 준비 · 의료 평가 아님' : '✓ 기준 측정 완료 — 평가 시작 가능';
+    }
     else document.getElementById('aBadge').textContent = `기준값 측정 중 ${Math.round(BL.n/BL_FRAMES*100)}%`;
   }
 
@@ -4089,7 +4111,7 @@ function buildMeasurementFeatures() {
 
   return {
     schema_version: 2,
-    measurement_definition: {...window.FaceMovementMeasurement.definition},
+    measurement_definition: {...currentMeasurementDefinition()},
     resting_state: bl ? {
       symmetry_score: symScore,
       ear_left:       Math.round((earL)*1000)/1000,
@@ -4199,7 +4221,7 @@ function renderProgressGraph() {
   const card = document.getElementById('progressCard');
   if (!card) return;
 
-  const all = hist.assess.filter(window.FaceMovementMeasurement.isCurrent).sort((a, b) => new Date(a.date) - new Date(b.date));
+  const all = hist.assess.filter(isCurrentMeasurement).sort((a, b) => new Date(a.date) - new Date(b.date));
   if (all.length < 2) {
     card.style.display = all.length === 1 ? '' : 'none';
     const ins = document.getElementById('progressInsight');
@@ -4422,7 +4444,7 @@ function renderHistory() {
   if (!hist.assess.length) { aEl.innerHTML = '<div style="color:var(--dim);font-size:.82rem;padding:8px 0;">평가 기록 없음</div>'; }
   else {
     // Sparkline — sym scores newest-last order
-    const symScores = hist.assess.filter(window.FaceMovementMeasurement.isCurrent).map(r => r.symScore ?? 0);
+    const symScores = hist.assess.filter(isCurrentMeasurement).map(r => r.symScore ?? 0);
     const symMax    = Math.max(...symScores, 1);
     const sparkBars = symScores.map((s,i) => {
       const h = Math.round(s / symMax * 100);
@@ -4463,7 +4485,7 @@ function renderHistory() {
           <div class="hist-date-row">
             <span class="hist-date">${dateStr}</span>
             ${symBadge}${cloudDot}
-            <span style="font-size:.6rem;color:var(--dim);">${window.FaceMovementMeasurement.isCurrent(r) ? '본인 좌우 기준 v2.1 · 실험값' : '이전/미확인 측정방식 · 현재 버전과 비교 불가'}</span>
+            <span style="font-size:.6rem;color:var(--dim);">${isCurrentMeasurement(r) ? (METRIC_GEOMETRY_QA ? '3D 검증 모드 v3 · 실험값' : '본인 좌우 기준 v2.1 · 실험값') : '이전/미확인 측정방식 · 현재 버전과 비교 불가'}</span>
           </div>
           <div class="hist-bars">${bars}</div>
         </div>
@@ -4475,7 +4497,7 @@ function renderHistory() {
   // ── Before / After comparison ─────────────────────────────
   const compareCard = document.getElementById('compareCard');
   const compareEl   = document.getElementById('histCompare');
-  const comparableAssess = hist.assess.filter(window.FaceMovementMeasurement.isCurrent).sort((a,b) => new Date(b.date)-new Date(a.date));
+  const comparableAssess = hist.assess.filter(isCurrentMeasurement).sort((a,b) => new Date(b.date)-new Date(a.date));
   if (comparableAssess.length >= 2 && compareCard) {
     compareCard.style.display = '';
     const first  = comparableAssess[comparableAssess.length - 1]; // oldest v2

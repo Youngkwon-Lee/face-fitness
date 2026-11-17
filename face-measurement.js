@@ -51,5 +51,7 @@
   }
   const definition=Object.freeze({version:VERSION,side_convention:'subject_anatomical',pose_policy:'strict_relative_pose_hold_v1',eye_closure:'clamped_baseline_EAR_reduction',validation_displacement_unit:'inter_outer_eye_distance',clinical_validated:false});
   function isCurrent(record){return record?.measurement_features?.measurement_definition?.version===VERSION;}
-  return Object.freeze({VERSION,SIDES,extract,closure,normalized,validationSignals,definition,isCurrent});
+  const metricDefinition=Object.freeze({...definition,version:'anatomical-movement-v3-metric-face',pose_policy:'metric_relative_rotation_20deg_experimental',geometry_source:'mediapipe_pose_removed_metric_mesh'});
+  const definitionFor=metric=>metric?metricDefinition:definition;
+  return Object.freeze({VERSION,SIDES,extract,closure,normalized,validationSignals,definition,definitionFor,isCurrent});
 });
