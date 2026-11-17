@@ -58,7 +58,7 @@ xcodebuild -project ios/FaceFitness.xcodeproj -scheme FaceFitness \
 
 - `metadata-ko.md`: Korean name/subtitle/description/keywords, category and data-label draft.
 - `review-notes-en.md`: review steps, data boundaries, system/external services.
-- `privacy-policy.md`, `support.md`: publish and verify both public URLs before submission; the in-app policy is already bundled.
+- `privacy-policy.md`, `support.md`: the public immutable URLs in `metadata-ko.md` were verified with unauthenticated GET 200 and matching content on 2026-11-17. The in-app policy is bundled. Recheck availability when entering the final App Store metadata.
 - App icon: original code-drawn 1024×1024 opaque image, source `ios/render-icon.swift`; existing face guide illustrations are copied unchanged from this repository.
 - iPhone and iPad screenshots must depict this final native app, not the web prototype. Do not insert fabricated records or inferred results. Simulator evidence may use a labelled QA session, separate from real-user history.
 - Supply the true owner/contact, copyright, price/availability, current age-rating answers and privacy questionnaire. ‘Data Not Collected’ is the proposed answer for this no-network candidate, contingent on final behavior/SDK audit.

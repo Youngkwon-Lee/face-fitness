@@ -26,7 +26,7 @@ First release uses a native camera mirror without landmark-based coaching. Media
 - [x] Simulator build and Release device archive. Final version 1.0.0 (1), SDK iphoneos27.2, development-signed using an existing local wildcard profile. `codesign --verify --deep --strict` passed; `get-task-allow=true`. This is not App Store distribution signing or an uploaded build.
 - [x] Actual native simulator flow: onboarding → routine → pause/resume → partial save → relaunch/readback → privacy → confirmed deletion. Camera denial (phone) / unavailable (tablet) leaves practice usable.
 - [x] Final iPhone 17 Pro Max simulator suite: 3/3 passed, 2026-11-17 09:09 KST, 74.974 seconds. Final iPad Pro 13-inch (M5) simulator suite: 3/3 passed, 09:06 KST, 78.965 seconds. Both include largest accessibility text and background pause/resume. VoiceOver and physical-device accessibility remain unverified.
-- [x] Embedded privacy policy, public policy/support source material, metadata/review notes and submission checklist. Public URL publication/readback remains a release gate below.
+- [x] Embedded privacy policy, published policy/support documents, metadata/review notes and submission checklist. Both immutable public URLs at commit `43908fa` returned unauthenticated GET 200 with their expected bodies on 2026-11-17.
 - [ ] Real iPhone camera/permission/interruption/thermal acceptance: required, not replaceable by synthetic tests.
 - [ ] App Store Connect app ID, membership/agreements, signing, public URLs and final screenshots: verify before upload/submission.
 
@@ -39,3 +39,7 @@ Physical iPhone 12 Pro / iOS 27.0.1 was connected and had developer mode enabled
 Initial iPad harness attempts stalled around OS permission handling and assumed a phone-style tab container. These runs were canceled and are not successful evidence. The final harness checks the supported camera fallback states, uses platform-independent tab locators and bounds each case to 90 seconds. Final suites above passed; unrelated web synthetic suites were not rerun because web inputs did not change.
 
 Evidence/output root is the user-facing output directory above: final archive verification JSON, source package, App Store drafts, screenshots and passing test logs. Raw simulator screenshots are separate from selected store screenshots. Simulator-created history is QA timer activity, not clinical or physical-exercise evidence.
+
+## Closeout
+
+Draft PR: https://github.com/Youngkwon-Lee/face-fitness/pull/13. The unmerged native branch is intentionally retained for review and device/account follow-up. Both task-created simulators were shut down, deleted and read back as absent. Pre-existing simulators and the separate web worktree were preserved. Task-owned derived-data/core-build caches, detailed physical-device metadata and the superseded archive were removed; final source/archive, screenshot artifacts and passing xcresult/log evidence were retained.

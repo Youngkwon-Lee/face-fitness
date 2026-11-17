@@ -41,9 +41,9 @@ Face Fitness는 얼굴 움직임 연습과 개인 운동 기록을 위한 앱입
 
 ## 공개 URL / 추가 입력
 
-현재 파일은 제출 준비 자료이며 공개된 운영 URL로 확인된 상태가 아니다. 승인된 브랜치 병합/게시 후 아래 URL을 실제 비로그인 환경에서 읽고 App Store Connect에 입력한다. 오래된 웹 시제품 URL을 개인정보 URL로 대신 쓰지 않는다.
+아래 정책/지원 문서는 공개 저장소의 고정 커밋에 게시되어 있으며 2026-11-17 비로그인 HTTP GET 200 및 본문을 확인했다. 이 버전의 App Store Connect 입력에 사용할 수 있다. 정책이 바뀌는 다음 버전에는 그 버전의 실제 정책 URL로 갱신한다.
 
-- Privacy URL 후보: `https://github.com/Youngkwon-Lee/face-fitness/blob/main/docs/app-store/privacy-policy.md`
-- Support URL 후보: `https://github.com/Youngkwon-Lee/face-fitness/blob/main/docs/app-store/support.md`
+- Privacy URL: `https://github.com/Youngkwon-Lee/face-fitness/blob/43908faf76204a95ff3e1abaf463e101d4c60dfb/docs/app-store/privacy-policy.md`
+- Support URL: `https://github.com/Youngkwon-Lee/face-fitness/blob/43908faf76204a95ff3e1abaf463e101d4c60dfb/docs/app-store/support.md`
 - 개발자 연락처·저작권·판매자·출시 지역·가격·연령 등급 설문은 실제 계정 및 출시 의사와 맞춰 확인한다.
 - 연령 설문은 앱의 실제 얼굴 운동/건강·웰니스 콘텐츠를 사실대로 응답한다. 진단·치료, UGC, 광고, 결제, 무제한 웹 탐색 기능은 이 앱에 없다. 설문 결과를 확인하기 전 특정 등급을 확정하지 않는다.
