@@ -3,9 +3,9 @@
 ## Candidate
 
 - Project: `ios/FaceFitness.xcodeproj`; scheme: `FaceFitness`.
-- Version: 1.0.0 (1); deployment: iOS/iPadOS 17+; universal iPhone/iPad.
-- Bundle ID candidate: `kr.co.kinelo.facefitness`. It has not yet been verified/registered in the developer account.
-- SwiftUI, local Swift package, native AVFoundation mirror; no WebView, remote SDK, MediaPipe, account, cloud DB, analytics or purchases.
+- Version: 1.0.0 (2); deployment: iOS/iPadOS 17+; universal iPhone/iPad.
+- Registered bundle ID: `kr.co.kinelo.facefitness`, team `ZJZ9ZD3PCU`; App Store Connect app ID `6835675533`.
+- SwiftUI, local Swift package, native ARKit face mesh/estimated cycle counts with AVFoundation mirror fallback; no WebView, remote SDK, MediaPipe, account, cloud DB, analytics or purchases.
 - Root web prototype is retained separately and excluded from every native target.
 
 ## Local checks
@@ -21,7 +21,7 @@ xcodebuild -project ios/FaceFitness.xcodeproj -scheme FaceFitness \
   -parallel-testing-enabled NO -jobs 2 CODE_SIGNING_ALLOWED=NO test
 ```
 
-Core tests cover paused/background-equivalent time, step boundaries, partial records, duplicate save retries, durable deletion and preservation of unreadable/future-version histories. UI tests cover actual screens, interruption, save/relaunch/delete and large text. Synthetic evidence does not establish camera behavior on an iPhone.
+Core tests additionally cover cycle hysteresis, dwell time, face loss/pause/stale/invalid samples and backward-compatible count persistence. These synthetic tests do not validate real repetition accuracy. Core clock tests cover paused/background-equivalent time, step boundaries, partial records, duplicate save retries, durable deletion and preservation of unreadable/future-version histories. UI tests cover actual screens, interruption, save/relaunch/delete and large text. Synthetic evidence does not establish camera behavior on an iPhone.
 
 ## Real-device acceptance — still required
 
@@ -37,7 +37,7 @@ Use a consenting tester's device with the exact signed candidate. Do not store t
 
 ## Signing / upload
 
-The user authorized preparation, not App Review submission or public release. Do not press Submit for Review, release a version, accept legal agreements, create paid services or change an existing app's identity as part of a local build.
+The user authorized development, physical-device verification, distribution signing and upload. App Review submission and public release require a separate decision. Do not press Submit for Review, release a version, accept legal agreements, create paid services or change an existing app's identity as part of a local build.
 
 1. In the authenticated Apple account, confirm active membership, account team, agreements, name availability and whether a matching Face Fitness app already exists. Read existing apps before creating a new record.
 2. Confirm/register the matching bundle ID and assign the real team in Xcode. A local development/distribution certificate alone does not prove a matching provisioning profile or upload authority.

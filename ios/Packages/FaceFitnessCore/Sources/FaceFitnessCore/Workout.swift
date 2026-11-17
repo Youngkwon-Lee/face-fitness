@@ -83,9 +83,10 @@ public struct WorkoutRecord: Codable, Identifiable, Equatable, Sendable {
     public let activeSeconds: Int
     public let completedSteps: Int
     public let plannedSteps: Int
+    public let estimatedRepetitions: [String: Int]?
     public var isComplete: Bool { completedSteps == plannedSteps }
 
-    public init(id: UUID = UUID(), date: Date = Date(), routine: Routine, clock: PracticeClock) {
+    public init(id: UUID = UUID(), date: Date = Date(), routine: Routine, clock: PracticeClock, estimatedRepetitions: [String: Int]? = nil) {
         self.id = id
         self.date = date
         routineTitle = routine.title
@@ -93,10 +94,12 @@ public struct WorkoutRecord: Codable, Identifiable, Equatable, Sendable {
         activeSeconds = Int(clock.activeSeconds.rounded(.down))
         completedSteps = clock.completedSteps
         plannedSteps = clock.stepCount
+        self.estimatedRepetitions = estimatedRepetitions
     }
     public var isValid: Bool {
         date.timeIntervalSince1970.isFinite && !routineTitle.isEmpty && activeSeconds > 0 &&
         plannedSteps > 0 && completedSteps >= 0 && completedSteps <= plannedSteps &&
-        movementTitles.count == plannedSteps && movementTitles.allSatisfy { !$0.isEmpty }
+        movementTitles.count == plannedSteps && movementTitles.allSatisfy { !$0.isEmpty } &&
+        (estimatedRepetitions?.allSatisfy { movementTitles.contains($0.key) && (0...100_000).contains($0.value) } ?? true)
     }
 }

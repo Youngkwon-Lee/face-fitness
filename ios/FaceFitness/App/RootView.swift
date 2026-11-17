@@ -39,9 +39,9 @@ struct WelcomeView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     Label("로그인 없이 바로 시작", systemImage: "person.crop.circle.badge.checkmark")
                     Label("운동 기록은 이 기기에만 저장", systemImage: "iphone")
-                    Label("카메라는 원할 때만 켜는 거울", systemImage: "camera")
+                    Label("원할 때 켜는 얼굴 메쉬와 추정 횟수", systemImage: "camera")
                 }
-                Text("사진·영상은 저장하거나 전송하지 않습니다. 의료적 평가·진단·처방을 제공하지 않으며, 운동 완료는 동작의 정확성을 뜻하지 않습니다.")
+                Text("얼굴 메쉬와 표정 변화는 지원 기기 안에서만 실시간 처리하며 얼굴 데이터는 저장·전송하지 않습니다. 횟수는 참고용 추정값입니다. 의료적 평가·진단·처방을 제공하지 않으며, 운동 완료는 동작의 정확성을 뜻하지 않습니다.")
                     .font(.footnote).foregroundStyle(.secondary)
                 NavigationLink("개인정보 처리방침 보기") { PrivacyView() }
                 Button("시작하기", action: onContinue)

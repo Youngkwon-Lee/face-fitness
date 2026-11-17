@@ -11,7 +11,7 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "1"
+    CURRENT_PROJECT_VERSION: "2"
     CODE_SIGN_STYLE: Automatic
     ENABLE_USER_SCRIPT_SANDBOXING: YES
 targets:
@@ -31,7 +31,7 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleLocalizations: [ko]
         CFBundleDevelopmentRegion: ko
-        NSCameraUsageDescription: 운동 중 자신의 얼굴 움직임을 거울처럼 확인하기 위해 전면 카메라를 사용합니다. 사진과 영상은 촬영·저장·전송하지 않습니다.
+        NSCameraUsageDescription: 전면 카메라로 거울과 얼굴 메쉬를 보여주고 표정 변화에서 움직임 횟수를 추정합니다. 얼굴 데이터는 기기 안에서만 실시간 처리하며 저장·전송하지 않습니다.
         ITSAppUsesNonExemptEncryption: false
         UIApplicationSupportsIndirectInputEvents: true
         UILaunchScreen:

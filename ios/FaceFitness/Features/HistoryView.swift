@@ -40,7 +40,7 @@ struct HistoryView: View {
                             .accessibilityIdentifier("history.record")
                         }
                     } footer: {
-                        Text("운동 시간만 기록합니다. 쉬는 시간은 제외되며, 얼굴 사진과 영상은 저장하지 않습니다.")
+                        Text("운동 시간과 감지된 추정 횟수를 기록합니다. 쉬는 시간은 제외되며, 얼굴 데이터는 저장하지 않습니다.")
                     }
                 }
             }
@@ -66,6 +66,14 @@ struct RecordDetailView: View {
             }
             Section("선택한 동작") {
                 ForEach(Array(record.movementTitles.enumerated()), id: \.offset) { _, title in Text(title) }
+            }
+            if let counts = record.estimatedRepetitions {
+                Section("추정 횟수") {
+                    ForEach(record.movementTitles, id: \.self) { title in
+                        if let count = counts[title] { LabeledContent(title, value: "\(count)회") }
+                    }
+                    Text("표정 변화의 참고 기록으로, 실제 수행 횟수와 다를 수 있습니다. 정확성·근력·건강 상태를 평가하지 않습니다.").font(.footnote).foregroundStyle(.secondary)
+                }
             }
             Section {
                 Text("선택한 동작 목록에는 중단하여 끝내지 않은 동작도 포함됩니다. 안내 완료는 타이머가 끝났다는 뜻이며, 실제 동작 수행 여부나 정확성은 판정하지 않습니다.")

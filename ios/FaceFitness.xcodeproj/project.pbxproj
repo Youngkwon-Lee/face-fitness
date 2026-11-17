@@ -12,11 +12,13 @@
 		1DB1C42713D24471BB96BA7B /* HistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E39EA6963FF4968B68505B97 /* HistoryStore.swift */; };
 		2A58658973491ECC14E2B31B /* WorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2582F1F46D08DAD4B77FF1B9 /* WorkoutView.swift */; };
 		308DAE473DB73B3C29201326 /* WorkoutController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C7C9703B7F634F53DFCD447 /* WorkoutController.swift */; };
+		30C1CAEB10307BEA54971126 /* VoiceGuide.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC84BEA7F45354C18CB67E1A /* VoiceGuide.swift */; };
 		3650118CC0C42E2CA87543A1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0DB102E2DED781FD25F406BC /* Assets.xcassets */; };
 		3F05CD2C1DF6359DFF8D626E /* RoutinesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44A4CA8DFD2BCB0FC5145DD /* RoutinesView.swift */; };
 		425258DC70AD1D6DF4BDB3FB /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A2838133B127A1FF318C51 /* RootView.swift */; };
 		530CB4C36CA069C968A02172 /* FaceFitnessUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84FD7E6083605DA5E6AD0179 /* FaceFitnessUITests.swift */; };
 		8534B2307BDAA6E95C2FD0E5 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F1F3AF8307545CDE8882BC /* SettingsView.swift */; };
+		998E18F8226C07140FF26C69 /* FaceTrackingPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24B824C5A704A3849964148A /* FaceTrackingPipeline.swift */; };
 		A317F28897BC8F8806ABA6AF /* CameraModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E161A20BD22392FBBA9F1426 /* CameraModel.swift */; };
 		BACD14746DC7440DE2689E87 /* FaceFitnessApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C4F0A9262CBA087FF3FEB06 /* FaceFitnessApp.swift */; };
 		FF2B0341C154A1162F767C44 /* FaceFitnessCore in Frameworks */ = {isa = PBXBuildFile; productRef = 83E7F0EDB300495CD8247B5D /* FaceFitnessCore */; };
@@ -34,6 +36,7 @@
 
 /* Begin PBXFileReference section */
 		0DB102E2DED781FD25F406BC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		24B824C5A704A3849964148A /* FaceTrackingPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceTrackingPipeline.swift; sourceTree = "<group>"; };
 		2582F1F46D08DAD4B77FF1B9 /* WorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutView.swift; sourceTree = "<group>"; };
 		2B89C769C1C254DBBB4BFEC4 /* FaceFitness.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FaceFitness.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3E213CEDA02D114074234268 /* FaceFitnessCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FaceFitnessCore; path = Packages/FaceFitnessCore; sourceTree = SOURCE_ROOT; };
@@ -48,6 +51,7 @@
 		D44A4CA8DFD2BCB0FC5145DD /* RoutinesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutinesView.swift; sourceTree = "<group>"; };
 		E161A20BD22392FBBA9F1426 /* CameraModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModel.swift; sourceTree = "<group>"; };
 		E39EA6963FF4968B68505B97 /* HistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryStore.swift; sourceTree = "<group>"; };
+		EC84BEA7F45354C18CB67E1A /* VoiceGuide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceGuide.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,7 +114,9 @@
 			isa = PBXGroup;
 			children = (
 				E161A20BD22392FBBA9F1426 /* CameraModel.swift */,
+				24B824C5A704A3849964148A /* FaceTrackingPipeline.swift */,
 				E39EA6963FF4968B68505B97 /* HistoryStore.swift */,
+				EC84BEA7F45354C18CB67E1A /* VoiceGuide.swift */,
 				7C7C9703B7F634F53DFCD447 /* WorkoutController.swift */,
 			);
 			path = Services;
@@ -248,11 +254,13 @@
 			files = (
 				A317F28897BC8F8806ABA6AF /* CameraModel.swift in Sources */,
 				BACD14746DC7440DE2689E87 /* FaceFitnessApp.swift in Sources */,
+				998E18F8226C07140FF26C69 /* FaceTrackingPipeline.swift in Sources */,
 				1DB1C42713D24471BB96BA7B /* HistoryStore.swift in Sources */,
 				0E3436918CD0957A9F79521C /* HistoryView.swift in Sources */,
 				425258DC70AD1D6DF4BDB3FB /* RootView.swift in Sources */,
 				3F05CD2C1DF6359DFF8D626E /* RoutinesView.swift in Sources */,
 				8534B2307BDAA6E95C2FD0E5 /* SettingsView.swift in Sources */,
+				30C1CAEB10307BEA54971126 /* VoiceGuide.swift in Sources */,
 				308DAE473DB73B3C29201326 /* WorkoutController.swift in Sources */,
 				2A58658973491ECC14E2B31B /* WorkoutView.swift in Sources */,
 			);
@@ -349,7 +357,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -453,7 +461,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

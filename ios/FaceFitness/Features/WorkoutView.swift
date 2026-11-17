@@ -9,8 +9,8 @@ struct WorkoutView: View {
     @EnvironmentObject private var history: HistoryStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage("voiceCues") private var voiceCues = false
-    @State private var speech = AVSpeechSynthesizer()
+    @AppStorage("voiceCues") private var voiceCues = true
+    @StateObject private var voice = VoiceGuide()
     @State private var confirmingExit = false
     private let ticks = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
 
@@ -40,20 +40,25 @@ struct WorkoutView: View {
             Button("기록하지 않고 나가기", role: .destructive) { dismiss() }
             Button("계속 보기", role: .cancel) {}
         }
-        .onReceive(ticks) { _ in workout.tick() }
+        .onReceive(ticks) { _ in workout.tick(); camera.expireObservation() }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active {
-                workout.pause(); camera.suspend(background: phase == .background); speech.stopSpeaking(at: .immediate)
+                workout.pause(); camera.suspend(background: phase == .background); voice.stop()
             } else { camera.completePendingPermission() }
         }
         .onChange(of: workout.clock.phase) { _, phase in
             UIApplication.shared.isIdleTimerDisabled = phase == .running && scenePhase == .active
-            if phase != .running { speech.stopSpeaking(at: .immediate) }
-            if phase == .running { speak(workout.movement.instructions[1]) }
+            if phase != .running { voice.stop() }
+            if phase == .running { speak(workout.movement.title + ". " + workout.movement.instructions[1]) }
+        }
+        .onReceive(camera.$observation) { workout.observe($0) }
+        .onChange(of: voiceCues) { _, enabled in if !enabled { voice.stop() } }
+        .onChange(of: workout.currentRepetitions) { previous, current in
+            if current > previous && workout.clock.phase == .running { speak("\(current)회") }
         }
         .onChange(of: workout.record?.id) { _, _ in camera.stop() }
         .onDisappear {
-            workout.pause(); camera.stop(); speech.stopSpeaking(at: .immediate)
+            workout.pause(); camera.stop(); voice.stop()
             UIApplication.shared.isIdleTimerDisabled = false
         }
     }
@@ -71,7 +76,11 @@ struct WorkoutView: View {
                         .frame(maxWidth: .infinity, minHeight: 190, maxHeight: 260)
                         .accessibilityLabel(workout.movement.title + " 안내 그림")
                     if camera.state == .active {
-                        CameraPreview(session: camera.session).frame(height: 260).accessibilityLabel("전면 카메라 거울")
+                        if camera.supportsTracking {
+                            FaceMeshPreview(pipeline: camera.trackingPipeline).frame(height: 260)
+                        } else {
+                            CameraPreview(session: camera.session).frame(height: 260).accessibilityLabel("전면 카메라 거울")
+                        }
                     }
                 }
                 .background(Color.black).clipShape(RoundedRectangle(cornerRadius: 20))
@@ -81,6 +90,18 @@ struct WorkoutView: View {
                             .frame(minHeight: 44)
                     }.accessibilityIdentifier("camera.toggle")
                     Text(camera.message).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("camera.status")
+                    if camera.supportsTracking {
+                        Text("추정 횟수 \(workout.currentRepetitions)회")
+                            .font(.title2.monospacedDigit().bold()).accessibilityIdentifier("workout.repetitions")
+                        Text(camera.observation == nil ? "거울을 켜면 얼굴 메쉬와 움직임 변화를 기기 안에서만 처리해요. 얼굴 데이터는 저장하지 않아요." : "안내 중 움직였다가 편안한 표정으로 돌아온 변화를 셉니다. 일시정지 중에는 세지 않아요.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                        Text("횟수는 참고용 추정값으로, 놓치거나 중복될 수 있어요. 자연스러운 눈깜박임도 포함될 수 있고 모음 종류는 구분하지 않아요. 횟수를 맞추려고 무리하지 마세요.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    }
+                    Toggle("음성 안내", isOn: $voiceCues).accessibilityIdentifier("workout.voice")
+                    Button("안내 듣기") { voiceCues = true; speak(workout.movement.title + ". " + workout.movement.instructions.joined(separator: " ")) }
+                        .frame(minHeight: 44).accessibilityIdentifier("workout.listen")
+                    if let error = voice.error { Text(error).font(.footnote).foregroundStyle(.orange) }
                     if camera.state == .denied {
                         Button("설정에서 카메라 권한 확인") {
                             if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
@@ -150,6 +171,12 @@ struct WorkoutView: View {
                 LabeledContent("움직인 시간", value: "\(record.activeSeconds)초")
                 LabeledContent("안내 시간을 마친 동작", value: "\(record.completedSteps) / \(record.plannedSteps)")
                 LabeledContent("세션 상태", value: record.isComplete ? "전체 안내 완료" : "중간에 마침")
+                if let counts = record.estimatedRepetitions {
+                    ForEach(record.movementTitles, id: \.self) { title in
+                        if let count = counts[title] { LabeledContent(title, value: "추정 \(count)회") }
+                    }
+                    Text("추정 횟수는 표정 변화의 참고 기록이며, 운동 수행·정확성이나 임상적 상태를 판정하지 않습니다.").font(.footnote).foregroundStyle(.secondary)
+                }
                 Text("일시정지와 동작 사이 휴식은 시간에 포함하지 않습니다. 기록은 운동한 시간이며, 동작의 정확성이나 근육 상태에 대한 평가가 아닙니다.")
                     .font(.footnote).foregroundStyle(.secondary)
                 if let error = workout.saveError {
@@ -169,9 +196,6 @@ struct WorkoutView: View {
     }
     private func speak(_ text: String) {
         guard voiceCues else { return }
-        let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: "ko-KR")
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.85
-        speech.speak(utterance)
+        voice.speak(text)
     }
 }

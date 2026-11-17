@@ -89,11 +89,16 @@ final class FaceFitnessUITests: XCTestCase {
         app.buttons["routine.daily"].tap()
         app.buttons["routine.start"].tap()
         app.buttons["camera.toggle"].tap()
-        app.tap() // Let XCTest handle a system permission dialog on a fresh simulator.
+        let permission = XCUIApplication(bundleIdentifier: "com.apple.springboard").alerts.firstMatch
+        if permission.waitForExistence(timeout: 5) {
+            let deny = permission.buttons.matching(NSPredicate(format: "identifier CONTAINS[c] %@ OR label == %@ OR label == %@ OR label == %@", "deny", "허용 안 함", "Don’t Allow", "Don't Allow")).firstMatch
+            XCTAssertTrue(deny.exists, "Only the camera denial control should be handled")
+            deny.tap()
+        }
         let status = app.staticTexts["camera.status"]
         let fallback = NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "카메라 접근이 꺼져", "전면 카메라를 사용할 수 없어요")
         let ready = XCTNSPredicateExpectation(predicate: fallback, object: status)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 6), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 6), .completed, "Actual camera state: \(status.label)")
         XCTAssertTrue(app.buttons["workout.primary"].isHittable)
         app.buttons["workout.primary"].tap()
         XCTAssertEqual(app.staticTexts["workout.status"].label, "진행 중")

@@ -1,4 +1,5 @@
 import AVFoundation
+import ARKit
 import SwiftUI
 import UIKit
 
@@ -33,6 +34,21 @@ private final class CapturePipeline: @unchecked Sendable {
 final class CameraModel: ObservableObject {
     enum State: Equatable { case off, requesting, active, denied, unavailable, interrupted }
     @Published private(set) var state: State = .off
+    @Published private(set) var observation: FaceObservation?
+    let supportsTracking = ARFaceTrackingConfiguration.isSupported
+    lazy var trackingPipeline = FaceTrackingPipeline(sample: { [weak self] request, observation in
+        Task { @MainActor [weak self] in
+            guard let self, request == self.generation else { return }
+            guard UIApplication.shared.applicationState == .active else { self.stop(); return }
+            self.state = .active
+            self.observation = observation
+        }
+    }, interrupted: { [weak self] request in
+        Task { @MainActor [weak self] in
+            guard let self, request == self.generation else { return }
+            self.stop(as: .interrupted)
+        }
+    })
     private let pipeline = CapturePipeline()
     private var generation = 0
     private var permissionInFlight = false
@@ -43,7 +59,7 @@ final class CameraModel: ObservableObject {
         switch state {
         case .off: "카메라는 꺼져 있어요"
         case .requesting: "카메라를 준비하고 있어요"
-        case .active: "거울 모드 · 사진과 영상은 저장하지 않아요"
+        case .active: supportsTracking ? (observation == nil ? "얼굴을 화면 안에 편안히 두세요" : "얼굴 메쉬 추적 중 · 기기 안에서만 처리해요") : "거울 모드 · 이 기기는 자동 횟수 추적을 지원하지 않아요"
         case .denied: "카메라 접근이 꺼져 있어요. 안내 그림으로 계속할 수 있습니다."
         case .unavailable: "전면 카메라를 사용할 수 없어요. 안내 그림으로 계속하세요."
         case .interrupted: "카메라가 중단됐어요. 준비되면 다시 켜주세요."
@@ -93,7 +109,11 @@ final class CameraModel: ObservableObject {
         pendingPermission = nil
         beginCapture(request: request)
     }
+    func expireObservation() {
+        if let observation, ProcessInfo.processInfo.systemUptime - observation.timestamp > 0.5 { self.observation = nil }
+    }
     private func beginCapture(request: Int) {
+        if supportsTracking { trackingPipeline.start(request: request); return }
         pipeline.start { [weak self] running in
             Task { @MainActor [weak self] in
                 guard let self, request == self.generation else { return }
@@ -106,6 +126,8 @@ final class CameraModel: ObservableObject {
         generation += 1
         pendingPermission = nil
         pipeline.stop()
+        if supportsTracking { trackingPipeline.stop() }
+        observation = nil
         self.state = state
     }
 }

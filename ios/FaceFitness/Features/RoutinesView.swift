@@ -85,7 +85,7 @@ struct RoutineDetailView: View {
                     .font(.footnote).foregroundStyle(.secondary)
             } header: { Text("안내 시간 선택") }
             Section {
-                Text("카메라를 켜지 않아도 운동할 수 있어요. 움직임을 분석하거나 평가하지 않습니다.").font(.footnote).foregroundStyle(.secondary)
+                Text("카메라를 켜지 않아도 운동할 수 있어요. 켜면 지원 기기에서 얼굴 메쉬와 추정 횟수를 보여줍니다. 동작 정확성이나 건강 상태는 평가하지 않습니다.").font(.footnote).foregroundStyle(.secondary)
             }
         }
         .navigationTitle("루틴 안내").navigationBarTitleDisplayMode(.inline)

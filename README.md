@@ -1,6 +1,6 @@
 # Face Fitness
 
-The shipping candidate is the **native SwiftUI iOS app** in [`ios/`](ios/). It provides guided facial movement practice, an optional front-camera mirror and device-local workout history. It contains no assessment, diagnosis, prescription, activation/strength/accuracy scores, accounts, cloud sync or analytics.
+The shipping candidate is the **native SwiftUI iOS app** in [`ios/`](ios/). It provides guided facial movement practice, an optional front-camera mirror with ARKit face mesh/estimated expression-cycle counts, Korean spoken guidance and device-local workout history. It contains no assessment, diagnosis, prescription, activation/strength/accuracy scores, accounts, cloud sync or analytics.
 
 The root HTML/JavaScript files are a separate legacy web prototype. They are **not bundled in the iOS app**. Their unvalidated metrics, auth, storage and demo behavior must not be described as features of the iOS candidate. The anatomical-sides web PR remains independently owned.
 
