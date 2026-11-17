@@ -59,3 +59,9 @@ VoiceOver, permission revocation, a real incoming call/lock, long-session heat/b
 Retain the Draft branch/PR and final source, development archive, distribution IPA, signing/processing readbacks, test results and local-helper rollback backups. Do not delete unpublished work or the existing credentials/provisioning/daemon. Task-created simulator IDs are A77D1FC5-39DC-4289-9BFE-1EF2F8EB8FEB and 922A1697-E687-40F4-8B07-355DBF276ADF; shut down/delete only these after tests. Dispose of task-only build caches, superseded candidate copies and expired signed-upload reservations after preserving deliverables. Keep the existing phone supervisor lifecycle; release only this task's owner lease when yielding.
 
 Next dependent action is the pending human iPhone reconnect. Independent implementation/signing/upload and draft metadata preparation have been completed; do not repeat successful builds/uploads merely to check status.
+
+## Build 3 mesh follow-up — in progress
+
+The iPhone was rediscovered and one supported reconnect reached ready/drivable. Installed the final build 2 development archive successfully (an earlier partial build-2 installation could not prove the final binary revision). User now confirms audible speech and repetition counting work, but reports no visible mesh. This is a known build-2 rendering defect; its VALID processing state is not evidence of a correct mesh.
+
+The preview was attached only after ARSession began delivering frames. Build 3 configures an explicit Metal SceneKit scene with continuous rendering and attaches it before running the face-tracking session, preserving the first face-anchor creation event. The preview is mounted during the requesting state; capture still starts only after camera authorization. Camera-off/background privacy behavior and counter/speech algorithms are unchanged. Build 3 archive and physical mesh verification are in progress; no new App Review submission is authorized.

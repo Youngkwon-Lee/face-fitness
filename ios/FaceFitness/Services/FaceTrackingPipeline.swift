@@ -32,6 +32,7 @@ final class FaceTrackingPipeline: NSObject, ARSessionDelegate, ARSCNViewDelegate
     private var lastDelivered: TimeInterval = 0
     private let sample: @Sendable (Int, FaceObservation?) -> Void
     private let interrupted: @Sendable (Int) -> Void
+    @MainActor private weak var preview: ARSCNView?
 
     init(sample: @escaping @Sendable (Int, FaceObservation?) -> Void, interrupted: @escaping @Sendable (Int) -> Void) {
         self.sample = sample
@@ -40,12 +41,28 @@ final class FaceTrackingPipeline: NSObject, ARSessionDelegate, ARSCNViewDelegate
         session.delegate = self
         session.delegateQueue = DispatchQueue(label: "kr.co.kinelo.facefitness.tracking")
     }
-    func start(request: Int) {
+    @MainActor func start(request: Int) {
         lock.lock()
         self.request = request
         startedAt = ProcessInfo.processInfo.systemUptime
         lastDelivered = 0
         lock.unlock()
+        // Attach the renderer before running, so it receives the first face
+        // anchor's creation event as well as later geometry updates.
+        if preview != nil { runSession() }
+    }
+    @MainActor func attach(_ view: ARSCNView) {
+        preview = view
+        lock.lock(); let pending = request != nil; lock.unlock()
+        if pending { runSession() }
+    }
+    @MainActor func detach(_ view: ARSCNView) {
+        guard preview === view else { return }
+        preview = nil
+        view.delegate = nil
+        session.pause()
+    }
+    @MainActor private func runSession() {
         let configuration = ARFaceTrackingConfiguration()
         configuration.maximumNumberOfTrackedFaces = 1
         configuration.isLightEstimationEnabled = false
@@ -102,19 +119,22 @@ final class FaceTrackingPipeline: NSObject, ARSessionDelegate, ARSCNViewDelegate
 
 struct FaceMeshPreview: UIViewRepresentable {
     let pipeline: FaceTrackingPipeline
+    func makeCoordinator() -> FaceTrackingPipeline { pipeline }
     func makeUIView(context: Context) -> ARSCNView {
-        let view = ARSCNView(frame: .zero)
+        let view = ARSCNView(frame: .zero, options: [SCNView.Option.preferredRenderingAPI.rawValue: SCNRenderingAPI.metal.rawValue])
+        view.scene = SCNScene()
+        view.rendersContinuously = true
         view.session = pipeline.session
         view.session.delegate = pipeline
         view.delegate = pipeline
         view.preferredFramesPerSecond = 30
         view.automaticallyUpdatesLighting = false
         view.accessibilityLabel = "전면 카메라와 얼굴 메쉬"
+        pipeline.attach(view)
         return view
     }
     func updateUIView(_ view: ARSCNView, context: Context) {}
-    static func dismantleUIView(_ view: ARSCNView, coordinator: ()) {
-        view.delegate = nil
-        view.session.pause()
+    static func dismantleUIView(_ view: ARSCNView, coordinator: FaceTrackingPipeline) {
+        coordinator.detach(view)
     }
 }

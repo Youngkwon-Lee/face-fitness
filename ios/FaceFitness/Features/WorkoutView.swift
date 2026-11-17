@@ -75,12 +75,10 @@ struct WorkoutView: View {
                     Image(workout.movement.artwork).resizable().scaledToFit()
                         .frame(maxWidth: .infinity, minHeight: 190, maxHeight: 260)
                         .accessibilityLabel(workout.movement.title + " 안내 그림")
-                    if camera.state == .active {
-                        if camera.supportsTracking {
-                            FaceMeshPreview(pipeline: camera.trackingPipeline).frame(height: 260)
-                        } else {
-                            CameraPreview(session: camera.session).frame(height: 260).accessibilityLabel("전면 카메라 거울")
-                        }
+                    if camera.supportsTracking && (camera.state == .requesting || camera.state == .active) {
+                        FaceMeshPreview(pipeline: camera.trackingPipeline).frame(height: 260)
+                    } else if camera.state == .active {
+                        CameraPreview(session: camera.session).frame(height: 260).accessibilityLabel("전면 카메라 거울")
                     }
                 }
                 .background(Color.black).clipShape(RoundedRectangle(cornerRadius: 20))
