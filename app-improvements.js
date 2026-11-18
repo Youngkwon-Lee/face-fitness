@@ -87,7 +87,7 @@
       const video = document.getElementById('video');
       coachState = coach?.update({
         time: performance.now(), resultTime: resultAt, cameraActive,
-        landmarks: typeof facePoseFresh === 'function' && facePoseFresh() ? (lastFaceResults?.multiFaceLandmarks?.[0] || null) : null,
+        landmarks: typeof facePoseFresh === 'function' && facePoseFresh() ? (analysisLandmarks || null) : null,
         aspect: video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 1,
         exercise: current(), phase: exState
       });

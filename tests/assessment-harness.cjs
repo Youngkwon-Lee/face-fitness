@@ -6,7 +6,7 @@ const html=fs.readFileSync(process.env.FACE_ASSESSMENT_HOST_SOURCE || path.join(
 const inline=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('const SUPABASE_URL'));
 const readyBL={n:45,leftCornerY:0.5,rightCornerY:0.5,leftBrowY:0.4,rightBrowY:0.4,earL:0.3,earR:0.3,jawH:0,mouthW:0.2,glabellarD:0.1,foreheadY:0.2};
 const scalarSample={cornerLY:0.5,cornerRY:0.5,browLY:0.4,browRY:0.4,earL:0.3,earR:0.3,mouthH:0,mouthW:0.2,glabellarD:0.1,foreheadY:0.2,relSmileL:0.01,relSmileR:0.01,relBrowL:0.01,relBrowR:0.01,relJaw:0.02,corrugator:0,frontalBrow:0,platysma:0,symScore:90};
-function fixture({qa=true,missingPolicy=false,policyOverride=undefined,samples=true,silence=true}={}){
+function fixture({qa=true,missingPolicy=false,policyOverride=undefined,samples=true,silence=true,metricQA=false,search=undefined,demo=undefined}={}){
  const audit={media:0,images:0,storageReads:0,storageWrites:0,network:0,client:0},elements=new Map(),storage=new Map(),timers=new Map();let now=0,nextId=1,sampling=samples;
  function element(id){if(!elements.has(id)){const classes=new Set();let inner='';elements.set(id,{id,hidden:false,style:{},dataset:{},textContent:'',disabled:false,videoWidth:0,videoHeight:0,srcObject:null,
  classList:{add:x=>classes.add(x),remove:x=>classes.delete(x),contains:x=>classes.has(x),toggle(x,on){if(on===undefined)on=!classes.has(x);on?classes.add(x):classes.delete(x);}},
@@ -15,7 +15,7 @@ function fixture({qa=true,missingPolicy=false,policyOverride=undefined,samples=t
  const document={getElementById:id=>elements.get(id)||null,addEventListener(){},querySelectorAll:selector=>selector==='.assess-card'?[...elements.values()].filter(e=>e.id.startsWith('ac_')):[],querySelector:()=>null,createElement(){audit.images++;throw Error('DENIED media element creation');}};
  const clockDate=class extends Date{constructor(...args){super(...(args.length?args:[946684800000+now]));}static now(){return now;}};
  const add=(fn,delay,repeat)=>{const id=nextId++;timers.set(id,{fn,due:now+delay,repeat:repeat?delay:0});return id;};
- const context=vm.createContext({document,Date:clockDate,URLSearchParams,FaceFrameGeometry:geometry,FaceAssessmentSafety:missingPolicy?undefined:(policyOverride===undefined?policy:policyOverride),location:{search:qa?'?assessmentQA=1':''},addEventListener(){},console:{log(){},warn(){}},
+ const context=vm.createContext({document,Date:clockDate,URLSearchParams,FaceFrameGeometry:geometry,FaceMetricGeometry:require('../face-metric-geometry.js'),FaceMovementMeasurement:require('../face-measurement.js'),FACE_INTERVIEW_DEMO:demo??metricQA,FaceAssessmentSafety:missingPolicy?undefined:(policyOverride===undefined?policy:policyOverride),location:{search:search??(qa?'?assessmentQA=1':metricQA?'?demo=1&metricQA=1':'')},addEventListener(){},console:{log(){},warn(){}},
  navigator:{mediaDevices:{getUserMedia(){audit.media++;throw Error('DENIED camera');}}},FaceMesh:function(){audit.media++;throw Error('DENIED model');},supabase:{createClient(){audit.client++;throw Error('DENIED SDK');}},fetch(){audit.network++;throw Error('DENIED network');},
  localStorage:{getItem(k){audit.storageReads++;return storage.get(k)||null},setItem(k,v){audit.storageWrites++;storage.set(k,v)}},
  setTimeout:(fn,d)=>add(fn,d,false),clearTimeout:id=>timers.delete(id),setInterval:(fn,d)=>add(fn,d,true),clearInterval:id=>timers.delete(id),requestAnimationFrame(){throw Error('DENIED animation/media loop');},alert(){}});

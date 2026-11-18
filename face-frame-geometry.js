@@ -11,7 +11,8 @@
   const RAD = Math.PI / 180;
   const LIMIT = Object.freeze({ margin: .01, minEye: .07, maxEye: 1,
     absoluteRoll: 20 * RAD, relativeRoll: 15 * RAD, minScale: .75,
-    maxScale: 1.33, nose: .16, depth: .35, aspect: .02 });
+    // Conservative relative pose hold after observed angle-to-expression mixing.
+    maxScale: 1.33, nose: .04, depth: .08, noseDepth: .02, aspect: .02 });
   const ANCHORS = [33, 263, 1, 10, 152, 234, 454];
   const REF_KEYS = ['version', 'aspect', 'eyeX', 'eyeY', 'eyeDistance',
     'roll', 'noseHorizontal', 'noseVertical'];
@@ -24,10 +25,11 @@
 
   function validReference(ref) {
     return ref && typeof ref === 'object' && !Array.isArray(ref) &&
-      REF_KEYS.every(key => finite(ref[key])) && ref.version === 1 &&
+      REF_KEYS.every(key => finite(ref[key])) && ref.version === 2 &&
       ref.aspect > 0 && ref.eyeDistance >= LIMIT.minEye &&
       ref.eyeDistance <= LIMIT.maxEye && Math.abs(ref.roll) <= LIMIT.absoluteRoll &&
-      (ref.eyeDepth === undefined || finite(ref.eyeDepth));
+      (ref.eyeDepth === undefined || finite(ref.eyeDepth)) &&
+      (ref.noseDepth === undefined || finite(ref.noseDepth));
   }
 
   function project(landmarks, reference = null, dimensions = {}) {
@@ -70,8 +72,16 @@
     // MediaPipe z is approximately in normalized image-width units, like x.
     const eyeDepth = finite(left.z) && finite(right.z)
       ? (right.z - left.z) * aspect / eyeDistance : undefined;
+    // Relative nose-to-eye depth supplies a pitch guard that the 2D nose
+    // position alone can miss. This is a pose-change proxy, NOT angle degrees.
+    const noseDepth = finite(nose.z) && finite(left.z) && finite(right.z)
+      ? (nose.z - (left.z + right.z) / 2) * aspect / eyeDistance : undefined;
+    if (dimensions.requirePoseDepth && (eyeDepth === undefined || noseDepth === undefined ||
+        (reference && (reference.eyeDepth === undefined || reference.noseDepth === undefined))))
+      return reject('pose_depth_missing');
     if (![eyeX, eyeY, noseHorizontal, noseVertical].every(finite) ||
-        (eyeDepth !== undefined && !finite(eyeDepth))) return reject('invalid_geometry');
+        (eyeDepth !== undefined && !finite(eyeDepth)) ||
+        (noseDepth !== undefined && !finite(noseDepth))) return reject('invalid_geometry');
 
     let fixed = reference;
     if (fixed) {
@@ -83,11 +93,14 @@
       if (Math.abs(noseVertical - fixed.noseVertical) > LIMIT.nose) return reject('pitch_drift');
       if (eyeDepth !== undefined && fixed.eyeDepth !== undefined &&
           Math.abs(eyeDepth - fixed.eyeDepth) > LIMIT.depth) return reject('depth_drift');
+      if (noseDepth !== undefined && fixed.noseDepth !== undefined &&
+          Math.abs(noseDepth - fixed.noseDepth) > LIMIT.noseDepth) return reject('pitch_depth_drift');
     } else {
       // Flat, numeric-only, immutable reference. No face images or point arrays.
-      fixed = { version: 1, aspect, eyeX, eyeY, eyeDistance, roll,
+      fixed = { version: 2, aspect, eyeX, eyeY, eyeDistance, roll,
         noseHorizontal, noseVertical };
       if (eyeDepth !== undefined) fixed.eyeDepth = eyeDepth;
+      if (noseDepth !== undefined) fixed.noseDepth = noseDepth;
       Object.freeze(fixed);
     }
     // No absolute nose/frontality gate: neutral morphology varies. A first

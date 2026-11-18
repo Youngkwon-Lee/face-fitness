@@ -129,3 +129,16 @@ test('server history sync reads exercise records only, never the missing assessm
   await f.run('syncCloudHistory()');
   assert.deepEqual([...f.context.__tables],['mobile_exercise_sessions']);
 });
+
+test('metric-mode coach receives validated analysis points, never raw posed landmarks',async()=>{
+ const {mesh}=require('./facial-fixture.cjs'),{metricFace,posedRaw}=require('./metric-fixture.cjs');
+ const raw=posedRaw(mesh(),{yaw:.1}),geo=metricFace(mesh(),{yaw:.1});
+ const f=integrated({qa:false,metricQA:true});
+ f.context.FaceMesh=function(){let cb;return{setOptions(){},onResults(fn){cb=fn},async initialize(){},async send(){cb({multiFaceLandmarks:[raw],multiFaceGeometry:[geo]})}}};
+ await f.run('loadFM()');f.run('cameraActive=true;drawFaceOnBoth=()=>{};lastVideoTime=-1');
+ Object.assign(f.element('video'),{videoWidth:640,videoHeight:480,readyState:4,currentTime:1});f.context.requestAnimationFrame=()=>{};
+ await f.run('frameLoop()');const input=f.context.__coachUpdates.at(-1);
+ assert.ok(input.landmarks);assert.equal(input.landmarks.length,468);assert.notEqual(input.landmarks,raw);
+ assert.equal(JSON.stringify(input.landmarks),f.run('JSON.stringify(analysisLandmarks)'));
+ assert.notEqual(input.landmarks[33].z,raw[33].z);assert.equal(f.audit.network,0);assert.equal(f.audit.storageWrites,0);
+});
