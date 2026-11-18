@@ -1,1 +1,8 @@
 .vercel
+.DS_Store
+ios/**/xcuserdata/
+ios/**/.build/
+ios/**/.swiftpm/
+ios/DerivedData/
+ios/*.xcarchive/
+ios/*.ipa
