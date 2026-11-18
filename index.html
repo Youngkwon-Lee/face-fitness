@@ -611,6 +611,8 @@ body.interview-demo #historyNavBtn{display:none !important;}
         <button class="btn btn-grad" id="aStartBtn" onclick="startStaticPhase()" disabled>Phase 1 정적 평가</button>
         <button class="btn btn-secondary" id="aSkipBtn" onclick="skipTest()" disabled style="display:none">평가 중단</button>
         <span id="aPhaseTag" style="font-size:.65rem;color:var(--dim);display:none;"></span>
+        <!-- Compact paid-report entry, filled after an assessment completes (paid-report.js). -->
+        <div id="premiumReportInline" style="display:none;"></div>
       </div>
 
       <!-- Timer (during assess) -->
@@ -1026,6 +1028,8 @@ body.interview-demo #historyNavBtn{display:none !important;}
       <div style="font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:6px;"><span id="assessPrescriptionTitle">맞춤 프로그램 처방</span></div>
       <div id="aoPrescription" style="font-size:.78rem;color:var(--text);line-height:1.7;"></div>
     </div>
+    <!-- Paid AI report card is rendered here by paid-report.js (nothing is sent until a code is entered). -->
+    <div id="premiumReportSlot"></div>
     <div style="display:flex;gap:8px;margin-top:14px;">
       <button class="btn btn-secondary" style="flex:1;" onclick="closeAssessOverlay()">닫기</button>
       <button class="btn btn-grad" style="flex:1;" onclick="goToProgram()">운동 시작 →</button>
@@ -4542,5 +4546,10 @@ function renderHistory() {
 <script src="movement-coach.js"></script>
 <script src="exercise-cloud.js"></script>
 <script src="app-improvements.js"></script>
+<script>
+// Paid AI report: set the real product URL and price here when the listing goes live.
+window.FF_REPORT_CONFIG = { productUrl: 'https://www.latpeed.com/stores/FdTnv', priceLabel: '4,900원' };
+</script>
+<script src="paid-report.js"></script>
 </body>
 </html>
