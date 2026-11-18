@@ -432,7 +432,7 @@
       return true;
     }
     if (button) { button.disabled = true; button.textContent = '생성 중...'; }
-    message(msgTarget, '리포트를 만들고 있습니다. 보통 10초 안에 끝납니다.', 'info');
+    message(msgTarget, '리포트를 만들고 있습니다. 보통 20~30초 걸립니다. 화면을 닫지 말고 기다려 주세요.', 'info');
     try {
       var data = await requestReport(payload, code);
       setCached(key, data.report);
