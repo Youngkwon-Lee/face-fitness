@@ -57,12 +57,9 @@ MediaPipe(`tasks-core`)에는 Google datatransport 사용 통계 라이브러리
 
 ## 4. App content 나머지 항목
 
-- **Privacy policy URL: 필수인데 아직 없다.** 카메라 권한을 요청하는 앱은 개인정보처리방침이 있어야 한다.
-  - 저장소에서 공개된 방침 URL을 찾지 못했다.
-  - iOS App Store에 등록한 URL이 있으면 그 URL을 쓰고, Android 문구를 추가한다.
-    - 카메라 영상은 기기 안에서만 처리
-    - 기록은 기기에만 저장
-    - 서버 전송 없음
+- **Privacy policy URL:** `https://face-fitness.vercel.app/privacy.html`
+  - 페이지는 PR #18에서 추가했다. 머지해서 Vercel에 배포된 뒤에 Play Console에 입력한다.
+  - Android 앱의 처리 방식이 들어 있다: 카메라는 기기 안에서만 처리, 기록은 기기에만 저장, 네트워크 권한 없음.
 - **App access:** 로그인 없이 모든 기능을 쓸 수 있다.
 - **Ads:** 없음.
 - **Content rating:** 설문을 소유자가 작성한다(사용자 간 상호작용 없음).
