@@ -6,6 +6,14 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// Play upload key, kept outside the repository (for example in ~/.gradle/gradle.properties).
+// Without all four properties the release bundle stays unsigned.
+val uploadStoreFile = providers.gradleProperty("FACE_FITNESS_UPLOAD_STORE_FILE").orNull
+val uploadStorePassword = providers.gradleProperty("FACE_FITNESS_UPLOAD_STORE_PASSWORD").orNull
+val uploadKeyAlias = providers.gradleProperty("FACE_FITNESS_UPLOAD_KEY_ALIAS").orNull
+val uploadKeyPassword = providers.gradleProperty("FACE_FITNESS_UPLOAD_KEY_PASSWORD").orNull
+val hasUploadKey = listOf(uploadStoreFile, uploadStorePassword, uploadKeyAlias, uploadKeyPassword).all { !it.isNullOrBlank() }
+
 android {
     namespace = "kr.co.kinelo.facefitness"
     compileSdk = 36
@@ -19,8 +27,20 @@ android {
         versionName = "1.0.0"
     }
 
+    signingConfigs {
+        if (hasUploadKey) {
+            create("upload") {
+                storeFile = file(uploadStoreFile!!)
+                storePassword = uploadStorePassword
+                keyAlias = uploadKeyAlias
+                keyPassword = uploadKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (hasUploadKey) signingConfig = signingConfigs.getByName("upload")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
